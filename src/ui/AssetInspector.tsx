@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CatalogueAsset } from '../assets/catalogue-types';
 import type { AssetManifest } from '../assets/definitions';
+import { presentationAnimations } from '../assets/presentation-animations';
+import { toolEffectBindings } from '../assets/sprite-attachments';
+import { TongueInspector } from './TongueInspector';
 import { heroAnimations } from '../assets/hero-animations';
 
 export function AssetInspector({
@@ -13,7 +16,9 @@ export function AssetInspector({
   const textureIds = textures
     .filter((texture) => texture.canonicalId === asset.id)
     .map((texture) => texture.id);
-  const sequences = heroAnimations.filter((animation) => textureIds.includes(animation.texture));
+  const sequences = [...heroAnimations, ...presentationAnimations].filter((animation) =>
+    textureIds.includes(animation.texture),
+  );
   const [sequenceId, setSequenceId] = useState(sequences[0]?.id ?? '');
   const sequence = sequences.find((animation) => animation.id === sequenceId);
   const [frame, setFrame] = useState(0);
@@ -21,6 +26,7 @@ export function AssetInspector({
   const [zoom, setZoom] = useState(asset.width > 256 ? 1 : 4);
   const [grid, setGrid] = useState(true);
   const [anchors, setAnchors] = useState(true);
+  const [sockets, setSockets] = useState(true);
   const [hitbox, setHitbox] = useState(false);
   const [guide, setGuide] = useState({ x: 5, y: 10, width: 6, height: 4 });
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -48,10 +54,10 @@ export function AssetInspector({
   useEffect(() => {
     if (!playing || !sequence) return;
     const delay = sequence.frames[frame]?.durationMs ?? 100;
-    const timer = window.setTimeout(
-      () => setFrame((current) => (current + 1) % sequence.frames.length),
-      delay,
-    );
+    const timer = window.setTimeout(() => {
+      if (frame + 1 === sequence.frames.length && !sequence.loop) setPlaying(false);
+      else setFrame((current) => (current + 1) % sequence.frames.length);
+    }, delay);
     return () => window.clearTimeout(timer);
   }, [playing, sequence, frame]);
 
@@ -100,6 +106,11 @@ export function AssetInspector({
       context.lineTo(x, y + 7);
       context.stroke();
     }
+    if (sockets && clip)
+      for (const socket of clip.sockets ?? []) {
+        context.fillStyle = '#f7a5ff';
+        context.fillRect(socket.x * zoom - 2, socket.y * zoom - 2, 4, 4);
+      }
     if (hitbox) {
       context.strokeStyle = '#ff718d';
       context.strokeRect(guide.x * zoom, guide.y * zoom, guide.width * zoom, guide.height * zoom);
@@ -113,6 +124,7 @@ export function AssetInspector({
     grid,
     anchors,
     hitbox,
+    sockets,
     guide,
     asset.suggestedCell,
     sequence,
@@ -162,7 +174,10 @@ export function AssetInspector({
         <button
           className="button button-subtle"
           disabled={!sequence}
-          onClick={() => setPlaying((value) => !value)}
+          onClick={() => {
+            if (!playing && sequence && frame === sequence.frames.length - 1) setFrame(0);
+            setPlaying((value) => !value);
+          }}
         >
           {playing ? 'Stop animation' : 'Play animation'}
         </button>
@@ -192,6 +207,14 @@ export function AssetInspector({
         </div>
       )}
       <div className="inspector-toggles">
+        <label>
+          <input
+            type="checkbox"
+            checked={sockets}
+            onChange={(event) => setSockets(event.target.checked)}
+          />{' '}
+          Attachment sockets
+        </label>
         <label>
           <input
             type="checkbox"
@@ -248,6 +271,19 @@ export function AssetInspector({
           aria-label={`${asset.identity} pixel preview`}
         />
       </div>
+      {textureIds.includes('king-tongue-pieces') && <TongueInspector image={image} />}
+      {clip?.sockets && (
+        <ul>
+          {clip.sockets.map((socket) => (
+            <li key={socket.id}>
+              <code>
+                {socket.id}: {socket.x},{socket.y}
+              </code>{' '}
+              — {toolEffectBindings.find((binding) => binding.socket === socket.id)?.note}
+            </li>
+          ))}
+        </ul>
+      )}
       {error && <p role="alert">{error}</p>}
       <p>{asset.suggestedUse}</p>
       <p className="asset-technical">

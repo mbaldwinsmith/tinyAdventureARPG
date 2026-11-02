@@ -23,6 +23,15 @@ export const HERO_ACTIONS = [
   'pull',
   'swim-idle',
   'swim',
+  'axe',
+  'hoe',
+  'pickaxe',
+  'water',
+  'fish-cast',
+  'fish-wait',
+  'fish-pull',
+  'hook',
+  'magic',
 ] as const;
 export type HeroAction = (typeof HERO_ACTIONS)[number];
 export const DIRECTIONS = ['down', 'left', 'up', 'right'] as const;
@@ -47,6 +56,7 @@ export const heroAnimationSchema = z.object({
         width: z.number().int().positive(),
         height: z.number().int().positive(),
         durationMs: z.number().int().positive(),
+        sockets: z.array(z.object({ id: z.string(), x: coordinate, y: coordinate })).optional(),
       }),
     )
     .min(1),
@@ -82,6 +92,10 @@ export function validateHeroAnimations(
         throw new Error(`Frame index/rectangle disagree: ${animation.id}`);
       if (animation.foot.x > frame.width || animation.foot.y > frame.height)
         throw new Error(`Foot anchor outside frame: ${animation.id}`);
+      for (const socket of frame.sockets ?? []) {
+        if (socket.x > frame.width || socket.y > frame.height)
+          throw new Error(`Attachment socket outside frame: ${animation.id}`);
+      }
     }
   }
   for (const hero of HERO_IDS)

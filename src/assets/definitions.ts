@@ -14,6 +14,7 @@ export const sourceSchema = z
     id: z.string().regex(/^[a-z0-9-]+$/),
     archive: safeArchive,
     path: safePath,
+    inspectionOnly: z.boolean().optional(),
     frameWidth: z.number().int().positive().optional(),
     frameHeight: z.number().int().positive().optional(),
   })
@@ -33,6 +34,7 @@ export const manifestSchema = z.object({
     z.object({
       id: z.string(),
       file: z.string(),
+      inspectionOnly: z.boolean(),
       width: z.number().int().positive(),
       height: z.number().int().positive(),
       sha256: z.string().regex(/^[a-f0-9]{64}$/),

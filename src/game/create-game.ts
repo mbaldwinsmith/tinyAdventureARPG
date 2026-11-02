@@ -55,6 +55,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
             controller.fail(`Could not load texture “${file.key}”. Rebuild assets and reload.`);
         });
         for (const asset of manifest.assets) {
+          if (asset.inspectionOnly) continue;
           const url = `${import.meta.env.BASE_URL}generated/${asset.file}`;
           if (asset.frameWidth && asset.frameHeight)
             this.load.spritesheet(asset.id, url, {

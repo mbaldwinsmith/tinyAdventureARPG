@@ -84,3 +84,85 @@ test('inspects the reviewed catalogue, plays framed art and follows an updated e
   await expect(page.getByRole('button', { name: 'Preview animation', exact: true })).toBeEnabled();
   await expect(page.locator('canvas')).toHaveCount(1);
 });
+
+test('plays tool art, holds the King death endpoint and assembles all tongue directions', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.getByLabel('Animation to preview').selectOption('hook');
+  await page.getByRole('button', { name: 'Preview animation', exact: true }).click();
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByRole('button', { name: 'Open sprite workbench' }).click();
+  const workbench = page.getByRole('region', { name: 'Sprite workbench' });
+  await workbench.getByLabel('Search sprites').fill('Boss_Death_32x48');
+  await workbench.locator('.catalogue-card').click();
+  await expect(workbench.getByLabel('Validated animation')).toHaveValue('king-death');
+  await workbench.getByRole('button', { name: 'Play animation', exact: true }).click();
+  await expect(workbench.getByTestId('frame-count')).toHaveText('6 / 6', { timeout: 8000 });
+  await expect(workbench.getByRole('button', { name: 'Play animation', exact: true })).toBeVisible({
+    timeout: 3000,
+  });
+  await expect(workbench.getByTestId('frame-count')).toHaveText('6 / 6');
+  await workbench.getByLabel('Search sprites').fill('Tongue_Attack_divided');
+  await workbench.locator('.catalogue-card').click();
+  for (const direction of ['down', 'left', 'up', 'right']) {
+    await workbench.getByLabel('Tongue direction').selectOption(direction);
+    await workbench.getByLabel('Tongue segments').fill('7');
+    await expect(workbench.getByTestId('tongue-size')).toContainText('7 middle segments');
+    const dimensions = await workbench.getByLabel('Assembled King tongue').evaluate((node) => ({
+      width: (node as HTMLCanvasElement).width,
+      height: (node as HTMLCanvasElement).height,
+    }));
+    expect(Math.max(dimensions.width, dimensions.height)).toBe(480);
+  }
+});
+
+test('matches updated goblin directions to named legacy source pixels', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByRole('button', { name: 'Open sprite workbench' }).click();
+  const workbench = page.getByRole('region', { name: 'Sprite workbench' });
+  await workbench.getByLabel('Search sprites').fill('Goblin_idle_v2');
+  await workbench.locator('.catalogue-card').click();
+  await workbench.getByLabel('Sprite zoom').selectOption('1');
+  await workbench.getByLabel('Frame/grid overlay').uncheck();
+  await workbench.getByLabel('Authored foot anchor').uncheck();
+  await workbench.getByLabel('Attachment sockets').uncheck();
+  for (const direction of ['down', 'left', 'up', 'right']) {
+    await workbench
+      .getByLabel('Validated animation')
+      .selectOption(`enemy-goblin-idle-${direction}`);
+    const expected = await page.evaluate(async (direction) => {
+      const catalogue = (await (await fetch('/__catalogue/index.json')).json()) as {
+        assets: { id: string; sources: { path: string }[] }[];
+      };
+      const legacy = catalogue.assets.find((asset) =>
+        asset.sources.some((s) => s.path.endsWith(`/Goblin/Idle/Goblin_idle_${direction}.png`)),
+      );
+      if (!legacy) throw new Error('Legacy direction reference missing');
+      const image = new Image();
+      image.src = `/__catalogue/${legacy.id}.png`;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = 16;
+      canvas.height = 16;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No reference canvas');
+      ctx.drawImage(image, 0, 0, 16, 16, 0, 0, 16, 16);
+      return Array.from(ctx.getImageData(0, 0, 16, 16).data);
+    }, direction);
+    await expect
+      .poll(async () =>
+        workbench
+          .locator('.asset-inspector > .sprite-inspection-viewport canvas')
+          .evaluate((node) => {
+            const ctx = (node as HTMLCanvasElement).getContext('2d');
+            if (!ctx) throw new Error('No inspector canvas');
+            return Array.from(ctx.getImageData(0, 0, 16, 16).data);
+          }),
+      )
+      .toEqual(expected);
+  }
+});

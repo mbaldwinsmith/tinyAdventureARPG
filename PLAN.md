@@ -109,10 +109,10 @@ The partial asset importer supports this milestone. M02 remains open for the ful
 - [x] **M02-005** Build repeatable archive reading/extraction with bounded paths and deterministic output ordering.
 - [x] **M02-006** Define explicit frame rectangles, direction rows, frame durations, loop rules and stable foot anchors for base hero actions.
 - [x] **M02-007** Define bow/shield, pickup/carry/throw, roll/hit, push/pull and swim action metadata for supported appearances.
-- [ ] **M02-008** Define farming, fishing, hook and magic action metadata and their separate tool/effect attachments.
+- [x] **M02-008** Define farming, fishing, hook and magic action metadata and their separate tool/effect attachments.
 - [x] **M02-009** Resolve the legacy dedicated boomerang pose versus modern throw-item adaptation and record the chosen presentation.
-- [ ] **M02-010** Define enemy action blocks/recolours and exclude baked labels from runtime frames.
-- [ ] **M02-011** Define the King's mixed-size body/tongue/death frames and attachable divided tongue pieces.
+- [x] **M02-010** Define enemy action blocks/recolours and exclude baked labels from runtime frames.
+- [x] **M02-011** Define the King's mixed-size body/tongue/death frames and attachable divided tongue pieces.
 - [ ] **M02-012** Define terrain adjacency/corner sets; keep old/new biome edge styles distinct and select updated shoreline art.
 - [ ] **M02-013** Define layered tree, building, furniture, boat hull/sail/fitting and oversized prop rectangles.
 - [ ] **M02-014** Define GUI slices, bitmap font mappings, status icons and device prompt mappings.
@@ -126,7 +126,7 @@ The partial asset importer supports this milestone. M02 remains open for the ful
 
 ### M02 catalogue and hero-animation delivery
 
-Ten tasks are complete in this increment: the reconciled catalogue, exact aliases, selected updated sources, bounded extraction, 456 hero sequences and development workbench. Remaining tool/enemy/King frames, terrain/layer/UI definitions, atlas packing, effects and release notices remain open. The milestone acceptance gate is not yet complete.
+Thirteen tasks are complete across the catalogue and animation increments. The first delivered the reconciled catalogue, exact aliases, selected updated sources, bounded extraction, 456 hero sequences and workbench. The second expands to 672 hero sequences plus 1,736 enemy/tool-variant/King/component sequences, with named tool sockets, explicit label/recolour blocks and divided-tongue composition. Only 158 runtime PNGs are emitted; 53 inspection-only source records stay behind the development catalogue. See `docs/sprites/animation-layouts.md` and `CHANGELOG.md` for coverage and validation. Terrain/layer/UI definitions, atlas packing, effects and release notices remain open; the milestone acceptance gate is not complete.
 
 ## M03 — Core data, time and state ownership
 

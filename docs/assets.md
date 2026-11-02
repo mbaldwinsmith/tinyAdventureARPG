@@ -4,7 +4,9 @@ Artwork is by [Vryell](https://vryell.itch.io/). The project owner owns the Tiny
 
 ## Current runtime selection
 
-The runtime imports **116 curated PNGs from five unchanged archives**: 108 updated hero sheets across six appearances and 19 registered action families (boomerang shares throw), plus eight clearing props. Sources are `TAP_anim_v2.zip`, `TAPp_anim_v2.zip`, `TDP_anim_v2.zip`, `Additional Animations.zip` and `Tiny Adventure Pack Plus.zip`.
+The importer validates **211 curated source records from 13 unchanged archives**. It emits **158 runtime PNGs**: 150 hero sheets across six appearances and 28 registered action families, plus eight clearing props. Hero sources now include the Farm animation update, Coast and Castle packs alongside the original five archives.
+
+The remaining **53 records are inspection-only**: enemy, King and detached tool sources. Their metadata is validated and available in the development workbench, while their pixels are not copied into the production build. Promote them deliberately when gameplay actually uses them.
 
 The exact case-sensitive member paths are in [`src/assets/sources.json`](../src/assets/sources.json). Each generated entry records its source hash and canonical image ID. Explicit rectangles, direction mappings, timing and reference foot anchors are in `src/assets/hero-animations.json`.
 
@@ -16,4 +18,4 @@ Run `npm run assets:build`, then `npm run assets:check`. Both fail with the logi
 
 Do not put raw ZIPs or a full source-art catalogue under `public/`. Only selected runtime PNGs and their manifest belong in `public/generated/`. A production game build contains the selected art for rendering; it is not a standalone asset pack download.
 
-Remaining farming/fishing/hook/magic and enemy/boss action definitions, atlas packing, terrain/UI metadata, gap effects and complete third-party release notices remain open M02/release tasks.
+The [animation layout contract](sprites/animation-layouts.md) documents tool sockets, 1,736 additional presentation sequences, enemy label/recolour blocks, mixed King rectangles and divided-tongue joins. Terrain/layer/UI metadata, atlas packing, gap effects and complete third-party release notices remain open M02/release tasks.
