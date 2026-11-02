@@ -4,6 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { assetSources, manifestSchema } from '../src/assets/definitions';
 import type { AssetManifest } from '../src/assets/definitions';
 import { heroAnimations, validateHeroAnimations } from '../src/assets/hero-animations';
+import {
+  presentationAnimations,
+  validatePresentationAnimations,
+} from '../src/assets/presentation-animations';
+import { validateSpriteAttachments, validateToolSockets } from '../src/assets/sprite-attachments';
 import { loadArchive, readPngSize, sha256 } from './lib/archive';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -40,6 +45,7 @@ for (const source of [...assetSources].sort((a, b) => a.id.localeCompare(b.id, '
   const record = {
     id: source.id,
     file,
+    inspectionOnly: source.inspectionOnly ?? false,
     width,
     height,
     sha256: hash,
@@ -49,12 +55,16 @@ for (const source of [...assetSources].sort((a, b) => a.id.localeCompare(b.id, '
       : {}),
   };
   manifest.assets.push(record);
+  if (source.inspectionOnly) continue;
   if (mode === 'build') await writeFile(path.join(staging, file), bytes);
   else if (sha256(await readFile(path.join(output, file))) !== hash)
     throw new Error(`Generated asset differs from source: ${file}. Run npm run assets:build.`);
 }
 manifestSchema.parse(manifest);
 validateHeroAnimations(heroAnimations, manifest.assets);
+validatePresentationAnimations(presentationAnimations, manifest.assets);
+validateSpriteAttachments(manifest.assets);
+validateToolSockets(heroAnimations);
 const serialised = JSON.stringify(manifest, null, 2) + '\n';
 if (mode === 'build') {
   await writeFile(path.join(staging, 'manifest.json'), serialised);
@@ -64,10 +74,13 @@ if (mode === 'build') {
 } else {
   if ((await readFile(path.join(output, 'manifest.json'), 'utf8')) !== serialised)
     throw new Error('Generated manifest is stale. Run npm run assets:build.');
-  const expected = [...manifest.assets.map((asset) => asset.file), 'manifest.json'].sort();
+  const expected = [
+    ...manifest.assets.filter((asset) => !asset.inspectionOnly).map((asset) => asset.file),
+    'manifest.json',
+  ].sort();
   if (JSON.stringify((await readdir(output)).sort()) !== JSON.stringify(expected))
     throw new Error('Unexpected files in generated assets.');
 }
 console.log(
-  `${mode === 'build' ? 'Built' : 'Verified'} ${manifest.assets.length} curated PNGs, ${heroAnimations.length} explicit hero sequences and ${archives.size} unchanged source archives.`,
+  `${mode === 'build' ? 'Built' : 'Verified'} ${manifest.assets.filter((asset) => !asset.inspectionOnly).length} runtime PNGs, ${manifest.assets.filter((asset) => asset.inspectionOnly).length} inspection-only records, ${heroAnimations.length} hero and ${presentationAnimations.length} presentation sequences and ${archives.size} unchanged source archives.`,
 );

@@ -796,5 +796,617 @@
     "path": "Tiny Adventure Pack Plus/Other/Misc/Chest.png",
     "frameWidth": 16,
     "frameHeight": 16
+  },
+  {
+    "id": "hero-1-axe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char1/Char_1_axe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-1-hoe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char1/Char_1_hoe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-1-pickaxe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char1/Char_1_pickaxe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-1-water",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char1/Char_1_wateringcan.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-1-fish",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Characters/char1_fishingrod_animation_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-1-hook",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char1_hook_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-1-magic",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char1_rod_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-axe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char2/Char_2_axe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-hoe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char2/Char_2_hoe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-pickaxe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char2/Char_2_pickaxe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-water",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char2/Char_2_wateringcan.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-fish",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Characters/char2_fishingrod_animation_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-hook",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char2_hook_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-magic",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char2_rod_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-axe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char3/Char_3_axe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-hoe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char3/Char_3_hoe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-pickaxe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char3/Char_3_pickaxe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-water",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char3/Char_3_wateringcan.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-fish",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Characters/char3_fishingrod_animation_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-hook",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char3_hook_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-magic",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char3_rod_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-axe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/char4/Char_4_axe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-hoe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/char4/Char_4_hoe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-pickaxe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/char4/Char_4_pickaxe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-water",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/char4/Char_4_wateringcan.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-fish",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Characters/char4_fishingrod_animation_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-hook",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char4_hook_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-magic",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char4_rod_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-axe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char5/Char_5_axe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-hoe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char5/Char_5_hoe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-pickaxe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char5/Char_5_pickaxe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-water",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char5/Char_5_wateringcan.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-fish",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Characters/char5_fishingrod_animation_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-hook",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char5_hook_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-magic",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char5_rod_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-axe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char6/Char_6_axe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-hoe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char6/Char_6_hoe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-pickaxe",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char6/Char_6_pickaxe.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-water",
+    "archive": "TFP_anim_v2.zip",
+    "path": "TFP_anim_v2/Char6/Char_6_wateringcan.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-fish",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Characters/char6_fishingrod_animation_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-hook",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char6_hook_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-magic",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Char/Char6_rod_32x32.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "tool-hook-pole",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Hook_n_pole16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "tool-magic-effect",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Magic_animation_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-bear",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Bear_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-creature",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Creature_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-ghost",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Ghost_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-shadow",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Shadow_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-toad",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Toad_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-imp",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Imp_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-beholder",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Beholder_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-mushrooms",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Mushrooms_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-necromancer",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Necromancer_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-spider",
+    "archive": "Tiny Enemies Vol1.zip",
+    "path": "Spider_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-evil-flower",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Monsters/Evil_Flower.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-fall-ghost",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Monsters/Fall_Ghost.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-santa-goblin",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Monsters/Santa_goblin.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-vulture",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Monsters/Vulture.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-goblin-idle",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Goblin/Goblin_idle_v2.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-goblin-walk",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Goblin/Goblin_walk_v2.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-goblin-bow",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Goblin/Goblin_bow_v2.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-skeleton-idle",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Skel/Skel_idle_v2.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-skeleton-walk",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Skel/Skel_walk_v2.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-zombie-idle",
+    "archive": "TDP_zombie_v2.zip",
+    "path": "TDP_zombie_v2/Zombie/Zombie_idle_v2.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-zombie-walk",
+    "archive": "TDP_zombie_v2.zip",
+    "path": "TDP_zombie_v2/Zombie/Zombie_walk_v2.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-soldier",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Enemies/Soldier_32x32.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-mimic",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Enemies/Mimic_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "king-idle",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Enemies/BOSS/Boss_idle_32x32.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "king-walk",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Enemies/BOSS/Boss_Walk_32x32.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "king-bite",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Enemies/BOSS/Boss_Bite_32x32.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "king-death",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Enemies/BOSS/Boss_Death_32x48.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "king-tongue",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Enemies/BOSS/Boss_TongueAttack_64x64.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "king-tongue-pieces",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Enemies/BOSS/Tongue_Attack_divided_32x32.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-bat-left",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Bat/Bat_left.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-bat-right",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Bat/Bat_right.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-rat-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-rat-left",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_left.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-rat-right",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_right.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-rat-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-slime-blue-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_blue_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-slime-blue-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_blue_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-slime-green-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_green_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-slime-green-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_green_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-slime-orange-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_orange_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-slime-orange-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_orange_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-slime-pink-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_pink_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-slime-pink-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_pink_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-tiny-slime-blue-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_blue_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-tiny-slime-blue-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_blue_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-tiny-slime-green-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_green_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-tiny-slime-green-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_green_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-tiny-slime-orange-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_orange_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-tiny-slime-orange-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_orange_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-tiny-slime-pink-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_pink_down.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "enemy-tiny-slime-pink-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_pink_up.png",
+    "inspectionOnly": true
   }
 ]

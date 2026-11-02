@@ -23,23 +23,23 @@ Each distinct PNG has a content-derived canonical ID, `sprite-` followed by the 
 
 Canonical preferred sources favour the dedicated update bundles and avoid the `(1)` archive copies when a plain copy exists. This chooses between **exact aliases only**. It never discards a nonidentical older animation because its filename resembles an update.
 
-| Family                       | Selected source                                             |
-| ---------------------------- | ----------------------------------------------------------- |
-| Six hero base actions        | `TAP_anim_v2.zip`                                           |
-| Bow, shield, fall, item pose | `TAPp_anim_v2.zip`                                          |
-| Pickup, carry, throw         | `TDP_anim_v2.zip`                                           |
-| Hit, roll, push/pull, swim   | `Additional Animations.zip`                                 |
-| Goblin and skeleton          | `TAP_Enemies_v2.zip`                                        |
-| Zombie                       | `TDP_zombie_v2.zip`                                         |
-| Farming/fishing/hook/magic   | Indexed, with later runtime frame definitions still pending |
+| Family                       | Selected source                                              |
+| ---------------------------- | ------------------------------------------------------------ |
+| Six hero base actions        | `TAP_anim_v2.zip`                                            |
+| Bow, shield, fall, item pose | `TAPp_anim_v2.zip`                                           |
+| Pickup, carry, throw         | `TDP_anim_v2.zip`                                            |
+| Hit, roll, push/pull, swim   | `Additional Animations.zip`                                  |
+| Goblin and skeleton          | `TAP_Enemies_v2.zip`                                         |
+| Zombie                       | `TDP_zombie_v2.zip`                                          |
+| Farming/fishing/hook/magic   | Explicit action frames and sockets; see animation-layouts.md |
 
 Modern boomerang presentation deliberately reuses each hero's updated throw-item pose. Its metadata says so explicitly. This is not a claim that a dedicated six-appearance boomerang animation was supplied; the legacy dedicated strips remain indexed.
 
 ## Authored animation contract
 
-`src/assets/hero-animations.json` defines **456 sequences: six appearances × 19 actions × four directions**, backed by 108 hero sheets. Each sequence records explicit source rectangles, grid indices, durations, reference foot anchor, directional/shared source policy and loop behaviour. Runtime import adds eight clearing props for **116 selected PNGs**.
+`src/assets/hero-animations.json` defines **672 sequences: six appearances × 28 actions × four directions**, backed by 150 hero sheets. Each sequence records explicit source rectangles, grid indices, durations, reference foot anchor, directional/shared source policy and loop behaviour. Runtime import adds eight clearing props for **158 runtime PNGs**.
 
-Four cardinal directions are down/left/up/right. Fall and celebration poses are shared where the source provides one strip/front-facing pose. Hit strips provide one directional pose per cell. Bow/sword frames are 32px; most other selected actions use 16px cells. Uniformly slicing every archive remains unsupported.
+Base hero direction rows are down/left/up/right. Tool and enemy orders differ; see [animation layouts](animation-layouts.md). Fall and celebration poses are shared where the source provides one strip/front-facing pose. Hit strips provide one directional pose per cell. Bow/sword frames are 32px; most other selected actions use 16px cells. Uniformly slicing every archive remains unsupported.
 
 `assets:check` verifies required hero/action/direction coverage, source references, frame bounds, grid/index agreement, anchors and hashes. Presentation durations/anchors are explicit editable choices inspected in the workbench; they are not combat hitbox or active-frame definitions.
 
@@ -49,4 +49,6 @@ In development, expand **Development tools → Open sprite workbench**. Search a
 
 The Vite development middleware serves reviewed previews from ignored `.cache/catalogue/`. The workbench module and the full preview image collection are absent from production builds. The public clearing includes a smaller action-preview selector, which plays artwork without granting weapons, damage, traversal or abilities.
 
-Texture atlas packing, remaining tool/enemy/boss frames, terrain adjacency, layered architectural/boat definitions, UI slices, effects and complete release notices remain open plan tasks. This delivery does not mark the entire M02 milestone complete.
+The workbench additionally plays 1,736 enemy/tool-variant/King/component sequences, displays named attachment sockets and assembles divided tongue pieces. Non-looping animations hold their last frame. Fifty-three inspection-only source records remain validated but their pixels stay out of production.
+
+Texture atlas packing, terrain adjacency, layered architectural/boat definitions, UI slices, effects and complete release notices remain open plan tasks. This delivery does not mark the entire M02 milestone complete.

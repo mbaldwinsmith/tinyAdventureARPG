@@ -17,6 +17,24 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Added — tool, enemy and King presentation
+
+- **M02-008:** Add farming, fishing, hook and magic art metadata across all six appearances: 672 total hero sequences and five supplied tool colours. Separate sockets bind held poses to future hook/tether, spell, fishing-line and farming-target effects without duplicating baked tools. All 28 action families can be previewed in the clearing.
+- **M02-010:** Define updated goblin/skeleton/zombie, all ten Enemies Vol1 sheets, four Biomes monsters, Castle soldier/mimic and legacy bat/rat/slime action rectangles. Preserve recolour blocks, omit baked label rows, retain trimmed strip sizes and distinguish missing/shared actions. Updated enemy direction rows are down/right/up/left; named legacy source pixels provide a four-direction browser regression.
+- **M02-011:** Define the King's 32px body, 32×48 death, mixed 64×64/64×32 tongue strips and independently attachable body/middle/tip pieces. Add four-direction variable-reach assembly to the workbench. Non-looping playback holds the final pose and can restart explicitly.
+- Extend `assets:check` to validate 1,736 additional presentation sequences, expected labelled-sheet dimensions, frame bounds/header exclusions, required IDs, attachment rectangles and required hero tool sockets. The 211-record curated manifest emits only 158 runtime PNGs; 53 inspection-only sources stay out of the production pixel collection.
+
+### Tool/enemy increment validation
+
+- `npm run assets:build`, `npm run check` and `npm run build` passed. Twenty Vitest tests cover missing sockets/references, baked-header rejection, mixed-frame bounds, coverage, duplicate IDs and bounded contiguous tongue assembly alongside existing rule/bridge/archive checks.
+- Six real-browser Playwright flows passed using the documented packaged-Chromium override, including exact source-pixel direction matching, hook preview selection, held King death endpoint and all four tongue assembly directions. The first browser launch found the previous temporary executable empty; re-extracting the existing packaged browser resolved it without changing project dependencies.
+- Production WebGL smoke and focused visual captures passed for the tool preview and King/workbench assembly. Verified that the build contains 158 runtime PNGs and excludes all inspection-only PNGs, raw ZIPs and the workbench module.
+- Inspected source pixels for every newly registered source family, including colour blocks, directional exceptions, trimmed strips and mixed King frames. Playback timings, sockets and reference feet remain authored presentation defaults. Raw archive hashes reconcile to the original audit; no archive or licence changes.
+
+### Tool/enemy increment limitations
+
+- Art definitions do not implement AI, combat, tool travel, fishing, farming, inventory or saves. The King and enemy workbench remains development-only. Terrain/layer/UI definitions, padded atlases, missing effects and final notices remain open, so M02 is not yet complete.
+
 ### Added — sprite catalogue and hero-animation workbench
 
 - **M02-001, M02-002, M02-003:** Import the reviewed audit metadata, reconcile all 23 unchanged ZIPs against SHA-256 baselines and generate a versioned inventory of 1,466 entries / 1,436 PNG occurrences / 716 distinct images. Content-derived canonical IDs retain every exact source alias, companion group and the three duplicate archive pairs without duplicating image bytes.
