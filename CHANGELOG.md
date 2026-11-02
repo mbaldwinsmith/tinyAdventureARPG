@@ -17,6 +17,23 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Added — terrain and layered scenery
+
+- **M02-012:** Define 35 terrain profiles: all 47 normalized New Style cases for three surfaces across five palettes, and separate Old Style border/island/concave patches with explicit unsupported topology. Select the updated 192×96 shoreline and define its two modes/four phases. Add neighbour/shape/shore controls to the workbench.
+- **M02-013:** Define 279 scenery compositions/source views for layered original/biome/palm trees, 24 house variants, furniture, large props and separate hull/sail/fitting/rider boat parts. Preserve 48×64 broad-tree cells and the trimmed 63px fittings sheet. Add layer toggles, feet/sockets and assembled previews.
+- Replace the clearing's geometric ground shapes with supplied tiled paths and grass; add a layered cottage/bench and animated pond with an empty composed boat. Trees and the actor share foot sorting. These remain authored scenery without collision or interaction systems.
+- Validate 286 curated source records from 14 unchanged archives; emit 165 runtime PNGs and retain 121 inspection-only records without their pixels in production.
+
+### Terrain/scenery validation
+
+- `npm run assets:build`, `npm run check` and `npm run build` passed. Twenty-five Vitest tests include topology normalization, Old Style failure handling, updated shoreline dimensions, composition bounds and complete nonoverlapping building partitions.
+- Eight real-browser flows passed with the documented Chromium override. New checks classify the actual source pixels for 235 New Style dirt cases, reconstruct building pixels, toggle roof layers, assemble four boat directions, play shoreline phases and verify shared pause/resume against rendered water pixels.
+- Production WebGL smoke and focused source/rendered visual checks passed, including 1440px and 800px widths without horizontal overflow. Raw archives and LICENSE are unchanged; full catalogue/inspection art and workbench modules remain excluded from production.
+
+### Terrain/scenery limitations
+
+- Old Style has no supplied thin-cap/cross vocabulary, so those cases are marked unsupported. HousesUpdate's irregular sheet remains a catalogue alternative. Reference boat rider/attachment offsets and layer cuts remain presentation choices; boarding, collision, procedural regions, interiors and village growth remain later systems. M02 still needs GUI definitions, padded atlases, presentation gaps and final notices.
+
 ### Added — tool, enemy and King presentation
 
 - **M02-008:** Add farming, fishing, hook and magic art metadata across all six appearances: 672 total hero sequences and five supplied tool colours. Separate sockets bind held poses to future hook/tether, spell, fishing-line and farming-target effects without duplicating baked tools. All 28 action families can be previewed in the clearing.

@@ -113,8 +113,8 @@ The partial asset importer supports this milestone. M02 remains open for the ful
 - [x] **M02-009** Resolve the legacy dedicated boomerang pose versus modern throw-item adaptation and record the chosen presentation.
 - [x] **M02-010** Define enemy action blocks/recolours and exclude baked labels from runtime frames.
 - [x] **M02-011** Define the King's mixed-size body/tongue/death frames and attachable divided tongue pieces.
-- [ ] **M02-012** Define terrain adjacency/corner sets; keep old/new biome edge styles distinct and select updated shoreline art.
-- [ ] **M02-013** Define layered tree, building, furniture, boat hull/sail/fitting and oversized prop rectangles.
+- [x] **M02-012** Define terrain adjacency/corner sets; keep old/new biome edge styles distinct and select updated shoreline art.
+- [x] **M02-013** Define layered tree, building, furniture, boat hull/sail/fitting and oversized prop rectangles.
 - [ ] **M02-014** Define GUI slices, bitmap font mappings, status icons and device prompt mappings.
 - [ ] **M02-015** Generate runtime textures/atlases with pixel-safe padding and explicit manifests; preserve source archives byte-for-byte.
 - [x] **M02-016** Implement `assets:check` for bounds, missing references, duplicate IDs and required animation coverage.
@@ -126,7 +126,7 @@ The partial asset importer supports this milestone. M02 remains open for the ful
 
 ### M02 catalogue and hero-animation delivery
 
-Thirteen tasks are complete across the catalogue and animation increments. The first delivered the reconciled catalogue, exact aliases, selected updated sources, bounded extraction, 456 hero sequences and workbench. The second expands to 672 hero sequences plus 1,736 enemy/tool-variant/King/component sequences, with named tool sockets, explicit label/recolour blocks and divided-tongue composition. Only 158 runtime PNGs are emitted; 53 inspection-only source records stay behind the development catalogue. See `docs/sprites/animation-layouts.md` and `CHANGELOG.md` for coverage and validation. Terrain/layer/UI definitions, atlas packing, effects and release notices remain open; the milestone acceptance gate is not complete.
+Fifteen tasks are complete across the catalogue, animation and terrain/scenery increments. Coverage now includes 672 hero and 1,736 additional presentation sequences, 35 terrain profiles and 279 layered scenery compositions/source views. New Style has all 47 adjacency cases; Old Style retains its explicit patch limitations. The clearing demonstrates tiled paths, an animated pond and layered tree/cottage/boat art. Only 165 runtime PNGs are emitted; 121 inspection-only source records remain behind development middleware. See `docs/sprites/animation-layouts.md`, `docs/sprites/terrain-scenery.md` and `CHANGELOG.md` for scope and validation. GUI definitions, atlas packing, missing effects and final notices remain open; the milestone acceptance gate is not complete.
 
 ## M03 — Core data, time and state ownership
 

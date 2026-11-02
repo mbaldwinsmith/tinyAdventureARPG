@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import type * as TerrainModule from '../../src/assets/terrain';
 
 test('opens the clearing, changes appearance and pauses/resumes through the bridge', async ({
   page,
@@ -165,4 +166,144 @@ test('matches updated goblin directions to named legacy source pixels', async ({
       )
       .toEqual(expected);
   }
+});
+
+test('uses source pixels for all 47 terrain cases and inspects layered boats and buildings', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  const pixelCases = await page.evaluate(async () => {
+    const modulePath = '/src/assets/terrain.ts';
+    const terrain = (await import(modulePath)) as typeof TerrainModule;
+    const manifest = (await (await fetch('/generated/manifest.json')).json()) as {
+      assets: { id: string; canonicalId: string }[];
+    };
+    let checked = 0;
+    for (const profile of terrain.terrainProfiles.filter(
+      (p) => p.style === 'new-47' && p.surface === 'dirt',
+    )) {
+      const source = manifest.assets.find((a) => a.id === profile.texture);
+      if (!source) throw new Error('Terrain texture missing');
+      const image = new Image();
+      image.src = `/__catalogue/${source.canonicalId}.png`;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No terrain reference canvas');
+      ctx.drawImage(image, 0, 0);
+      const fill = Array.from(ctx.getImageData(24, 24, 1, 1).data).join(',');
+      const filled = (x: number, y: number) =>
+        Array.from(ctx.getImageData(x, y, 1, 1).data).join(',') === fill;
+      const visited = new Set<number>();
+      for (let input = 0; input < 256; input++) {
+        const mask = terrain.normalizeTerrainMask(input);
+        if (visited.has(mask)) continue;
+        visited.add(mask);
+        const frame = terrain.terrainFrame(profile, mask);
+        if (!frame) throw new Error('Missing normalized case');
+        let observed = 0;
+        for (const [bit, dx, dy] of [
+          [1, 8, 0],
+          [2, 15, 8],
+          [4, 8, 15],
+          [8, 0, 8],
+        ] as const)
+          if (filled(frame.x + dx, frame.y + dy)) observed |= bit;
+        for (const [bit, sides, dx, dy] of [
+          [16, 3, 15, 0],
+          [32, 6, 15, 15],
+          [64, 12, 0, 15],
+          [128, 9, 0, 0],
+        ] as const)
+          if ((observed & sides) === sides && filled(frame.x + dx, frame.y + dy)) observed |= bit;
+        if (observed !== mask)
+          throw new Error(
+            `${profile.id}: expected mask ${mask}, observed source pixels ${observed}`,
+          );
+        checked++;
+      }
+    }
+    return checked;
+  });
+  expect(pixelCases).toBe(235);
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByRole('button', { name: 'Open sprite workbench' }).click();
+  const wb = page.getByRole('region', { name: 'Sprite workbench' });
+  await wb.getByLabel('Search sprites').fill('New Style/Grasslands');
+  await wb.locator('.catalogue-card').click();
+  await wb.getByLabel('Neighbour N', { exact: true }).uncheck();
+  await expect(wb.getByTestId('terrain-mask')).toContainText('Canonical mask 110');
+  await wb.getByLabel('Search sprites').fill('Wooden_House1_green');
+  await wb.locator('.catalogue-card').click();
+  await wb.getByLabel('Frame/grid overlay').uncheck();
+  await wb.getByLabel('Show scenery anchors').uncheck();
+  const base = wb.locator('.asset-inspector > .sprite-inspection-viewport canvas');
+  const assembled = wb.getByLabel('Assembled scenery', { exact: true });
+  const hash = async (locator: typeof base) =>
+    locator.evaluate(async (node) => {
+      const canvas = node as HTMLCanvasElement,
+        ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No pixel canvas');
+      const bytes = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      if (!bytes.some((n) => n !== 0)) return 'empty';
+      return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))).join(',');
+    });
+  await expect.poll(() => hash(base)).not.toBe('empty');
+  await expect.poll(() => hash(assembled)).toBe(await hash(base));
+  const complete = await hash(assembled);
+  await wb.getByLabel('Show scenery roof', { exact: true }).uncheck();
+  await expect.poll(() => hash(assembled)).not.toBe(complete);
+  await wb.getByLabel('Search sprites').fill('boat_base_64x64');
+  await wb.locator('.catalogue-card').click();
+  for (const direction of ['down', 'left', 'up', 'right']) {
+    await wb
+      .getByLabel('Scenery composition', { exact: true })
+      .selectOption(`boat-1-2-${direction}`);
+    await expect(wb.getByTestId('scenery-size')).toContainText('64×96px');
+  }
+  await wb.getByLabel('Search sprites').fill('Shore_TS_Animated_noBG_16x16_updated');
+  await wb.locator('.catalogue-card').click();
+  await wb.getByRole('button', { name: 'Play shoreline', exact: true }).click();
+  await expect.poll(() => wb.getByTestId('shore-phase').textContent()).not.toBe('Phase 1 / 4');
+});
+
+test('pauses and resumes the rendered shoreline with the shared menu pause', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  const sample = async () => {
+    // Compare the world buffer without the modal's blurred backdrop or overlaid text.
+    const pixels = await page.locator('.game-canvas canvas').screenshot({
+      style:
+        '.pause-dialog { opacity: 0 !important; } .pause-dialog::backdrop { background: transparent !important; backdrop-filter: none !important; }',
+    });
+    return page.evaluate(async (encoded) => {
+      const image = new Image();
+      image.src = 'data:image/png;base64,' + encoded;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = 480;
+      canvas.height = 272;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No shoreline reference canvas');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(image, 0, 0, 480, 272);
+      const bytes = ctx.getImageData(336, 144, 96, 16).data;
+      return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))).join(',');
+    }, pixels.toString('base64'));
+  };
+  const moving = await sample();
+  await expect.poll(sample).not.toBe(moving);
+  await page.getByRole('button', { name: 'Pause Esc' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.waitForTimeout(250);
+  const frozen = await sample();
+  await page.waitForTimeout(450);
+  expect(await sample()).toBe(frozen);
+  await page.getByRole('button', { name: 'Back to the clearing' }).click();
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+  const resumed = await sample();
+  await expect.poll(sample).not.toBe(resumed);
 });

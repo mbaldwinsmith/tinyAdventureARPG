@@ -63,6 +63,6 @@ The divided sheet supplies four body poses plus repeatable middle and terminal t
 
 ## Build boundary
 
-The curated manifest describes 211 source records from 13 unchanged archives. Only **158 PNGs** are emitted for the clearing's hero previews and scenery. The other **53 records** are marked `inspectionOnly`: enemy/King and detached tool art is inspected through development catalogue middleware, with its pixels excluded from `public/generated/` and the production build. Its frame/attachment metadata remains validated by `assets:check`.
+The curated manifest describes 286 source records from 14 unchanged archives. Only **165 PNGs** are emitted for the clearing's hero previews and scenery. The other **121 records** are marked `inspectionOnly`: enemy/King, detached tool and alternate terrain/scenery art is inspected through development catalogue middleware, with its pixels excluded from `public/generated/` and the production build. Its frame/attachment metadata remains validated by `assets:check`.
 
-When a gameplay system starts using an inspection-only source, deliberately promote that source in `src/assets/sources.json` and add its real renderer. Do not copy the full catalogue into the distributable. Terrain adjacency, layered props/boats, UI slicing, atlas packing, presentation gaps and full release notices remain M02 work.
+When a gameplay system starts using an inspection-only source, deliberately promote that source in `src/assets/sources.json` and add its real renderer. Do not copy the full catalogue into the distributable. Terrain adjacency and layered scenery are now covered by [their contract](terrain-scenery.md). UI slicing, atlas packing, presentation gaps and full release notices remain M02 work.
