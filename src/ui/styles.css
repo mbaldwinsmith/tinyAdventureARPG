@@ -783,3 +783,29 @@ footer span span {
 .pause-dialog.pixel-panel .eyebrow {
   color: #ffcf70;
 }
+
+.calendar-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  margin: 24px 0;
+  border: 1px solid #d5ddcb;
+  border-radius: 5px;
+  background: #eff1e7;
+}
+.calendar-panel h2 {
+  margin: 6px 0;
+  font-size: 23px;
+}
+.calendar-panel p:not(.eyebrow) {
+  color: #778571;
+  font-size: 12px;
+}
+@media (max-width: 700px) {
+  .calendar-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

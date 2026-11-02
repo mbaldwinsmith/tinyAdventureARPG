@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GameBridge, INITIAL_SNAPSHOT } from './game-bridge';
+import { PreviewController } from '../game/preview-controller';
 
 describe('game bridge lifecycle', () => {
   it('rejects commands before a runtime attaches and after it detaches', () => {
@@ -26,5 +27,36 @@ describe('game bridge lifecycle', () => {
     bridge.publish({ ...INITIAL_SNAPSHOT, status: 'ready' });
     expect(first).toHaveBeenCalledTimes(1);
     expect(second).toHaveBeenCalledTimes(2);
+  });
+  it('delivers ordered events against committed state and rejects reentrant commands', () => {
+    const bridge = new GameBridge(),
+      controller = new PreviewController(bridge);
+    controller.ready();
+    const received: string[] = [],
+      sequences: number[] = [];
+    bridge.onEvent((event) => {
+      if (event.type === 'domain.event') {
+        received.push(event.event.type);
+        sequences.push(event.event.sequence);
+        if (event.event.type === 'player.appearance-changed') {
+          expect(bridge.snapshot.hero).toBe(4);
+          expect(bridge.send({ type: 'appearance.set', hero: 2 })).toMatchObject({
+            ok: false,
+            code: 'busy',
+          });
+        }
+      } else received.push('snapshot');
+    });
+    received.length = 0;
+    expect(bridge.send({ type: 'appearance.set', hero: 4 })).toEqual({ ok: true });
+    expect(received).toEqual(['player.appearance-changed', 'snapshot']);
+    expect(sequences).toHaveLength(1);
+    const snapshot = bridge.snapshot;
+    bridge.send({ type: 'appearance.set', hero: 4 });
+    expect(bridge.snapshot).toBe(snapshot);
+    expect(
+      bridge.send(JSON.parse('{"type":"pause.set","reason":"loading","active":false}')),
+    ).toMatchObject({ ok: false, code: 'invalid-command' });
+    controller.dispose();
   });
 });

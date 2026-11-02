@@ -3,7 +3,7 @@ import { useStore } from 'zustand';
 import { GameBridge } from '../bridge/game-bridge';
 import { useAssetManifest, packedSpriteStyle, usePanelSkin } from './atlas-ui';
 import { KeyPrompt } from './KeyPrompt';
-import { HERO_IDS } from '../core/preview-session';
+import { HERO_IDS } from '../core/model';
 import { GameCanvas } from './GameCanvas';
 import { createUiStore } from './ui-store';
 import { HERO_ACTIONS } from '../assets/hero-animations';
@@ -228,6 +228,31 @@ export function App() {
             }}
           >
             Preview animation
+          </button>
+        </section>
+        <section className="calendar-panel" aria-label="Day and season">
+          <div>
+            <p className="eyebrow">THE RHYTHM OF THE CLEARING</p>
+            <h2 data-testid="world-time">
+              Day {snapshot.calendar.day} · {snapshot.calendar.season}{' '}
+              {snapshot.calendar.dayOfSeason} ·{' '}
+              {String(Math.floor(snapshot.calendar.minuteOfDay / 60)).padStart(2, '0')}:
+              {String(snapshot.calendar.minuteOfDay % 60).padStart(2, '0')}
+            </h2>
+            <p>Time passes while you play. Rest starts a fresh day.</p>
+          </div>
+          <button
+            className="button button-subtle"
+            disabled={snapshot.status !== 'ready' || !mounted || snapshot.paused}
+            onClick={() => {
+              const result = bridge.send({
+                type: 'calendar.sleep',
+                expectedDay: snapshot.calendar.day,
+              });
+              setCommandError(result.ok ? null : result.message);
+            }}
+          >
+            Rest until tomorrow
           </button>
         </section>
         {commandError && (

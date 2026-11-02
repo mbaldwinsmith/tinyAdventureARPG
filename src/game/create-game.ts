@@ -2,7 +2,7 @@ import type PhaserTypes from 'phaser';
 import type { GameBridge } from '../bridge/game-bridge';
 import { assetSources } from '../assets/definitions';
 import { createClearingScenery, ACTOR_DEPTH_BASE } from './clearing-scenery';
-import { CLEARING, PREVIEW_SPEED_PIXELS_PER_SECOND } from '../content/clearing';
+import { CLEARING } from '../content/clearing';
 import { loadAssetManifest } from '../platform/asset-loader';
 import { PreviewController } from './preview-controller';
 import { observeBackgroundPause } from '../platform/browser-pause';
@@ -149,6 +149,13 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
       }
 
       update(_time: number, deltaMilliseconds: number) {
+        try {
+          this.advancePresentation(deltaMilliseconds);
+        } catch (error: unknown) {
+          controller.fail(error instanceof Error ? error.message : 'The gameplay step failed.');
+        }
+      }
+      private advancePresentation(deltaMilliseconds: number) {
         if (disposed || !this.actor || !this.keys) return;
         const actor = this.actor;
         const snapshot = controller.session.snapshot;
@@ -158,7 +165,6 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           return;
         }
         actor.anims.resume();
-        this.scenery?.advance(deltaMilliseconds);
         const request = bridge.snapshot.animationRequest;
         if (request && request.sequence !== this.seenAnimationRequest) {
           this.seenAnimationRequest = request.sequence;
@@ -176,6 +182,45 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           if (request.action === 'bomb')
             this.previewRemainingMilliseconds += effectDurationMs(bombExplosion);
         }
+        const focused = document.activeElement === host || host.contains(document.activeElement);
+        const x = focused
+          ? Number(this.keys.right.isDown || this.keys.d.isDown) -
+            Number(this.keys.left.isDown || this.keys.a.isDown)
+          : 0;
+        const y = focused
+          ? Number(this.keys.down.isDown || this.keys.s.isDown) -
+            Number(this.keys.up.isDown || this.keys.w.isDown)
+          : 0;
+        const previewing = this.previewAction !== null && this.previewRemainingMilliseconds > 0;
+        const moving = !previewing && (x !== 0 || y !== 0);
+        const frame = controller.advance(deltaMilliseconds, (context) => {
+          if (!moving) return { position: { ...context.position }, facing: context.facing };
+          const facing = y !== 0 ? (y > 0 ? 'down' : 'up') : x > 0 ? 'right' : 'left';
+          const distance = (context.movementSpeedPixelsPerSecond * context.stepMs) / 1000;
+          const length = Math.hypot(x, y);
+          // Phaser resolves movement/bounds once per requested core step. M04 adds collision here.
+          return {
+            position: {
+              x: Phaser.Math.Clamp(
+                context.position.x + (x / length) * distance,
+                12,
+                CLEARING.widthPixels - 12,
+              ),
+              y: Phaser.Math.Clamp(
+                context.position.y + (y / length) * distance,
+                20,
+                CLEARING.heightPixels - 8,
+              ),
+            },
+            facing,
+          };
+        });
+        const resolved = controller.session.actor;
+        actor
+          .setPosition(resolved.position.x, resolved.position.y)
+          .setDepth(ACTOR_DEPTH_BASE + resolved.position.y);
+        this.direction = resolved.facing;
+        this.scenery?.advance(frame.simulatedMs);
         if (this.previewAction && this.previewRemainingMilliseconds > 0) {
           // Start once and hold non-looping endpoints while attached effects finish.
           if (this.previewElapsedMilliseconds === 0 || this.currentHero !== snapshot.hero) {
@@ -196,40 +241,13 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
                 ?.fillStyle(cell.colour, cell.alpha)
                 .fillRect(x + cell.x, y + cell.y, cell.width, cell.height);
           }
-          this.previewElapsedMilliseconds += Math.min(deltaMilliseconds, 50);
-          this.previewRemainingMilliseconds -= Math.min(deltaMilliseconds, 50);
+          this.previewElapsedMilliseconds += frame.simulatedMs;
+          this.previewRemainingMilliseconds -= frame.simulatedMs;
           return;
         }
         this.previewAction = null;
         actor.setAlpha(1);
         this.explosion?.clear();
-        const focused = document.activeElement === host || host.contains(document.activeElement);
-        const x = focused
-          ? Number(this.keys.right.isDown || this.keys.d.isDown) -
-            Number(this.keys.left.isDown || this.keys.a.isDown)
-          : 0;
-        const y = focused
-          ? Number(this.keys.down.isDown || this.keys.s.isDown) -
-            Number(this.keys.up.isDown || this.keys.w.isDown)
-          : 0;
-        const moving = x !== 0 || y !== 0;
-        if (moving) {
-          if (y !== 0) this.direction = y > 0 ? 'down' : 'up';
-          else this.direction = x > 0 ? 'right' : 'left';
-          const distance =
-            (PREVIEW_SPEED_PIXELS_PER_SECOND * Math.min(deltaMilliseconds, 50)) / 1000;
-          const length = Math.hypot(x, y);
-          actor.x = Phaser.Math.Clamp(
-            actor.x + (x / length) * distance,
-            12,
-            CLEARING.widthPixels - 12,
-          );
-          actor.y = Phaser.Math.Clamp(
-            actor.y + (y / length) * distance,
-            20,
-            CLEARING.heightPixels - 8,
-          );
-        }
         this.currentHero = snapshot.hero;
         this.playAction(moving ? 'walk' : 'idle');
         actor.setDepth(ACTOR_DEPTH_BASE + actor.y);

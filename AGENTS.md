@@ -12,7 +12,7 @@ These instructions apply throughout this repository. Follow the user's current r
 6. Use judgment for routine reversible details. Raise a consequential unresolved design choice when it materially affects the work; continue independent work where possible. Do not repeatedly ask for decisions already made.
 7. Check current official documentation for unfamiliar or version-sensitive framework APIs. Do not assume a Phaser 3 example is compatible with Phaser 4.
 
-M01 now provides a runnable clearing preview, asset scripts and a test/build toolchain. Read the current package scripts and foundation architecture. Do not mistake preview-only walking/appearance/pause code for completed campaign systems or later milestones.
+M01–M03 now provide a runnable clearing, a validated asset pipeline and a framework-independent state/time core. Read the current package scripts, foundation architecture and `docs/core-state.md`. Core contracts and preview walking/calendar controls are not completed combat, inventory, saving or campaign systems.
 
 ## 2. Mandatory plan and changelog discipline
 

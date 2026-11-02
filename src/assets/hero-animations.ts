@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import definitions from './hero-animations.json';
-import { HERO_IDS } from '../core/preview-session';
+import { HERO_IDS } from '../core/model';
 import type { AssetManifest } from './definitions';
 
 export const HERO_ACTIONS = [
