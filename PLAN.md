@@ -98,7 +98,7 @@ Confirm or adjust these budgets under M00 before expanding content production. T
 
 Implemented a Phaser 4.2.1 / React / TypeScript / Vite preview with 20 curated PNGs, six appearance choices, keyboard movement, composed pause handling, a typed bridge and disposable mount lifecycle. Rule/bridge/asset-boundary checks and real-browser UI/lifecycle/error flows pass; see `CHANGELOG.md` for exact validation and environment notes. CI is configured but its remote run is reported separately.
 
-The partial asset importer supports this milestone. M02 remains open for the full catalogue, canonical aliases, complete action metadata and packed atlases. No M00 design decisions are silently closed by preview defaults.
+The importer has since completed M02 below. No M00 design decisions are silently closed by preview defaults.
 
 ## M02 — Asset inventory and explicit imports
 
@@ -115,18 +115,20 @@ The partial asset importer supports this milestone. M02 remains open for the ful
 - [x] **M02-011** Define the King's mixed-size body/tongue/death frames and attachable divided tongue pieces.
 - [x] **M02-012** Define terrain adjacency/corner sets; keep old/new biome edge styles distinct and select updated shoreline art.
 - [x] **M02-013** Define layered tree, building, furniture, boat hull/sail/fitting and oversized prop rectangles.
-- [ ] **M02-014** Define GUI slices, bitmap font mappings, status icons and device prompt mappings.
-- [ ] **M02-015** Generate runtime textures/atlases with pixel-safe padding and explicit manifests; preserve source archives byte-for-byte.
+- [x] **M02-014** Define GUI slices, bitmap font mappings, status icons and device prompt mappings.
+- [x] **M02-015** Generate runtime textures/atlases with pixel-safe padding and explicit manifests; preserve source archives byte-for-byte.
 - [x] **M02-016** Implement `assets:check` for bounds, missing references, duplicate IDs and required animation coverage.
 - [x] **M02-017** Build a development asset viewer with animation playback, scale, foot-anchor and hitbox overlays.
-- [ ] **M02-018** Fill identified presentation gaps such as hero death and bomb explosions through approved reuse or deliberately authored effects.
-- [ ] **M02-019** Record asset provenance and third-party notices; keep standalone paid source packs out of distributable builds.
+- [x] **M02-018** Fill identified presentation gaps such as hero death and bomb explosions through approved reuse or deliberately authored effects.
+- [x] **M02-019** Record asset provenance and third-party notices; keep standalone paid source packs out of distributable builds.
 
 **Acceptance:** assets can be regenerated from a clean checkout; representative animations play without cropped limbs, labels, shifting feet or texture bleeding. Large sprites are never forced into a universal 16px frame size.
 
-### M02 catalogue and hero-animation delivery
+### M02 delivery evidence
 
-Fifteen tasks are complete across the catalogue, animation and terrain/scenery increments. Coverage now includes 672 hero and 1,736 additional presentation sequences, 35 terrain profiles and 279 layered scenery compositions/source views. New Style has all 47 adjacency cases; Old Style retains its explicit patch limitations. The clearing demonstrates tiled paths, an animated pond and layered tree/cottage/boat art. Only 165 runtime PNGs are emitted; 121 inspection-only source records remain behind development middleware. See `docs/sprites/animation-layouts.md`, `docs/sprites/terrain-scenery.md` and `CHANGELOG.md` for scope and validation. GUI definitions, atlas packing, missing effects and final notices remain open; the milestone acceptance gate is not complete.
+All 19 asset tasks are complete. Coverage includes 720 hero sequences (30 families), 1,736 additional presentation sequences, 35 terrain profiles and 279 layered scenery compositions/source views. New Style has all 47 adjacency cases; Old Style retains its explicit patch limitations. GUI definitions include nine-slice panels, 14 bitmap fonts, status symbols and physical device prompts. Death/fall reuse and a finite authored explosion fill the identified presentation gaps without adding gameplay rules.
+
+The 314-source manifest packs 3,763 runtime frames from 167 sources into one padded 2048px atlas; 147 inspection-only sources retain metadata without production pixels. Source crops and every padding border are verified, archive hashes are unchanged, and credit/software notices ship with the build. Checks, production WebGL and source-pixel/browser flows pass; see `CHANGELOG.md` and `docs/sprites/gui-atlases-effects.md`. This completes the import/presentation acceptance gate, not final combat timing, collision, controller support or campaign gameplay. M03 core state/time is next.
 
 ## M03 — Core data, time and state ownership
 

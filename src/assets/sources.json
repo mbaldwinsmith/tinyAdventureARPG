@@ -1860,5 +1860,173 @@
     "archive": "TinyCastlePack.zip",
     "path": "PNG/PNGs/Big_Treasurechest_32x32.png",
     "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-blue-small",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-blue-big",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_blue_big.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-brown-small",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_brown.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-brown-big",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_brown_big.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-dark-small",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_dark.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-dark-big",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_dark_big.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-gold-small",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_gold.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-gold-big",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_gold_big.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-green-small",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-green-big",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_green_big.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-light-small",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_light.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-light-big",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_light_big.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-red-small",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-font-red-big",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Fonts/Font_red_big.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-panel-dark",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Containers/TalkBox_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-panel-brown",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Containers/TalkBox_Brown_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-panel-gray",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Containers/TalkBox_Gray_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-panel-green",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Containers/TalkBox_Green_16x16.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "gui-square-buttons",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Buttons/Square_Buttons_16x16px.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-rectangle-buttons",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Buttons/Rectangle_Buttons_48x16px.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-vitals",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Icons/Heart_Drop_Star_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-status",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Icons/Status_icons_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-prompts-keyboard-light",
+    "archive": "Controllers and Keyboard.zip",
+    "path": "Controllers and Keyboard/kb_light_all.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "gui-prompts-keyboard-dark",
+    "archive": "Controllers and Keyboard.zip",
+    "path": "Controllers and Keyboard/kb_dark_all.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-prompts-xbox",
+    "archive": "Controllers and Keyboard.zip",
+    "path": "Controllers and Keyboard/controller_xbox.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-prompts-playstation",
+    "archive": "Controllers and Keyboard.zip",
+    "path": "Controllers and Keyboard/controller_ps.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-prompts-switch",
+    "archive": "Controllers and Keyboard.zip",
+    "path": "Controllers and Keyboard/controller_switch.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "gui-prompts-mouse",
+    "archive": "Controllers and Keyboard.zip",
+    "path": "Controllers and Keyboard/mouse.png",
+    "inspectionOnly": true
   }
 ]

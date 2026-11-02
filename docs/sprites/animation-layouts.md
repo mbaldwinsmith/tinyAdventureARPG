@@ -4,7 +4,7 @@ These are inspected source rectangles and authored playback defaults, not combat
 
 ## Hero tools
 
-`src/assets/hero-animations.json` contains 672 sequences: six appearances × 28 actions × four cardinal directions. The nine new actions are axe, hoe, pickaxe, water, fish-cast, fish-wait, fish-pull, hook and magic.
+`src/assets/hero-animations.json` contains 720 sequences: six appearances × 30 actions × four cardinal directions. The tool increment added axe, hoe, pickaxe, water, fish-cast, fish-wait, fish-pull, hook and magic.
 
 | Source family          | Inspected layout                                                                                  | Presentation policy                                                                                                                                                      |
 | ---------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -63,6 +63,6 @@ The divided sheet supplies four body poses plus repeatable middle and terminal t
 
 ## Build boundary
 
-The curated manifest describes 286 source records from 14 unchanged archives. Only **165 PNGs** are emitted for the clearing's hero previews and scenery. The other **121 records** are marked `inspectionOnly`: enemy/King, detached tool and alternate terrain/scenery art is inspected through development catalogue middleware, with its pixels excluded from `public/generated/` and the production build. Its frame/attachment metadata remains validated by `assets:check`.
+The curated manifest describes 314 source records from 16 unchanged archives. **167 runtime sources** supply the clearing's hero previews, scenery and GUI frames in a padded atlas. The other **147 records** are marked `inspectionOnly`: enemy/King, detached tool and alternate terrain/scenery art is inspected through development catalogue middleware, with its pixels excluded from `public/generated/` and the production build. Its frame/attachment metadata remains validated by `assets:check`.
 
-When a gameplay system starts using an inspection-only source, deliberately promote that source in `src/assets/sources.json` and add its real renderer. Do not copy the full catalogue into the distributable. Terrain adjacency and layered scenery are now covered by [their contract](terrain-scenery.md). UI slicing, atlas packing, presentation gaps and full release notices remain M02 work.
+When a gameplay system starts using an inspection-only source, deliberately promote that source in `src/assets/sources.json` and add its real renderer. Do not copy the full catalogue into the distributable. Terrain adjacency and layered scenery are now covered by [their contract](terrain-scenery.md). See the [GUI/atlas/effects contract](gui-atlases-effects.md) for the completed packing and UI mappings, death/fall reuse, bomb throw/explosion presentation and notices.

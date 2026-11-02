@@ -17,6 +17,21 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Added — completed asset pipeline
+
+- **M02-014:** Define four inspected 4px-border nine-slice panels, normal/pressed buttons, heart/drop/star and descriptive status icons, 14 bitmap font variants with 88 glyphs/fallback metrics, and physical keyboard/controller/mouse prompts. Add resizable panel/font/icon inspectors. Use the green panel on the accessible pause dialog and actual keyboard prompts in the clearing.
+- **M02-015:** Replace standalone runtime sheets with a deterministic padded atlas pipeline and manifest v2. Pack 3,763 explicit source rectangles from 167 runtime sources into one 2048×2048 page, with 2px edge/corner extrusion, no trimming/rotation and source/page/crop hashes. Migrate Phaser animations/scenery, React portraits and key prompts to packed frames. Validate all 314 sources from 16 unchanged selected archives; 147 inspection-only records remain outside production pixels.
+- **M02-018:** Add death/fall reuse with a bounded fade and bomb/throw-item reuse with a code-authored six-frame explosion. There are 720 hero sequences / 30 action families. Reuse one effect object, hold throw endpoints, pause timers with the scene and clear/restart effects on completion/replacement. Add finite effect playback to the workbench.
+- **M02-019:** Add LICENSE-ASSETS provenance and authored-adaptation records. Generate bundled third-party licence texts from the locked installed runtime graph and archive/PNG tools, including Phaser's vendored Earcut, Simplify, Matter and embedded attributions. Ship credits/notices with the build and check staleness. Preserve LICENSE and source archive bytes; exclude ZIPs and standalone/full catalogue art from the distributable.
+
+### Asset pipeline validation
+
+- `npm run assets:build`, `npm run check` and `npm run build` passed. Thirty Vitest tests include exact RGBA preservation, input-order independence, every emitted crop hash, all padded borders, nonoverlapping padded regions, inspection exclusion, panel partitioning, glyph fallback/spacing and finite effect boundaries.
+- Ten real-browser flows passed using the documented Chromium override. New checks compare resized panel corners with supplied pixels, verify bitmap fallback and the atlas-backed pause skin, freeze actual death/explosion rendering under shared pause, and hold/restart finite effect playback.
+- Production WebGL QA passed at 1440px and 800px with one game canvas, no horizontal overflow or page errors, readable panel/portrait/key UI, effect pause/resume and replacement recovery. Credit/notice URLs load successfully. Source archive reconciliation covers all 23 ZIPs, 1,436 PNG occurrences and 716 canonical images; production excludes source sheets, inspection pixels and development workbench modules.
+- M02 import/presentation acceptance is complete. The new effects are art previews; damage, energy, player death/loss/respawn, controller input, collision and campaign systems remain later milestones. Final gameplay timings and offsets will be validated with those systems.
+- The first remote run passed clean install, asset/check and production build, then exposed a host/browser clock race and a default timeout during repeated software-WebGL screenshots. Use an explicit future virtual-clock target and a 60-second budget for the two capture-heavy flows; retain the exact frozen-pixel assertions.
+
 ### Added — terrain and layered scenery
 
 - **M02-012:** Define 35 terrain profiles: all 47 normalized New Style cases for three surfaces across five palettes, and separate Old Style border/island/concave patches with explicit unsupported topology. Select the updated 192×96 shoreline and define its two modes/four phases. Add neighbour/shape/shore controls to the workbench.

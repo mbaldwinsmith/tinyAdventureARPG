@@ -37,7 +37,7 @@ Modern boomerang presentation deliberately reuses each hero's updated throw-item
 
 ## Authored animation contract
 
-`src/assets/hero-animations.json` defines **672 sequences: six appearances × 28 actions × four directions**, backed by 150 hero sheets. Each sequence records explicit source rectangles, grid indices, durations, reference foot anchor, directional/shared source policy and loop behaviour. Runtime import adds selected terrain and layered scenery for **165 runtime PNGs**.
+`src/assets/hero-animations.json` defines **720 sequences: six appearances × 30 actions × four directions**, backed by 150 hero sheets. Each sequence records explicit source rectangles, grid indices, durations, reference foot anchor, directional/shared source policy and loop behaviour. Runtime import adds selected terrain and layered scenery and GUI for **167 runtime sources packed into 3,763 atlas frames**.
 
 Base hero direction rows are down/left/up/right. Tool and enemy orders differ; see [animation layouts](animation-layouts.md). Fall and celebration poses are shared where the source provides one strip/front-facing pose. Hit strips provide one directional pose per cell. Bow/sword frames are 32px; most other selected actions use 16px cells. Uniformly slicing every archive remains unsupported.
 
@@ -49,6 +49,6 @@ In development, expand **Development tools → Open sprite workbench**. Search a
 
 The Vite development middleware serves reviewed previews from ignored `.cache/catalogue/`. The workbench module and the full preview image collection are absent from production builds. The public clearing includes a smaller action-preview selector, which plays artwork without granting weapons, damage, traversal or abilities.
 
-The workbench additionally plays 1,736 enemy/tool-variant/King/component sequences, displays named attachment sockets and assembles divided tongue pieces. Non-looping animations hold their last frame. The current manifest includes 121 inspection-only source records whose pixels stay out of production.
+The workbench additionally plays 1,736 enemy/tool-variant/King/component sequences, displays named attachment sockets and assembles divided tongue pieces. Non-looping animations hold their last frame. The current manifest includes 147 inspection-only source records whose pixels stay out of production.
 
-The [terrain/scenery contract](terrain-scenery.md) now covers style-specific adjacency, updated shore phases, explicit layers and boat assembly. Texture atlas packing, UI slices, effects and complete release notices remain open plan tasks. This delivery does not mark the entire M02 milestone complete.
+The [terrain/scenery contract](terrain-scenery.md) now covers style-specific adjacency, updated shore phases, explicit layers and boat assembly. The [GUI/atlas/effects contract](gui-atlases-effects.md) completes the M02 import milestone with explicit mappings, padded runtime frames, authored presentation gaps and bundled notices.

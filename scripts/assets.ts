@@ -11,6 +11,13 @@ import {
 import { validateSpriteAttachments, validateToolSockets } from '../src/assets/sprite-attachments';
 import { validateTerrain } from '../src/assets/terrain';
 import { validateScenery, sceneryDefinitions } from '../src/assets/scenery';
+import { buildNotices } from './lib/notices';
+import { PNG } from 'pngjs';
+import { buildAtlases } from './lib/atlas-builder';
+import { collectRuntimeFrames } from './lib/runtime-frames';
+import { validateGui } from '../src/assets/gui';
+import { validateEffects } from '../src/assets/effects';
+import { createAtlasLookup } from '../src/assets/atlas';
 import { loadArchive, readPngSize, sha256 } from './lib/archive';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -19,7 +26,8 @@ const staging = path.join(root, 'public/.generated-staging');
 const mode = process.argv[2];
 if (mode !== 'build' && mode !== 'check') throw new Error('Usage: assets.ts build|check');
 const archives = new Map<string, Record<string, Uint8Array>>();
-const manifest: AssetManifest = { version: 1, assets: [] };
+const manifest: AssetManifest = { version: 2, assets: [], pages: [], frames: [] };
+const decodedSources = new Map<string, PNG>();
 if (mode === 'build') {
   await rm(staging, { recursive: true, force: true });
   await mkdir(staging, { recursive: true });
@@ -46,7 +54,7 @@ for (const source of [...assetSources].sort((a, b) => a.id.localeCompare(b.id, '
     hash = sha256(bytes);
   const record = {
     id: source.id,
-    file,
+    sourceFile: file,
     inspectionOnly: source.inspectionOnly ?? false,
     width,
     height,
@@ -57,18 +65,48 @@ for (const source of [...assetSources].sort((a, b) => a.id.localeCompare(b.id, '
       : {}),
   };
   manifest.assets.push(record);
-  if (source.inspectionOnly) continue;
-  if (mode === 'build') await writeFile(path.join(staging, file), bytes);
-  else if (sha256(await readFile(path.join(output, file))) !== hash)
-    throw new Error(`Generated asset differs from source: ${file}. Run npm run assets:build.`);
+  if (!source.inspectionOnly) decodedSources.set(source.id, PNG.sync.read(Buffer.from(bytes)));
 }
-manifestSchema.parse(manifest);
+
 validateHeroAnimations(heroAnimations, manifest.assets);
 validatePresentationAnimations(presentationAnimations, manifest.assets);
 validateSpriteAttachments(manifest.assets);
 validateToolSockets(heroAnimations);
 validateTerrain(manifest.assets);
 validateScenery(manifest.assets);
+validateGui(manifest.assets);
+validateEffects();
+const atlas = buildAtlases(collectRuntimeFrames(manifest.assets), decodedSources);
+manifest.pages = atlas.pages.map((page) => page.record);
+manifest.frames = atlas.frames;
+manifestSchema.parse(manifest);
+createAtlasLookup(manifest);
+for (const page of atlas.pages) {
+  if (mode === 'build') {
+    await writeFile(path.join(staging, page.record.image), page.image);
+    await writeFile(path.join(staging, page.record.data), page.data);
+  } else {
+    if (
+      sha256(await readFile(path.join(output, page.record.image))) !== page.record.imageSha256 ||
+      sha256(await readFile(path.join(output, page.record.data))) !== page.record.dataSha256
+    )
+      throw new Error(
+        `Generated atlas differs from source frames: ${page.record.id}. Run npm run assets:build.`,
+      );
+  }
+}
+const notices = await buildNotices(root);
+const credits = await readFile(path.join(root, 'LICENSE-ASSETS.md'), 'utf8');
+if (mode === 'build') {
+  await writeFile(path.join(staging, 'THIRD_PARTY_NOTICES.txt'), notices);
+  await writeFile(path.join(staging, 'CREDITS.txt'), credits);
+  await writeFile(path.join(root, 'THIRD_PARTY_NOTICES.md'), notices);
+} else if (
+  (await readFile(path.join(output, 'THIRD_PARTY_NOTICES.txt'), 'utf8')) !== notices ||
+  (await readFile(path.join(root, 'THIRD_PARTY_NOTICES.md'), 'utf8')) !== notices ||
+  (await readFile(path.join(output, 'CREDITS.txt'), 'utf8')) !== credits
+)
+  throw new Error('Third-party notices are stale. Run npm run assets:build.');
 const serialised = JSON.stringify(manifest, null, 2) + '\n';
 if (mode === 'build') {
   await writeFile(path.join(staging, 'manifest.json'), serialised);
@@ -79,12 +117,14 @@ if (mode === 'build') {
   if ((await readFile(path.join(output, 'manifest.json'), 'utf8')) !== serialised)
     throw new Error('Generated manifest is stale. Run npm run assets:build.');
   const expected = [
-    ...manifest.assets.filter((asset) => !asset.inspectionOnly).map((asset) => asset.file),
+    ...manifest.pages.flatMap((page) => [page.image, page.data]),
     'manifest.json',
+    'THIRD_PARTY_NOTICES.txt',
+    'CREDITS.txt',
   ].sort();
   if (JSON.stringify((await readdir(output)).sort()) !== JSON.stringify(expected))
     throw new Error('Unexpected files in generated assets.');
 }
 console.log(
-  `${mode === 'build' ? 'Built' : 'Verified'} ${manifest.assets.filter((asset) => !asset.inspectionOnly).length} runtime PNGs, ${manifest.assets.filter((asset) => asset.inspectionOnly).length} inspection-only records, ${sceneryDefinitions.length} scenery compositions, ${heroAnimations.length} hero and ${presentationAnimations.length} presentation sequences and ${archives.size} unchanged source archives.`,
+  `${mode === 'build' ? 'Built' : 'Verified'} ${manifest.assets.filter((asset) => !asset.inspectionOnly).length} runtime sources → ${manifest.frames.length} padded frames on ${manifest.pages.length} atlas pages, ${manifest.assets.filter((asset) => asset.inspectionOnly).length} inspection-only records, ${sceneryDefinitions.length} scenery compositions, ${heroAnimations.length} hero and ${presentationAnimations.length} presentation sequences and ${archives.size} unchanged source archives.`,
 );
