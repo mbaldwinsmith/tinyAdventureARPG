@@ -9,6 +9,8 @@ import {
   validatePresentationAnimations,
 } from '../src/assets/presentation-animations';
 import { validateSpriteAttachments, validateToolSockets } from '../src/assets/sprite-attachments';
+import { validateTerrain } from '../src/assets/terrain';
+import { validateScenery, sceneryDefinitions } from '../src/assets/scenery';
 import { loadArchive, readPngSize, sha256 } from './lib/archive';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -65,6 +67,8 @@ validateHeroAnimations(heroAnimations, manifest.assets);
 validatePresentationAnimations(presentationAnimations, manifest.assets);
 validateSpriteAttachments(manifest.assets);
 validateToolSockets(heroAnimations);
+validateTerrain(manifest.assets);
+validateScenery(manifest.assets);
 const serialised = JSON.stringify(manifest, null, 2) + '\n';
 if (mode === 'build') {
   await writeFile(path.join(staging, 'manifest.json'), serialised);
@@ -82,5 +86,5 @@ if (mode === 'build') {
     throw new Error('Unexpected files in generated assets.');
 }
 console.log(
-  `${mode === 'build' ? 'Built' : 'Verified'} ${manifest.assets.filter((asset) => !asset.inspectionOnly).length} runtime PNGs, ${manifest.assets.filter((asset) => asset.inspectionOnly).length} inspection-only records, ${heroAnimations.length} hero and ${presentationAnimations.length} presentation sequences and ${archives.size} unchanged source archives.`,
+  `${mode === 'build' ? 'Built' : 'Verified'} ${manifest.assets.filter((asset) => !asset.inspectionOnly).length} runtime PNGs, ${manifest.assets.filter((asset) => asset.inspectionOnly).length} inspection-only records, ${sceneryDefinitions.length} scenery compositions, ${heroAnimations.length} hero and ${presentationAnimations.length} presentation sequences and ${archives.size} unchanged source archives.`,
 );

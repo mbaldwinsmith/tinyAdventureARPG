@@ -758,12 +758,14 @@
   {
     "id": "grass",
     "archive": "Tiny Adventure Pack Plus.zip",
-    "path": "Tiny Adventure Pack Plus/Other/Misc/Grass.png"
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Grass.png",
+    "inspectionOnly": true
   },
   {
     "id": "tree",
     "archive": "Tiny Adventure Pack Plus.zip",
-    "path": "Tiny Adventure Pack Plus/Other/Misc/Tree/Tree.png"
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Tree/Tree.png",
+    "inspectionOnly": true
   },
   {
     "id": "bush",
@@ -1407,6 +1409,456 @@
     "id": "enemy-tiny-slime-pink-up",
     "archive": "Tiny Dungeon Pack.zip",
     "path": "Tiny Dungeon Pack/Enemies/Slime/Tiny/Tiny_Slime_pink_up.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-new-original",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/New Style/Original_Colour_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-new-grasslands",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/New Style/Grasslands_16x16.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "terrain-new-fall",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/New Style/Fall_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-new-desert",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/New Style/Desert_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-new-snow",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/New Style/Snow_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-old-original",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/Old Style/Original_Color_old_style_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-old-grasslands",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/Old Style/Grassland_old_style_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-old-fall",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/Old Style/Fall_old_style_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-old-desert",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/Old Style/Desert_old_style_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-old-snow",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Tilesets/Old Style/Winter_old_style_16x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "terrain-shore-updated",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Water/Shore_TS_Animated_noBG_16x16_updated.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "scenery-tree-trunk",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Tree/Tree_trunk.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "scenery-tree-canopy",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Tree/Tree_top.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "scenery-broad-trees",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Misc/Trees/Trees_48x48.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-pines",
+    "archive": "Tiny Biomes Vol.1.zip",
+    "path": "Tiny Biomes Vol.1/Misc/Trees/Pinetrees_32x48.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-palms",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Other/Palmtree_n_fruits.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-1-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House1_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-1-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House1_green.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "scenery-house-plaster-1-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House1_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-2-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House2_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-2-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House2_green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-2-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House2_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-3-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House3_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-3-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House3_green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-3-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House3_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-4-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House4_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-4-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House4_green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-plaster-4-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/House4_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-1-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House1_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-1-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House1_green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-1-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House1_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-2-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House2_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-2-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House2_green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-2-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House2_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-3-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House3_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-3-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House3_green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-3-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House3_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-4-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House4_blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-4-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House4_green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-house-wood-4-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Buildings/Wooden_House4_red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bedside-table",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bedroom/Bedside_table.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-closet",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bedroom/Closet.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bathtub-left",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bathroom/Bathtub_Left.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bathtub-right",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bathroom/Bathtub_Right.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bathroom-sink",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bathroom/Sink_Bathroom.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-toilet",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bathroom/Toilet.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bin",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Kitchen/Bin.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-fridge",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Kitchen/Fridge.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-furnace",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Kitchen/Furnace.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-kitchen-sink",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Kitchen/Kitchen_Sink.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bookcase-large",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/library_big.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bookcase-small",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/library_small.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-small-table",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Lil_Table.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-map",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Map.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-picture",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Picture.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-window",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Window.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-window-double",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Window_Double.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-plant-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Plant/Plant_Green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-plant-pink",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Plant/Plant_Pink.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-plant-dark",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Plant/Plan_Dark.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-big-sofas",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Big Sofa/Sofa_big_spritesheet_48x48.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-small-sofas",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Small Sofa/Sofa_small_spritesheet_32x32.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-tables",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Wooden Table/Wooden_table_spritesheet48x48.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-chairs",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Wooden_chair.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-trunks",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Trunk/Trunk_Spritesheet32x16.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bed-blue",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bedroom/Bed_Blue.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bed-brown",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bedroom/Bed_Brown.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bed-green",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bedroom/Bed_Green.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bed-red",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Bedroom/Bed_Red.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-bench",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Outdoors/Other/bench.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "scenery-boat-hulls",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Boat/boat_base_64x64.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "scenery-boat-sails",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Boat/boat_sails_32x64.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "scenery-boat-fittings",
+    "archive": "Tiny Coast Pack_v2.zip",
+    "path": "Tiny Coast Pack/Boat/boat_upgrades_16x16.png",
+    "inspectionOnly": false
+  },
+  {
+    "id": "scenery-thrones",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Thrones_48x48.png",
+    "inspectionOnly": true
+  },
+  {
+    "id": "scenery-big-chests",
+    "archive": "TinyCastlePack.zip",
+    "path": "PNG/PNGs/Big_Treasurechest_32x32.png",
     "inspectionOnly": true
   }
 ]

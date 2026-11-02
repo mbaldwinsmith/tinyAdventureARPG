@@ -3,6 +3,8 @@ import type { CatalogueAsset } from '../assets/catalogue-types';
 import type { AssetManifest } from '../assets/definitions';
 import { presentationAnimations } from '../assets/presentation-animations';
 import { toolEffectBindings } from '../assets/sprite-attachments';
+import { TerrainInspector } from './TerrainInspector';
+import { SceneryInspector } from './SceneryInspector';
 import { TongueInspector } from './TongueInspector';
 import { heroAnimations } from '../assets/hero-animations';
 
@@ -271,6 +273,8 @@ export function AssetInspector({
           aria-label={`${asset.identity} pixel preview`}
         />
       </div>
+      <TerrainInspector textureIds={textureIds} image={image} />
+      <SceneryInspector textureIds={textureIds} textures={textures} />
       {textureIds.includes('king-tongue-pieces') && <TongueInspector image={image} />}
       {clip?.sockets && (
         <ul>

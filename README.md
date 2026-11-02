@@ -29,7 +29,7 @@ Bring discoveries home. Deposit valuables, plant and tend crops, and welcome the
 
 At the heart of the Kingdom waits its evil King: the crowned, tongue-attacking boss from Vryell's Tiny Castle Pack. Defeating him and restoring the Kingdom is the main objective.
 
-> **Project status:** runnable foundation preview. Explore an authored clearing, select one of six appearances, preview 28 action families and use the React pause menu. Combat, collisions, inventory, saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
+> **Project status:** runnable foundation preview. Explore an authored clearing with tiled paths, a cottage and an animated pond, select one of six appearances, preview 28 action families and use the React pause menu. Combat, collisions, inventory, saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
 
 ## A world that remembers
 
@@ -60,13 +60,13 @@ Loss probabilities, equipment eligibility, money handling and partial-stack rule
 
 ## Project status
 
-**M01 application foundation and the M02 catalogue/tool/enemy animation increments are implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
+**M01 application foundation and the M02 catalogue, animation and terrain/scenery increments are implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
 
 | Available now                                                         | Next systems                                       |
 | --------------------------------------------------------------------- | -------------------------------------------------- |
 | Walkable authored clearing and six hero appearances                   | Collision, cardinal combat and interactions        |
 | Typed game/UI bridge, composed pause reasons and focused UI snapshots | Authoritative campaign rules, time and progression |
-| Full source catalogue, aliases and 158 curated runtime PNGs           | Terrain/layer/UI metadata and packed atlases       |
+| Full source catalogue, aliases and 165 curated runtime PNGs           | GUI metadata and packed atlases                    |
 | Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming  |
 | CI workflow and production build                                      | Complete desktop campaign and release validation   |
 
@@ -149,7 +149,7 @@ The sprite audit found **23 archives, 1,436 PNG occurrences and 716 distinct PNG
 
 Most terrain uses a **16×16 pixel grid**, but action frames, trees, boats, buildings and UI components use other dimensions. Import explicit frame rectangles and attachment points; never apply universal 16×16 slicing. Prefer compatible updated character/enemy animations, preserve alternate terrain styles, and exclude baked sheet labels from runtime frames.
 
-The [reviewed source catalogue](docs/sprites/README.md) is now versioned and reproducible from the archives. Development tools include a searchable sprite/animation workbench; the public build contains only selected runtime art. See [asset provenance and rebuilding](docs/assets.md); tool/enemy/King frame contracts are documented in [animation layouts](docs/sprites/animation-layouts.md). Terrain/layer/UI definitions and packed atlases remain in M02. Purchased source art is not relicensed by this repository; see [licensing](#licensing).
+The [reviewed source catalogue](docs/sprites/README.md) is now versioned and reproducible from the archives. Development tools include a searchable sprite/animation workbench; the public build contains only selected runtime art. See [asset provenance and rebuilding](docs/assets.md); tool/enemy/King frame contracts are documented in [animation layouts](docs/sprites/animation-layouts.md). Terrain adjacency and layered scenery are documented in the [terrain/scenery contract](docs/sprites/terrain-scenery.md). GUI definitions and packed atlases remain in M02. Purchased source art is not relicensed by this repository; see [licensing](#licensing).
 
 ## Platforms
 

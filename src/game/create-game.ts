@@ -1,6 +1,7 @@
 import type PhaserTypes from 'phaser';
 import type { GameBridge } from '../bridge/game-bridge';
 import { manifestSchema, assetSources } from '../assets/definitions';
+import { createClearingScenery, ACTOR_DEPTH_BASE } from './clearing-scenery';
 import { CLEARING, PREVIEW_SPEED_PIXELS_PER_SECOND } from '../content/clearing';
 import { PreviewController } from './preview-controller';
 import { observeBackgroundPause } from '../platform/browser-pause';
@@ -32,6 +33,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
     if (disposed) return;
 
     class ClearingScene extends Phaser.Scene {
+      private scenery: ReturnType<typeof createClearingScenery> | undefined;
       private actor: PhaserTypes.GameObjects.Sprite | undefined;
       private keys:
         | Record<
@@ -68,28 +70,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
 
       create() {
         if (disposed || bridge.snapshot.status === 'failed') return;
-        this.cameras.main.setBackgroundColor('#78a957');
-        this.add
-          .tileSprite(0, 0, CLEARING.widthPixels, CLEARING.heightPixels, 'grass')
-          .setOrigin(0)
-          .setTint(0x91bb73);
-        const ground = this.add.graphics();
-        ground.fillStyle(0xc2a578).fillRoundedRect(199, 0, 82, 272, 26);
-        ground.fillStyle(0xc2a578).fillRoundedRect(108, 115, 259, 68, 28);
-        ground.fillStyle(0xceb48a).fillEllipse(242, 144, 170, 104);
-        ground.fillStyle(0x294c3d, 0.17);
-        for (const [x, y] of CLEARING.trees) ground.fillEllipse(x, y + 8, 34, 12);
-        for (const [x, y] of CLEARING.trees)
-          this.add.image(x, y, 'tree').setOrigin(0.5, 0.9).setDepth(y);
-        for (const [x, y] of CLEARING.bushes) this.add.image(x, y, 'bush').setDepth(y);
-        for (const [x, y] of CLEARING.rocks) this.add.image(x, y, 'rock').setDepth(y);
-        for (let i = 0; i < 20; i++) {
-          const x = 123 + ((i * 43) % 235);
-          const y = i % 2 ? 80 + ((i * 13) % 25) : 190 + ((i * 11) % 32);
-          this.add.image(x, y, i % 3 ? 'flower-blue' : 'flower-orange').setDepth(y);
-        }
-        this.add.image(286, 124, 'sign').setOrigin(0.5, 1).setDepth(124);
-        this.add.image(186, 158, 'chest', 0).setOrigin(0.5, 1).setDepth(158);
+        this.cameras.main.setBackgroundColor('#63ab3f');
+        this.scenery = createClearingScenery(this);
 
         for (const definition of heroAnimations) {
           const baseDurationMs = Math.min(...definition.frames.map((frame) => frame.durationMs));
@@ -106,7 +88,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         }
         this.actor = this.add
           .sprite(CLEARING.spawn.x, CLEARING.spawn.y, 'hero-1-idle')
-          .setOrigin(0.5, 0.875);
+          .setOrigin(0.5, 0.875)
+          .setDepth(ACTOR_DEPTH_BASE + CLEARING.spawn.y);
         const keyboard = this.input.keyboard;
         if (!keyboard) throw new Error('Keyboard input is unavailable.');
         this.keys = {
@@ -137,6 +120,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           return;
         }
         actor.anims.resume();
+        this.scenery?.advance(deltaMilliseconds);
         const request = bridge.snapshot.animationRequest;
         if (request && request.sequence !== this.seenAnimationRequest) {
           this.seenAnimationRequest = request.sequence;
@@ -184,7 +168,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         }
         this.currentHero = snapshot.hero;
         this.playAction(moving ? 'walk' : 'idle');
-        actor.setDepth(actor.y);
+        actor.setDepth(ACTOR_DEPTH_BASE + actor.y);
       }
       private playAction(action: HeroAction) {
         if (!this.actor) return;
