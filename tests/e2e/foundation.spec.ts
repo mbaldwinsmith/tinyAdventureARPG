@@ -434,6 +434,44 @@ test('plays the authored explosion to its held endpoint and restarts explicitly'
         .evaluate((node) => (node as HTMLCanvasElement).toDataURL()),
     )
     .not.toBe(terminal);
+  await effect.getByRole('button', { name: 'Stop explosion' }).click();
   await effect.getByLabel('Explosion frame').fill('0');
   await expect(effect.getByTestId('explosion-frame')).toHaveText('Frame 1 / 6');
+  await page.waitForTimeout(200);
+  await expect(effect.getByTestId('explosion-frame')).toHaveText('Frame 1 / 6');
+});
+
+test('advances the shared calendar only during active play and rests through an authoritative command', async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-01-01T00:00:10Z'));
+  const time = page.getByTestId('world-time');
+  const before = await time.textContent();
+  await page.clock.runFor(1500);
+  await expect(time).not.toHaveText(before ?? '');
+  await page.getByRole('button', { name: 'Pause Esc' }).click();
+  const paused = await time.textContent();
+  await page.clock.runFor(2000);
+  await expect(time).toHaveText(paused ?? '');
+  await expect(page.getByRole('button', { name: 'Rest until tomorrow' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Back to the clearing' }).click();
+  await page.getByRole('button', { name: 'Rest until tomorrow' }).click();
+  await expect(time).toHaveText('Day 2 · Spring 2 · 06:00');
+  await page.clock.runFor(500);
+  await expect(time).not.toHaveText('Day 2 · Spring 2 · 06:00');
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByRole('button', { name: 'Open sprite workbench' }).click();
+  const inspecting = await time.textContent();
+  await page.clock.runFor(2000);
+  await expect(time).toHaveText(inspecting ?? '');
+  await page.getByRole('button', { name: 'Close workbench' }).click();
+  await page.clock.runFor(500);
+  await expect(time).not.toHaveText(inspecting ?? '');
+  expect(errors).toEqual([]);
 });

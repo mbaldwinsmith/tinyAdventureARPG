@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { CLEARING } from '../content/clearing';
+import { CLEARING, clearingPathAt } from '../content/clearing';
 import {
   terrainProfiles,
   terrainFrame,
@@ -40,16 +40,7 @@ export function createClearingScenery(scene: Phaser.Scene, manifest: AssetManife
   const dirt = terrainProfiles.find((p) => p.id === 'new-grasslands-dirt');
   if (!dirt) throw new Error('The clearing dirt profile is missing.');
   for (let y = 0; y < 17; y++) for (let x = 0; x < 30; x++) image(x * 16, y * 16, clearingGrass, 0);
-  const path = (x: number, y: number) =>
-    x >= 0 &&
-    x < 30 &&
-    y >= 0 &&
-    y < 17 &&
-    ((x >= 14 && x <= 15 && y >= 7) ||
-      (x >= 10 && x <= 19 && y >= 8 && y <= 10) ||
-      (x >= 7 && x <= 10 && y >= 7 && y <= 9) ||
-      (x >= 14 && x <= 15 && y <= 8) ||
-      (x >= 19 && x <= 21 && y >= 10 && y <= 11));
+  const path = clearingPathAt;
   for (let y = 0; y < 17; y++)
     for (let x = 0; x < 30; x++)
       if (path(x, y)) {
@@ -95,7 +86,7 @@ export function createClearingScenery(scene: Phaser.Scene, manifest: AssetManife
     phase = 0;
   return {
     advance(deltaMs: number) {
-      elapsedMs = (elapsedMs + Math.min(Math.max(deltaMs, 0), 50)) % 720;
+      elapsedMs = (elapsedMs + Math.max(deltaMs, 0)) % 720;
       const next = Math.floor(elapsedMs / 180);
       if (next === phase) return;
       phase = next;

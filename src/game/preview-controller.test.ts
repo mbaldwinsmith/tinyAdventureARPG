@@ -16,4 +16,27 @@ describe('preview runtime ownership', () => {
     runtime.dispose();
     expect(bridge.send({ type: 'appearance.set', hero: 1 }).ok).toBe(false);
   });
+  it('publishes calendar changes without streaming render frames or positions into React', () => {
+    const bridge = new GameBridge(),
+      runtime = new PreviewController(bridge);
+    runtime.ready();
+    const seen: unknown[] = [];
+    bridge.subscribe((snapshot) => seen.push(snapshot));
+    for (let i = 0; i < 100; i++)
+      runtime.advance(10, (context) => ({
+        position: { ...context.position },
+        facing: context.facing,
+      }));
+    expect(seen.length).toBeLessThanOrEqual(4);
+    expect(bridge.snapshot).not.toHaveProperty('position');
+    expect(bridge.snapshot).not.toHaveProperty('tick');
+    const day = bridge.snapshot.calendar.day;
+    expect(bridge.send({ type: 'calendar.sleep', expectedDay: day })).toEqual({ ok: true });
+    expect(bridge.snapshot.calendar.day).toBe(day + 1);
+    expect(bridge.send({ type: 'calendar.sleep', expectedDay: day })).toMatchObject({
+      ok: false,
+      code: 'stale-command',
+    });
+    runtime.dispose();
+  });
 });

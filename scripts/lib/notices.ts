@@ -45,8 +45,19 @@ export async function buildNotices(root: string): Promise<string> {
     const licenseFile = (await readdir(directory))
       .filter((file) => /^licen[cs]e(?:\..*)?$/i.test(file))
       .sort()[0];
-    if (!licenseFile) throw new Error(`No bundled license text found for ${key}`);
-    const license = await readFile(path.join(directory, licenseFile), 'utf8');
+    let license: string;
+    if (licenseFile) license = await readFile(path.join(directory, licenseFile), 'utf8');
+    else if (metadata.name === 'seedrandom') {
+      // This package keeps its MIT text in source headers rather than a LICENSE file.
+      const source = await readFile(path.join(directory, 'seedrandom.js'), 'utf8');
+      const header = source.match(/^\/\*[\s\S]*?\*\//)?.[0];
+      const alea = (await readFile(path.join(directory, 'lib/alea.js'), 'utf8')).split(
+        '(function',
+      )[0];
+      if (!header?.includes('Permission is hereby granted') || !alea?.includes('Johannes Baag'))
+        throw new Error('Missing seedrandom bundled licences');
+      license = header + '\n\nAdditional bundled Alea notice:\n' + alea;
+    } else throw new Error(`No bundled license text found for ${key}`);
     records.set(key, { metadata, license, role });
     for (const child of Object.keys(metadata.dependencies ?? {}).sort())
       await visit(child, role, directory);

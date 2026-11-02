@@ -1,6 +1,6 @@
 # Tiny Adventure — First Full Release Plan
 
-**Target:** 1.0.0 desktop browser release. **Current stage:** M01 runnable foundation preview; campaign implementation remains ahead.
+**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M03 complete: application/assets plus core state and time; M04 movement/input is next.
 
 This is the implementation backlog. `[x]` means delivered and verified, not merely designed. Completed M00 items record the documentation baseline. M01 now delivers the application foundation; the authored clearing is an integration preview, not completion of later combat, world or campaign milestones.
 
@@ -132,23 +132,29 @@ The 314-source manifest packs 3,763 runtime frames from 167 sources into one pad
 
 ## M03 — Core data, time and state ownership
 
-- [ ] **M03-001** Define stable entity, region, instance, content and item-instance IDs.
-- [ ] **M03-002** Define serialisable save/world/player models using data rather than Phaser objects or React references.
-- [ ] **M03-003** Define validated content schemas and distinguish missing/invalid IDs from intentionally optional data.
-- [ ] **M03-004** Implement isolated seeded random streams for terrain generation, loot, encounters and death losses.
-- [ ] **M03-005** Store random-stream state and generator versions needed to resume ongoing play consistently.
-- [ ] **M03-006** Define permanent progression, tool ownership, carried possessions and deposited possessions as distinct domains.
-- [ ] **M03-007** Define item templates, unique instances, enchantments, stack identity and equipment compatibility.
-- [ ] **M03-008** Define actor stats, damage types, resource pools, status effects and cooldown data.
-- [ ] **M03-009** Establish one fixed-step gameplay clock and a documented interface with Phaser movement/collision updates.
-- [ ] **M03-010** Implement composable pause reasons shared by combat, cooldowns, AI and farming time.
-- [ ] **M03-011** Implement active-play day/season time and explicit sleep transitions without closed-game catch-up.
-- [ ] **M03-012** Define authoritative command handlers, event ordering and stable snapshots for the bridge.
-- [ ] **M03-013** Define region lifecycle and dungeon anchor lifecycle states, including defeated/pending-regeneration states.
-- [ ] **M03-014** Add focused invariant checks for invalid inventories, impossible equipment and broken progression references.
-- [ ] **M03-015** Verify reproducible generation streams, independent loot randomness and consistent pause/time behaviour.
+- [x] **M03-001** Define stable entity, region, instance, content and item-instance IDs.
+- [x] **M03-002** Define serialisable save/world/player models using data rather than Phaser objects or React references.
+- [x] **M03-003** Define validated content schemas and distinguish missing/invalid IDs from intentionally optional data.
+- [x] **M03-004** Implement isolated seeded random streams for terrain generation, loot, encounters and death losses.
+- [x] **M03-005** Store random-stream state and generator versions needed to resume ongoing play consistently.
+- [x] **M03-006** Define permanent progression, tool ownership, carried possessions and deposited possessions as distinct domains.
+- [x] **M03-007** Define item templates, unique instances, enchantments, stack identity and equipment compatibility.
+- [x] **M03-008** Define actor stats, damage types, resource pools, status effects and cooldown data.
+- [x] **M03-009** Establish one fixed-step gameplay clock and a documented interface with Phaser movement/collision updates.
+- [x] **M03-010** Implement composable pause reasons shared by combat, cooldowns, AI and farming time.
+- [x] **M03-011** Implement active-play day/season time and explicit sleep transitions without closed-game catch-up.
+- [x] **M03-012** Define authoritative command handlers, event ordering and stable snapshots for the bridge.
+- [x] **M03-013** Define region lifecycle and dungeon anchor lifecycle states, including defeated/pending-regeneration states.
+- [x] **M03-014** Add focused invariant checks for invalid inventories, impossible equipment and broken progression references.
+- [x] **M03-015** Verify reproducible generation streams, independent loot randomness and consistent pause/time behaviour.
 
 **Acceptance:** rules run in Vitest without a browser. One documented owner controls each kind of state and time; serialised state has no framework objects.
+
+### M03 delivery evidence
+
+All 15 core tasks are complete. GameSession owns strict serializable world/player/checkpoint data, stable IDs, four independent resumable seedrandom streams, permanent/carried/deposited possession domains and validated item/stat/status/equipment contracts. Guarded region/anchor transitions retain geometry and prevent living/occupied regeneration. A shared 20ms clock commits Phaser-resolved movement once, expires timed data and drives an active-play day/season calendar. Pauses compose; explicit rest is atomic and rejects stale replay. The bridge delivers ordered committed-state events and stable focused snapshots.
+
+Forty-one unit tests run without a browser; eleven browser flows and production WebGL/layout checks pass. See `docs/core-state.md` and `CHANGELOG.md`. M00 balance choices remain open with explicit configurable preview defaults. Durable storage/migrations are M07 work; item operations, combat, AI, farming, generated regions and actual dungeon encounters remain their later milestones. No additional campaign systems are implied by the validated models.
 
 ## M04 — Movement, world rendering and input
 

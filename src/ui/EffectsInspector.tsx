@@ -39,6 +39,13 @@ export function EffectsInspector() {
       >
         Play explosion
       </button>
+      <button
+        className="button button-subtle"
+        disabled={!playing}
+        onClick={() => setPlaying(false)}
+      >
+        Stop explosion
+      </button>
       <label>
         Effect frame{' '}
         <input

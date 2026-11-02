@@ -1,21 +1,21 @@
 # Foundation architecture
 
-The foundation implements **M01** and **M02** asset inventory/imports. A small authored clearing exercises the integration. It is not the campaign world, a generated forest, or the M09 vertical slice.
+The foundation implements **M01** and **M02** asset inventory/imports and **M03** core state/time. A small authored clearing exercises the integration. It is not the campaign world, a generated forest, or the M09 vertical slice.
 
 ## Ownership
 
-- `PreviewController` is the runtime owner. Its plain TypeScript `PreviewSession` owns pause reasons and appearance selection. Future campaign state will replace/extend this deliberately small preview state.
+- `GameSession` is the sole plain TypeScript state/time/randomness owner. `PreviewController` owns loading status and presentation requests and connects it to the bridge. See [core state/time](core-state.md) for the full contract.
 - `GameBridge` transports typed commands, command failures and snapshots. It has one runtime handler and independently disposable subscriptions. It does not make gameplay decisions.
 - React's Zustand store contains a display snapshot. Buttons send commands; they never edit the session directly. Continuous sprite positions and animation frames stay outside React.
 - `mountGame` creates its own controller, asynchronously loads/validates assets and imports Phaser. Cleanup cancels startup, detaches the handler, removes browser listeners and destroys that mount's game. This accommodates React StrictMode's development mount/cleanup/mount cycle.
-- Phaser owns the preview actor's unsaved transform and animation. Preview movement uses elapsed render time with a bounded step; it does not implement the future fixed-step gameplay/physics system. No authoritative campaign positions or saves exist yet.
+- Phaser resolves input and bounds once per requested 20ms core step; GameSession commits the result once and Phaser renders that core position. Core position, clock remainder and random state have validated JSON checkpoint APIs. Durable storage and collision remain future work.
 - Menu, background and workbench pause reasons compose: closing a menu cannot clear an inactive-window pause. Browser listeners are installed and disposed by the runtime. Movement also requires focus inside the clearing, preventing held keys from moving the actor through UI controls.
 
 ## Preview-only choices
 
 Smooth normalised diagonal movement, six selectable appearances, a fixed clearing and a 60-pixel/second walking speed are reversible integration defaults. They do not close the M00 movement, character-choice, mapping, topology or balance decisions. The chest and sign are scenery; the preview does not imply working interactions or banking. Trees currently provide visual depth, not collision.
 
-Audio, controller support, inventory, combat, calendar/farming, persistence, procedural generation and boss anchors remain future tasks. Browser focus is paused now; final campaign/background policy remains in M00.
+Audio, controller support, inventory interactions, combat, farming, durable persistence, procedural generation and boss encounters remain future tasks. M03 now defines their data/anchor lifecycle contracts and implements the shared active-time calendar. Browser focus is paused now; final campaign/background policy remains in M00.
 
 ## Assets
 

@@ -29,7 +29,7 @@ Bring discoveries home. Deposit valuables, plant and tend crops, and welcome the
 
 At the heart of the Kingdom waits its evil King: the crowned, tongue-attacking boss from Vryell's Tiny Castle Pack. Defeating him and restoring the Kingdom is the main objective.
 
-> **Project status:** runnable foundation preview. Explore an authored clearing with tiled paths, a cottage and an animated pond, select one of six appearances, preview 30 action families and use the React pause menu. Combat, collisions, inventory, saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
+> **Project status:** runnable foundation preview. Explore an authored clearing with tiled paths, a cottage and an animated pond, select one of six appearances, preview 30 action families, watch active-play day/season time and rest until tomorrow. Combat, collisions, inventory interactions, durable browser saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
 
 ## A world that remembers
 
@@ -60,15 +60,15 @@ Loss probabilities, equipment eligibility, money handling and partial-stack rule
 
 ## Project status
 
-**M01 application foundation and M02 asset inventory/imports are implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
+**M01 application foundation, M02 asset inventory/imports and M03 core state/time are implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
 
-| Available now                                                         | Next systems                                       |
-| --------------------------------------------------------------------- | -------------------------------------------------- |
-| Walkable authored clearing and six hero appearances                   | Collision, cardinal combat and interactions        |
-| Typed game/UI bridge, composed pause reasons and focused UI snapshots | Authoritative campaign rules, time and progression |
-| Full catalogue, 3,763 padded atlas frames, GUI mappings and credits   | Core data, time and progression                    |
-| Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming  |
-| CI workflow and production build                                      | Complete desktop campaign and release validation   |
+| Available now                                                         | Next systems                                        |
+| --------------------------------------------------------------------- | --------------------------------------------------- |
+| Walkable authored clearing and six hero appearances                   | Collision, cardinal combat and interactions         |
+| Typed game/UI bridge, composed pause reasons and focused UI snapshots | Movement/collision, combat and campaign progression |
+| Full catalogue, 3,763 padded atlas frames, GUI mappings and credits   | Durable browser saves and inventory interactions    |
+| Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming   |
+| CI workflow and production build                                      | Complete desktop campaign and release validation    |
 
 The status/stack badges describe the project, not a promise that every planned feature is present. See [foundation architecture](docs/architecture.md) for ownership and preview-only choices.
 
@@ -89,14 +89,14 @@ One repository and one application, with clear ownership boundaries:
 
 **The game owns authoritative gameplay state.** React sends commands and consumes focused snapshots. Phaser runs continuous world activity; React does not receive every entity position on every frame. The game core remains independent of React, Phaser, the DOM and storage APIs.
 
-The module boundaries are established. The current session, rendering and UI implement a small integration preview; full campaign rules and platform services remain in the plan.
+GameSession now owns validated world/player data, independent resumable random streams, 20ms gameplay steps, composable pauses and the day/season calendar. Phaser commits resolved movement once per step; React receives focused snapshots. See the [core state/time contract](docs/core-state.md) for schemas, event order, checkpoint APIs and configurable preview defaults. Full campaign rules and durable storage remain in the plan.
 
 ### Supporting tools
 
 - **Zustand:** React-facing snapshots and interface state.
 - **Zod:** validation at save and content boundaries.
 - **Dexie:** IndexedDB storage behind a replaceable save interface.
-- **seedrandom:** isolated, reproducible random streams for generation, loot and loss rolls.
+- **seedrandom:** pinned independent terrain, loot, encounter and death streams with serialized continuation state.
 - **Vitest:** focused rule and integration tests.
 - **Playwright:** real-browser smoke and end-to-end checks.
 - **ESLint, Prettier and GitHub Actions:** consistent code and automated checks.
@@ -112,7 +112,7 @@ npm ci
 npm run dev
 ```
 
-Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **Escape** or the Pause button to open the menu. Selecting a wanderer changes appearance. The action selector plays art previews only; chest/sign/tree interactions and combat are not implemented. Losing browser-window focus pauses the preview.
+Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **Escape** or the Pause button to open the menu. Selecting a wanderer changes appearance. The action selector plays art previews only; chest/sign/tree interactions and combat are not implemented. Losing browser-window focus pauses the preview. The calendar advances only during active play; menus and the workbench pause it. **Rest until tomorrow** starts the next calendar day. Rest does not yet heal, grow crops or write a durable save. Day/season lengths and other balance values remain configurable preview defaults pending M00 decisions.
 
 | Command                                               | Purpose                                                                 |
 | ----------------------------------------------------- | ----------------------------------------------------------------------- |

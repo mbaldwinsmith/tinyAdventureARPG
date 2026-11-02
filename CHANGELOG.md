@@ -17,6 +17,22 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Added — core state, time and ownership
+
+- **M03-001, M03-002, M03-003:** Add branded stable ID domains, world-scoped monotonic allocation, strict versioned JSON world/player/checkpoint schemas and validated content registries. Keep optional nulls distinct from missing/invalid IDs; reject duplicate/cyclic/broken content references. Retain the clearing's authored grid and stable chest/sign identities without claiming a generated world.
+- **M03-004, M03-005, M03-015:** Pin seedrandom 3.0.5 with separate explicit-seed terrain, loot, encounter and death streams. Store full validated PRNG state plus generator versions for exact checkpoint continuation. Verify golden draws, independent loot outcomes and mixed-render-rate/pause behaviour. Include seedrandom and its bundled Alea licence headers in generated notices.
+- **M03-006, M03-007, M03-008, M03-014:** Separate permanent progression/tool ownership, carried items/money and individually located deposits. Define unique item instances, rolled enchantments, stack identity, equipment requirements, actor stats, resource pools, damage/resistance/status/cooldown data. Reject duplicate possession IDs, bad capacities/stacks, impossible equipment, missing tool ownership and contradictory progression/location/anchor data.
+- **M03-009, M03-010:** Establish GameSession as the sole state/time/random owner with bounded 20ms gameplay steps. Phaser resolves movement/bounds once per step; core commits once and then advances timed state. Share composable menu/background/workbench/loading/failure pauses across the gameplay clock. Keep loading/failure pause authority outside UI commands. Remove the old competing preview-session owner.
+- **M03-011, M03-012:** Implement active-play day/season/year time and an atomic, stale-safe rest command without wall-clock/offline catch-up. Add the visible calendar and Rest until tomorrow control. Validate commands, sequence domain events against committed state, reject reentrant delivery and publish frozen stable snapshots without streaming actor positions/ticks into React.
+- **M03-013:** Define unvisited/active/dormant surfaces and living/defeated/pending-regeneration/retired dungeon anchors. Pure guarded transitions preserve geometry/deltas, reject living or occupied regeneration and keep exact reset timing/successor policy open for M00/M06.
+- Add a Stop explosion control in the workbench after browser regression testing exposed an unchanged-value slider race during playback. Explicit stop and scrubbing now retain the selected frame.
+
+### Core validation and scope
+
+- `npm run assets:build`, `npm run check` and `npm run build` passed. Forty-one Vitest tests cover core save/content/inventory/lifecycle/time/random invariants, 30/60/144Hz resolved-movement equivalence, detached serialization, stable snapshots and ordered non-reentrant bridge delivery, alongside asset/archive checks.
+- Eleven real-browser flows passed with the documented Chromium override. The new flow verifies active time, menu/workbench pause and the day-2 rest transition; all existing rendering, lifecycle, missing-texture, pixel-source and effect/pause checks pass. Focused production WebGL QA passed at 1440px and 800px, including movement, clock/rest/pause, notices, exactly one canvas and no overflow/page errors.
+- M03's pure-rule/state-ownership acceptance gate is complete. Preview calendar/pool/capacity/content settings are versioned configurable defaults, not approval of open M00 balances. Rest currently advances calendar only; recovery, crop growth and durable saves are later integrations. Combat, AI, inventory operations, procedural regions and real dungeon encounters are not implemented by these contracts. Raw archives and LICENSE remain unchanged.
+
 ### Added — completed asset pipeline
 
 - **M02-014:** Define four inspected 4px-border nine-slice panels, normal/pressed buttons, heart/drop/star and descriptive status icons, 14 bitmap font variants with 88 glyphs/fallback metrics, and physical keyboard/controller/mouse prompts. Add resizable panel/font/icon inspectors. Use the green panel on the accessible pause dialog and actual keyboard prompts in the clearing.

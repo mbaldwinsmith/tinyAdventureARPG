@@ -39,3 +39,18 @@ export const CLEARING = {
   pond: { x: 21, y: 9, columns: 6, rows: 5 },
 } as const;
 export const PREVIEW_SPEED_PIXELS_PER_SECOND = 60;
+
+/** Shared authored geography for the retained core grid and its terrain renderer. */
+export function clearingPathAt(x: number, y: number): boolean {
+  return (
+    x >= 0 &&
+    x < 30 &&
+    y >= 0 &&
+    y < 17 &&
+    ((x >= 14 && x <= 15 && y >= 7) ||
+      (x >= 10 && x <= 19 && y >= 8 && y <= 10) ||
+      (x >= 7 && x <= 10 && y >= 7 && y <= 9) ||
+      (x >= 14 && x <= 15 && y <= 8) ||
+      (x >= 19 && x <= 21 && y >= 10 && y <= 11))
+  );
+}
