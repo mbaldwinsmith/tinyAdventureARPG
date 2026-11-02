@@ -87,6 +87,7 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
       ...d.changes.removedObjects,
       ...d.changes.openedPassages,
       ...d.changes.claimedRewards,
+      ...d.changes.openedObjects,
     ])
       if (!ids.has(id)) throw new Error(`Unknown dungeon object change: ${id}`);
   }
@@ -100,6 +101,7 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
     unique(changes.removedObjects, 'removed object');
     unique(changes.openedPassages, 'opened passage');
     unique(changes.claimedRewards, 'claimed reward');
+    unique(changes.openedObjects, 'opened object');
   }
   for (const r of state.world.regions) {
     if (
@@ -120,6 +122,7 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
         ...r.changes.removedObjects,
         ...r.changes.openedPassages,
         ...r.changes.claimedRewards,
+        ...r.changes.openedObjects,
       ])
         if (!ids.has(id)) throw new Error(`Unknown surface object change: ${id}`);
     }
@@ -133,6 +136,13 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
     player.actor.position.y > geometry.height * geometry.tilePixels
   )
     throw new Error('Player outside region bounds');
+  if (
+    player.carrying !== null &&
+    (current.kind !== 'surface' ||
+      !current.geometry.objects.some((o) => o.id === player.carrying) ||
+      !current.changes.removedObjects.includes(player.carrying))
+  )
+    throw new Error('Invalid carried object');
   const itemIds = new Set<string>(),
     chestIds = new Set<string>();
   for (const deposit of player.deposits) {

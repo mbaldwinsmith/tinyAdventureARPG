@@ -12,7 +12,7 @@ These instructions apply throughout this repository. Follow the user's current r
 6. Use judgment for routine reversible details. Raise a consequential unresolved design choice when it materially affects the work; continue independent work where possible. Do not repeatedly ask for decisions already made.
 7. Check current official documentation for unfamiliar or version-sensitive framework APIs. Do not assume a Phaser 3 example is compatible with Phaser 4.
 
-M01–M03 now provide a runnable clearing, a validated asset pipeline and a framework-independent state/time core. Read the current package scripts, foundation architecture and `docs/core-state.md`. Core contracts and preview walking/calendar controls are not completed combat, inventory, saving or campaign systems.
+M01–M04 now provide three traversable authored regions, a validated asset pipeline, a framework-independent state/time core, foot collision and action-based keyboard/controller input. Read the current package scripts, foundation architecture and `docs/core-state.md`. Read `docs/world-input.md` for world/input boundaries. Core contracts and preview interactions/calendar controls are not completed combat, inventory, saving or campaign systems.
 
 ## 2. Mandatory plan and changelog discipline
 

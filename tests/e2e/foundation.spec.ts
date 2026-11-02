@@ -47,15 +47,17 @@ test('disposes its canvas and bridge handler cleanly before mounting a fresh run
   }
 });
 
-test('reports missing curated textures instead of silently opening a broken scene', async ({
-  page,
-}) => {
+test('reports missing curated textures and recovers when the player retries', async ({ page }) => {
   await page.route('**/generated/atlas-0.png', (route) =>
     route.fulfill({ status: 404, body: 'missing fixture' }),
   );
   await page.goto('/');
   await expect(page.getByRole('alert')).toContainText('Could not load texture', { timeout: 30000 });
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
+  await page.unroute('**/generated/atlas-0.png');
+  await page.getByRole('button', { name: 'Try again' }).click();
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await expect(page.locator('canvas')).toHaveCount(1);
 });
 
 test('inspects the reviewed catalogue, plays framed art and follows an updated enemy source', async ({
@@ -314,7 +316,7 @@ test('renders GUI panel corners from supplied pixels at different sizes and hand
 }) => {
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
-  await expect(page.locator('.packed-key')).toHaveCount(5);
+  await expect(page.locator('.packed-key')).toHaveCount(7);
   await page.getByRole('button', { name: 'Pause Esc' }).click();
   await expect
     .poll(() =>
@@ -389,11 +391,11 @@ test('plays the authored explosion to its held endpoint and restarts explicitly'
   page,
 }) => {
   test.setTimeout(60000);
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
   // Keep the pause target ahead of the browser clock, independently of host/transport drift.
-  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
-  await page.clock.pauseAt(new Date('2026-01-01T00:00:10Z'));
+  await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
   for (const action of ['death', 'bomb']) {
     await page.getByLabel('Animation to preview').selectOption(action);
     await page.getByRole('button', { name: 'Preview animation', exact: true }).click();
@@ -447,10 +449,10 @@ test('advances the shared calendar only during active play and rests through an 
   test.setTimeout(60000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
-  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
-  await page.clock.pauseAt(new Date('2026-01-01T00:00:10Z'));
+  await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
   const time = page.getByTestId('world-time');
   const before = await time.textContent();
   await page.clock.runFor(1500);

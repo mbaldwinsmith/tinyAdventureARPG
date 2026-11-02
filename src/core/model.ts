@@ -90,6 +90,7 @@ const geometrySchema = z
   })
   .refine((g) => g.tiles.length === g.width * g.height, 'Geometry tile count mismatch');
 const changesSchema = z.strictObject({
+  openedObjects: z.array(entityIdSchema).default([]),
   removedObjects: z.array(entityIdSchema),
   openedPassages: z.array(entityIdSchema),
   claimedRewards: z.array(entityIdSchema),
@@ -144,6 +145,7 @@ export const saveSchema = z.strictObject({
     hero: heroSchema,
     regionId: regionIdSchema,
     instanceId: instanceIdSchema.nullable(),
+    carrying: entityIdSchema.nullable().default(null),
     permanent: z.strictObject({
       tools: z.array(toolIdSchema),
       unlocks: z.array(unlockIdSchema),

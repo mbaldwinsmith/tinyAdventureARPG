@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
-export const pauseReasonSchema = z.enum(['menu', 'background', 'workbench', 'loading', 'failure']);
+export const pauseReasonSchema = z.enum([
+  'menu',
+  'background',
+  'workbench',
+  'settings',
+  'interaction',
+  'loading',
+  'failure',
+]);
 export type PauseReason = z.infer<typeof pauseReasonSchema>;
 export class PauseReasons {
   private reasons = new Set<PauseReason>();

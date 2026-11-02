@@ -1,6 +1,6 @@
 # Core state, time and ownership
 
-M03 supplies framework-independent rules and serializable data contracts. The clearing now runs through this owner and shows active-play time plus a rest transition. Combat, world generation, inventory actions, farming and durable browser saving remain later milestones.
+M03 supplies framework-independent rules and serializable data contracts. M04 also routes three authored regions, validated interactions and retained object changes through this owner, alongside active-play time and rest. Combat, world generation, inventory actions, farming and durable browser saving remain later milestones.
 
 ## One authoritative owner
 
@@ -12,7 +12,7 @@ React sends validated commands and reads display snapshots. Zustand holds those 
 
 `ids.ts` defines branded, validated IDs for worlds, entities, regions, dungeon instances, item templates, unique item instances, tools, unlocks, enchantments, statuses and equipment slots. Display names are separate. Generated entity/instance/item-instance IDs use the persisted world-scoped monotonic `nextId` counter, never wall-clock time or loot randomness. Import checks reject counters that would reuse an allocated identity. Authored region/content IDs remain stable keys within the saved world.
 
-`model.ts` defines strict schema-version-1 envelopes with content/generator versions. State includes retained tile geometry, object identities and object deltas; player location, appearance, stats, resource pools, resistances, timed statuses and cooldowns; progression; and possessions. The clearing's retained path grid and terrain renderer use the same authored geography function. Its chest/sign have stable object identities; decorative sprites remain presentation rather than implicit interaction/collision records.
+`model.ts` defines strict schema-version-1 envelopes with content/generator versions. State includes retained tile geometry, object identities and object deltas; player location, appearance, stats, resource pools, resistances, timed statuses and cooldowns; progression; and possessions. The clearing's retained path grid and terrain renderer use the same authored geography function. Authored objects have stable identities and explicit collision/interaction records in `content/world.ts`. Additive prerelease schema-v1 fields `changes.openedObjects` and `player.carrying` default to an empty array and null when absent, preserving M03 checkpoint parsing.
 
 Permanent tools, unlocks, discoveries, King victory and restoration are independent of carried item instances. Carried inventory/money and individually located deposit containers are separate. A deposit records its chest, region and optional dungeon-instance identity; this defines provenance, not a global withdrawal service. Equipment references carried instances rather than duplicating items. Enchantments store their rolled magnitude once. Stack identity depends on template and sorted rolled enchantments, excluding the unique instance ID.
 
@@ -24,14 +24,14 @@ The core uses **20ms steps (50Hz)**. For each render frame:
 
 1. Ignore elapsed time while any pause reason remains active. The renderer also freezes actor/shore/effect presentation.
 2. Accept at most 250ms of elapsed render time, combine it with the saved fractional remainder and determine whole gameplay steps. Drop excess stall time rather than simulating closed-game catch-up.
-3. For each step, pass an immutable `StepContext` to the movement adapter: next tick, step milliseconds, current position/facing and speed in pixels per second.
-4. The adapter resolves input and bounds once and returns `{position, facing}`. M04 will add collision resolution at this boundary. The core validates and commits that result once; it does not integrate the same velocity again.
+3. For each step, pass an immutable `StepContext` to the movement adapter: next tick, step milliseconds, current position/facing, region ID and speed in pixels per second.
+4. The adapter resolves action input through swept axis-separated 8×6 foot collision and bounds, then returns `{position, facing}`. The core validates and commits that result once; it does not integrate the same velocity again.
 5. Advance the authoritative tick, decrement cooldown/status durations, then advance the calendar and emit a day transition if required.
 6. Render the final core position. Only changed display values and ordered domain events reach React.
 
-There is no second physics loop or automatic collision integration in this clearing. M04 may add rendering interpolation and collision, while retaining this single commit boundary. A seeded stream does not imply deterministic cross-platform physics.
+There is no second physics loop or automatic collision integration in this clearing. The core independently rejects a final position overlapping an authored solid; no second integration or Arcade Physics clock runs. A seeded stream does not imply deterministic cross-platform physics.
 
-Menu, background, workbench, loading and failure pause reasons compose. The bridge can control only the first three; loading/failure reasons belong to the runtime. Removing one reason leaves the others active. Future combat, AI and farming updates must use these same gameplay steps; they must not introduce independent real-time timers.
+Menu, settings, interaction, background, workbench, loading and failure pause reasons compose. The bridge can control menu/settings/background/workbench; loading/failure belong to the runtime and interaction pause belongs to interaction commands. Removing one reason leaves the others active. Future combat, AI and farming updates must use these same gameplay steps; they must not introduce independent real-time timers.
 
 ## Calendar and rest
 
@@ -53,11 +53,13 @@ Commands validate at the bridge and core boundaries. Ready-state restrictions be
 
 For an accepted command, the owner mutates state, allocates monotonically ordered event sequence numbers and builds its immutable display snapshot. The bridge installs that committed snapshot **before** delivering ordered domain events, then sends `snapshot.changed`. Reentrant commands during delivery are rejected, preventing interleaved batches. Events are drained, not retained as an unbounded UI history or replayed on load. Event sequence state is saved; transient animation requests are not.
 
-Snapshots retain their object identity until status, appearance, pause, preview request or displayed calendar values change. They exclude positions and simulation ticks. With the current day length, calendar publication is roughly 2.4 changes/second rather than 50 updates/second; explicit commands publish immediately. When future HUD fields arrive, their subscriptions should remain similarly focused/bounded.
+Snapshots retain their object identity until status, appearance, pause, preview request, region/nearby target, interaction message, carrying/swimming, input preferences/device, debug visibility, failure notice or displayed calendar values change. They exclude positions and simulation ticks. With the current day length, calendar publication is roughly 2.4 changes/second rather than 50 updates/second; explicit commands publish immediately. When future HUD fields arrive, their subscriptions should remain similarly focused/bounded.
 
 ## Region and anchor lifecycle
 
 Surface regions distinguish unvisited from active/dormant retained geometry. Activity transitions preserve geography and object deltas. Dungeon instances carry their own immutable identity, generation/version, geometry and changes, with anchor states `living`, `defeated`, `pending-regeneration` and `retired`.
+
+M04 door commands validate destinations and incoming spawns against current retained solids, switch source/destination activity without changing geography, record discoveries, clear fractional time and emit a region-entered event. Interaction targeting validates range, facing and line of sight. Opening a chest records one stable ID. Pickup/drop moves a single world object and its solid without duplicating inventory. The active carried object must belong to the current surface and be absent from the ground.
 
 Pure lifecycle functions permit defeat without replacing geometry, reject regeneration of a living or occupied instance, and require an unoccupied pending instance before retirement. The schema rejects occupying pending/retired instances. Travel, death, rest and checkpoints do not reset an anchor or erase permanent progress. M00/M06 still choose the exact safe reset trigger, successor encounter policy and generation process; this milestone does not silently trigger regeneration on exit.
 

@@ -29,7 +29,7 @@ Bring discoveries home. Deposit valuables, plant and tend crops, and welcome the
 
 At the heart of the Kingdom waits its evil King: the crowned, tongue-attacking boss from Vryell's Tiny Castle Pack. Defeating him and restoring the Kingdom is the main objective.
 
-> **Project status:** runnable foundation preview. Explore an authored clearing with tiled paths, a cottage and an animated pond, select one of six appearances, preview 30 action families, watch active-play day/season time and rest until tomorrow. Combat, collisions, inventory interactions, durable browser saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
+> **Project status:** runnable foundation preview. Explore three authored regions with foot collision, doors, nearby interactions, carrying and swimming previews; use remappable keyboard controls or a standard-mapped controller. Select one of six appearances, preview 30 action families, watch active-play day/season time and rest until tomorrow. Combat, inventory transactions, durable browser saves, farming and generated worlds remain later work. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
 
 ## A world that remembers
 
@@ -60,15 +60,15 @@ Loss probabilities, equipment eligibility, money handling and partial-stack rule
 
 ## Project status
 
-**M01 application foundation, M02 asset inventory/imports and M03 core state/time are implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
+**M01–M04 are implemented: application foundation, asset imports, core state/time, and world movement/input.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
 
-| Available now                                                         | Next systems                                        |
-| --------------------------------------------------------------------- | --------------------------------------------------- |
-| Walkable authored clearing and six hero appearances                   | Collision, cardinal combat and interactions         |
-| Typed game/UI bridge, composed pause reasons and focused UI snapshots | Movement/collision, combat and campaign progression |
-| Full catalogue, 3,763 padded atlas frames, GUI mappings and credits   | Durable browser saves and inventory interactions    |
-| Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming   |
-| CI workflow and production build                                      | Complete desktop campaign and release validation    |
+| Available now                                                         | Next systems                                      |
+| --------------------------------------------------------------------- | ------------------------------------------------- |
+| Clearing, cottage and woodland with collision and safe travel         | Cardinal combat and enemy behaviour               |
+| Typed game/UI bridge, composed pause reasons and focused UI snapshots | Combat and campaign progression                   |
+| Full catalogue, 3,849 padded atlas frames, GUI mappings and credits   | Durable browser saves and inventory interactions  |
+| Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming |
+| CI workflow and production build                                      | Complete desktop campaign and release validation  |
 
 The status/stack badges describe the project, not a promise that every planned feature is present. See [foundation architecture](docs/architecture.md) for ownership and preview-only choices.
 
@@ -89,7 +89,7 @@ One repository and one application, with clear ownership boundaries:
 
 **The game owns authoritative gameplay state.** React sends commands and consumes focused snapshots. Phaser runs continuous world activity; React does not receive every entity position on every frame. The game core remains independent of React, Phaser, the DOM and storage APIs.
 
-GameSession now owns validated world/player data, independent resumable random streams, 20ms gameplay steps, composable pauses and the day/season calendar. Phaser commits resolved movement once per step; React receives focused snapshots. See the [core state/time contract](docs/core-state.md) for schemas, event order, checkpoint APIs and configurable preview defaults. Full campaign rules and durable storage remain in the plan.
+GameSession now owns validated world/player data, independent resumable random streams, 20ms gameplay steps, composable pauses and the day/season calendar. Phaser commits resolved movement once per step; React receives focused snapshots. See the [core state/time contract](docs/core-state.md) for schemas, event order, checkpoint APIs and configurable preview defaults. See the [world/input contract](docs/world-input.md) for collision, rendering, travel and controls. Full campaign rules and durable storage remain in the plan.
 
 ### Supporting tools
 
@@ -112,7 +112,7 @@ npm ci
 npm run dev
 ```
 
-Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **Escape** or the Pause button to open the menu. Selecting a wanderer changes appearance. The action selector plays art previews only; chest/sign/tree interactions and combat are not implemented. Losing browser-window focus pauses the preview. The calendar advances only during active play; menus and the workbench pause it. **Rest until tomorrow** starts the next calendar day. Rest does not yet heal, grow crops or write a durable save. Day/season lengths and other balance values remain configurable preview defaults pending M00 decisions.
+Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **E** near a highlighted door, sign, NPC, chest, farm plot or small box; click the highlighted target as an alternative. Use **Space** for a cosmetic sword preview and **Escape** or the Pause button for the menu. Open **Controls** to remap keys and action buttons for this session; arrows remain available. Standard-mapped controllers use the left stick/D-pad, south face button to interact/confirm, west face button to preview a swing, Start to pause and east face button to cancel. Release sticks/buttons after connecting or closing a modal. Selecting a wanderer changes appearance. The action selector plays art previews only; chests contain no inventory, farm plots are inspections and the carried box is one world prop. Losing browser-window focus pauses the preview. The calendar advances only during active play; menus and the workbench pause it. **Rest until tomorrow** starts the next calendar day. Rest does not yet heal, grow crops or write a durable save. Day/season lengths and other balance values remain configurable preview defaults pending M00 decisions.
 
 | Command                                               | Purpose                                                                 |
 | ----------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -153,7 +153,7 @@ The [reviewed source catalogue](docs/sprites/README.md) is now versioned and rep
 
 ## Platforms
 
-The first full release targets **desktop browsers**, with keyboard and controller support in the planning baseline. Design input actions, UI scale and save services so later ports remain possible.
+The first full release targets **desktop browsers**, with remappable keyboard and standard-mapped controller input in the preview. Controller paths have been tested with an emulated browser Gamepad API; physical hardware compatibility still needs playtesting. Design input actions, UI scale and save services so later ports remain possible.
 
 Mobile/tablet layouts, native touch controls and Steam desktop packaging are later milestones. Electron is the current candidate for desktop packaging; platform APIs, achievements and cloud saves require separate integration and verification. No mobile, native or Steam build is available yet.
 
