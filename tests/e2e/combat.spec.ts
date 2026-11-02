@@ -61,7 +61,9 @@ test('releases real arrows, spends roll energy, and freezes every combat clock u
 }) => {
   test.setTimeout(90000);
   await openTrial(page, 'archer');
-  await press(page, 'f', 350);
+  // The read-only geometry observation refreshes every 100ms. Sample after windup
+  // and an observation refresh; unit tests enforce the exact release boundary.
+  await press(page, 'f', 500);
   expect((await battle(page)).projectiles.some((p) => p.faction === 'player')).toBe(true);
   await expect(page.getByTestId('combat-energy')).not.toHaveText('10 / 10');
   await page.clock.runFor(400);
