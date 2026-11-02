@@ -1,0 +1,8 @@
+node_modules
+dist
+public/generated
+coverage
+playwright-report
+test-results
+src/raw sprites
+package-lock.json

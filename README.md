@@ -6,7 +6,7 @@
 
 **A Zelda-inspired action RPG with procedural treasure, persistent wilderness and a growing farming village.**
 
-[![Status: Planning](https://img.shields.io/badge/status-planning-e6b566?style=for-the-badge)](#project-status)
+[![Status: Foundation](https://img.shields.io/badge/status-foundation-e6b566?style=for-the-badge)](#project-status)
 [![Target: Desktop](https://img.shields.io/badge/first_target-desktop-749eb5?style=for-the-badge)](#platforms)
 [![Licence: Proprietary](https://img.shields.io/badge/licence-proprietary-9c728a?style=for-the-badge)](LICENSE)
 
@@ -29,15 +29,15 @@ Bring discoveries home. Deposit valuables, plant and tend crops, and welcome the
 
 At the heart of the Kingdom waits its evil King: the crowned, tongue-attacking boss from Vryell's Tiny Castle Pack. Defeating him and restoring the Kingdom is the main objective.
 
-> **Project status:** design and release planning. This repository currently contains documentation and source sprite archives. There is no playable build, dependency manifest or runnable application yet. Features described below are the intended game; checked tasks in [PLAN.md](PLAN.md) track delivered work.
+> **Project status:** runnable foundation preview. Explore an authored clearing, select one of six appearances and use the React pause menu. Combat, collisions, inventory, saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
 
 ## A world that remembers
 
-| Place | What persists | What can change |
-|---|---|---|
-| **The village** | Residents, deposits, farming and restoration progress | Buildings and services grow as people arrive. A fixed village layout is the provisional direction. |
-| **Forests and surface labyrinths** | Geography after first generation, discoveries and saved object changes | Enemies and renewable resources can refresh under explicit rules. |
-| **Dungeon interiors** | The current dungeon survives travel, saving and player death | Defeating its boss removes its anchor and makes a later generation possible. |
+| Place                              | What persists                                                          | What can change                                                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **The village**                    | Residents, deposits, farming and restoration progress                  | Buildings and services grow as people arrive. A fixed village layout is the provisional direction. |
+| **Forests and surface labyrinths** | Geography after first generation, discoveries and saved object changes | Enemies and renewable resources can refresh under explicit rules.                                  |
+| **Dungeon interiors**              | The current dungeon survives travel, saving and player death           | Defeating its boss removes its anchor and makes a later generation possible.                       |
 
 Forests are outdoor dungeons in their gameplay: clearings become rooms, trails form branching connections, and tools reveal secrets and shortcuts. Their generated layouts remain familiar once discovered.
 
@@ -60,33 +60,36 @@ Loss probabilities, equipment eligibility, money handling and partial-stack rule
 
 ## Project status
 
-| Available now | Planned next |
-|---|---|
-| Raw asset archives in [`src/raw sprites/`](src/raw%20sprites/) | TypeScript, Phaser 4, React and Vite application bootstrap |
-| Agreed design and architecture direction | Sprite import definitions and a playable vertical slice |
-| Granular [release plan](PLAN.md) and [agent instructions](AGENTS.md) | Save/load, persistent regions, combat, village and farming systems |
-| Documentation baseline in [CHANGELOG.md](CHANGELOG.md) | Tested, balanced desktop browser release |
+**M01 application foundation is implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
 
-The badges above describe the chosen stack and planning status. They do not claim a passing build or implemented features.
+| Available now                                                         | Next systems                                              |
+| --------------------------------------------------------------------- | --------------------------------------------------------- |
+| Walkable authored clearing and six hero appearances                   | Collision, cardinal combat and interactions               |
+| Typed game/UI bridge, composed pause reasons and focused UI snapshots | Authoritative campaign rules, time and progression        |
+| Bounded import/check pipeline for 20 curated source PNGs              | Full sprite catalogue, frame metadata and runtime atlases |
+| Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming         |
+| CI workflow and production build                                      | Complete desktop campaign and release validation          |
+
+The status/stack badges describe the project, not a promise that every planned feature is present. See [foundation architecture](docs/architecture.md) for ownership and preview-only choices.
 
 ## Architecture
 
 One repository and one application, with clear ownership boundaries:
 
-| Module | Responsibility |
-|---|---|
-| `src/core/` | Plain TypeScript rules: inventory, items, farming, quests, generation, progression and loss calculations |
-| `src/game/` | Phaser scenes, rendering, animation, movement, collision, combat presentation, cameras and audio |
-| `src/bridge/` | Typed commands, events and UI snapshots connecting the game and React |
-| `src/ui/` | React HUD, inventory, equipment, storage, shops, dialogue, journal, map and settings |
-| `src/platform/` | Save repositories, browser services, input bindings and future desktop integrations |
-| `src/content/` | Validated item, crop, enemy, quest, room and progression definitions |
-| `src/assets/` | Curated source definitions, frame metadata and generated-asset references |
-| `src/raw sprites/` | Original purchased archives, preserved unchanged |
+| Module             | Responsibility                                                                                           |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| `src/core/`        | Plain TypeScript rules: inventory, items, farming, quests, generation, progression and loss calculations |
+| `src/game/`        | Phaser scenes, rendering, animation, movement, collision, combat presentation, cameras and audio         |
+| `src/bridge/`      | Typed commands, events and UI snapshots connecting the game and React                                    |
+| `src/ui/`          | React HUD, inventory, equipment, storage, shops, dialogue, journal, map and settings                     |
+| `src/platform/`    | Save repositories, browser services, input bindings and future desktop integrations                      |
+| `src/content/`     | Validated item, crop, enemy, quest, room and progression definitions                                     |
+| `src/assets/`      | Curated source definitions, frame metadata and generated-asset references                                |
+| `src/raw sprites/` | Original purchased archives, preserved unchanged                                                         |
 
 **The game owns authoritative gameplay state.** React sends commands and consumes focused snapshots. Phaser runs continuous world activity; React does not receive every entity position on every frame. The game core remains independent of React, Phaser, the DOM and storage APIs.
 
-These directories describe the intended layout; only the raw sprite directory exists at this documentation baseline.
+The module boundaries are established. The current session, rendering and UI implement a small integration preview; full campaign rules and platform services remain in the plan.
 
 ### Supporting tools
 
@@ -102,32 +105,40 @@ Use a tested, compatible dependency set with a committed lockfile. Vite supplies
 
 ## Development setup
 
-**Bootstrap is pending.** There is currently no `package.json`, so `npm install`, `npm run dev` and the commands below are not available yet.
-
-Once milestone M01 in [PLAN.md](PLAN.md) lands, this is the intended workflow:
+Use **Node.js 24.22.1** (also pinned in `.nvmrc`) and npm. From a clean checkout:
 
 ```bash
 npm ci
 npm run dev
 ```
 
-The bootstrap must establish and document these scripts:
+Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **Escape** or the Pause button to open the menu. Selecting a wanderer changes appearance; chest/sign/tree interactions are not implemented. Losing browser-window focus pauses the preview.
 
-| Planned command | Purpose |
-|---|---|
-| `npm run dev` | Local Vite development server |
-| `npm run build` | Type-check and create a production build |
-| `npm run preview` | Serve the production build locally |
-| `npm run typecheck` | Check TypeScript without emitting files |
-| `npm run lint` | Run ESLint |
-| `npm run format:check` | Check formatting |
-| `npm run assets:build` | Generate curated assets from explicit source definitions |
-| `npm run assets:check` | Validate frame bounds, references and generated outputs |
-| `npm run test` | Run focused Vitest tests once |
-| `npm run test:watch` | Run Vitest during development |
-| `npm run test:e2e` | Run Playwright against the application |
+| Command                                         | Purpose                                           |
+| ----------------------------------------------- | ------------------------------------------------- |
+| `npm run dev`                                   | Build curated assets and start Vite on loopback   |
+| `npm run build`                                 | Build assets, type-check and create `dist/`       |
+| `npm run preview`                               | Serve the production build locally                |
+| `npm run typecheck`                             | Check application and tools/tests                 |
+| `npm run lint`                                  | Run ESLint, including core import boundaries      |
+| `npm run format` / `npm run format:check`       | Write/check Prettier formatting                   |
+| `npm run assets:build` / `npm run assets:check` | Generate/check selected PNGs against raw archives |
+| `npm run test` / `npm run test:watch`           | Run/watch Vitest tests                            |
+| `npm run test:e2e`                              | Run real-browser Playwright integration checks    |
+| `npm run check`                                 | Typecheck, lint, format, assets and unit checks   |
 
-The exact supported Node.js version will be recorded during bootstrap. Dependencies, browser binaries and local asset preparation requirements must be documented when they exist.
+Before the first browser test, install Chromium:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+Linux CI uses `npx playwright install --with-deps chromium`. Environments with an existing compatible Chromium executable can set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its absolute path. The packaged browser used in this development environment is not a project dependency or a distributable asset.
+
+`npm run check` expects generated assets: run `npm run assets:build` first after a clean install. `npm run dev` and `npm run build` do this automatically. CI uses the same documented commands. Raw ZIPs, local saves, generated outputs and browser reports are excluded from version control/build sources.
+
+The production build uses relative asset URLs, ready for static subdirectory hosting. No deployment is configured by this iteration. To expose a development server deliberately, pass `-- --host 0.0.0.0`; local loopback is the default.
 
 ## Artwork and asset workflow
 
@@ -137,7 +148,7 @@ The sprite audit found **23 archives, 1,436 PNG occurrences and 716 distinct PNG
 
 Most terrain uses a **16×16 pixel grid**, but action frames, trees, boats, buildings and UI components use other dimensions. Import explicit frame rectangles and attachment points; never apply universal 16×16 slicing. Prefer compatible updated character/enemy animations, preserve alternate terrain styles, and exclude baked sheet labels from runtime frames.
 
-The audit catalogue was prepared separately and is not yet committed here. Importing its source mappings and validating runtime frames are release-plan tasks. Purchased source art is not relicensed by this repository; see [licensing](#licensing).
+The full audit catalogue was prepared separately and is not yet committed here. The current [curated asset definitions](src/assets/sources.json) cover only the clearing preview. See [asset provenance and rebuilding](docs/assets.md); full catalogue/atlas work remains in M02. Purchased source art is not relicensed by this repository; see [licensing](#licensing).
 
 ## Platforms
 

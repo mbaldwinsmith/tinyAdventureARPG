@@ -1,0 +1,128 @@
+[
+  {
+    "id": "hero-1-idle",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char1/Char1_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-walk",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char1/Char1_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-idle",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char2/Char2_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-walk",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char2/Char2_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-idle",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char3/Char3_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-walk",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char3/Char3_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-idle",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/char4/Char4_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-walk",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/char4/Char4_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-idle",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char5/Char5_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-walk",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char5/Char5_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-idle",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char6/Char6_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-walk",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char6/Char6_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "grass",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Grass.png"
+  },
+  {
+    "id": "tree",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Tree/Tree.png"
+  },
+  {
+    "id": "bush",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Bush.png"
+  },
+  {
+    "id": "rock",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Rock.png"
+  },
+  {
+    "id": "flower-blue",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Flower_blue.png"
+  },
+  {
+    "id": "flower-orange",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Flower_orange.png"
+  },
+  {
+    "id": "sign",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Sign.png"
+  },
+  {
+    "id": "chest",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Misc/Chest.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  }
+]

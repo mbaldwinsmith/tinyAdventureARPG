@@ -12,7 +12,7 @@ These instructions apply throughout this repository. Follow the user's current r
 6. Use judgment for routine reversible details. Raise a consequential unresolved design choice when it materially affects the work; continue independent work where possible. Do not repeatedly ask for decisions already made.
 7. Check current official documentation for unfamiliar or version-sensitive framework APIs. Do not assume a Phaser 3 example is compatible with Phaser 4.
 
-At this baseline the repository has documentation and raw sprite archives. There is no runnable game or installed project toolchain. Bootstrap is M01; never claim an existing `npm` script passed before it exists.
+M01 now provides a runnable clearing preview, asset scripts and a test/build toolchain. Read the current package scripts and foundation architecture. Do not mistake preview-only walking/appearance/pause code for completed campaign systems or later milestones.
 
 ## 2. Mandatory plan and changelog discipline
 
@@ -77,16 +77,16 @@ Use TypeScript, Phaser 4, React and Vite. Pin a tested compatible dependency set
 
 Recommended supporting tools are Zustand, Zod, Dexie, seedrandom, Vitest, Playwright, ESLint and Prettier. Add dependencies when the corresponding feature needs them, with a concrete reason. Use Phaser's existing rendering, input, animation, collision and audio capabilities where appropriate.
 
-| Boundary | Owns | Restrictions |
-|---|---|---|
-| `src/core/` | Rule calculations, domain data, inventory, farming, progression, generation and loss logic | No Phaser, React, DOM, IndexedDB or desktop API imports |
-| `src/game/` | Phaser lifecycle, scenes, world display, movement/collision integration, animation, cameras, effects and sound | No direct UI component manipulation or duplicate inventory/progression rules |
-| `src/bridge/` | Typed commands, responses, events and focused UI snapshots | No hidden gameplay authority or untyped global event soup |
-| `src/ui/` | React screens, HUD, panels, focus and display state | Send commands; do not independently mutate authoritative game possessions/world state |
-| `src/platform/` | Save repositories, browser adapters, input/platform services | Hide browser/desktop-specific implementations behind narrow interfaces |
-| `src/content/` | Validated definitions for items, crops, enemies, quests, rooms and progression | Prefer stable IDs and data over duplicated hard-coded branches |
-| `src/assets/` | Curated source/frame definitions and generated-output references | Keep raw and generated data distinguishable |
-| `src/raw sprites/` | Original purchased archives | Preserve bytes and filenames unless explicitly asked to reorganise them |
+| Boundary           | Owns                                                                                                           | Restrictions                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `src/core/`        | Rule calculations, domain data, inventory, farming, progression, generation and loss logic                     | No Phaser, React, DOM, IndexedDB or desktop API imports                               |
+| `src/game/`        | Phaser lifecycle, scenes, world display, movement/collision integration, animation, cameras, effects and sound | No direct UI component manipulation or duplicate inventory/progression rules          |
+| `src/bridge/`      | Typed commands, responses, events and focused UI snapshots                                                     | No hidden gameplay authority or untyped global event soup                             |
+| `src/ui/`          | React screens, HUD, panels, focus and display state                                                            | Send commands; do not independently mutate authoritative game possessions/world state |
+| `src/platform/`    | Save repositories, browser adapters, input/platform services                                                   | Hide browser/desktop-specific implementations behind narrow interfaces                |
+| `src/content/`     | Validated definitions for items, crops, enemies, quests, rooms and progression                                 | Prefer stable IDs and data over duplicated hard-coded branches                        |
+| `src/assets/`      | Curated source/frame definitions and generated-output references                                               | Keep raw and generated data distinguishable                                           |
+| `src/raw sprites/` | Original purchased archives                                                                                    | Preserve bytes and filenames unless explicitly asked to reorganise them               |
 
 - Maintain one authoritative game-state owner. Core rules operate on its data; Phaser and React are adapters/views rather than competing state stores.
 - Document how resolved Phaser movement/collision results enter that owner once per gameplay step. Do not integrate the same velocity twice or run a second competing physics loop.
