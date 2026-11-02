@@ -14,6 +14,118 @@
     "frameHeight": 16
   },
   {
+    "id": "hero-1-sword",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char1/Char1_Sword_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-1-bow",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char1/Char1_bow_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-1-shield-idle",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char1/Char1_shield_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-shield-walk",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char1/Char1_shield_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-fall",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char1/Char1_fall_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-item-pose",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char1/Char1_Pick_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-pickup",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char1/Char1_Pickup_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-carry-idle",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char1/Char1_carry_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-carry-walk",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char1/Char1_carry_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-throw",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char1/Char1_Throw_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-hit",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char1/Bump_Hit_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-roll",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char1/Char1_Roll_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-push",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char1/Char1_Push_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-pull",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char1/Char1_Pull_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-swim-idle",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char1/Char1_Idle_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-1-swim",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char1/Char1_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
     "id": "hero-2-idle",
     "archive": "TAP_anim_v2.zip",
     "path": "TAP_anim_v2/Animations ver2/Char2/Char2_idle_16px.png",
@@ -24,6 +136,118 @@
     "id": "hero-2-walk",
     "archive": "TAP_anim_v2.zip",
     "path": "TAP_anim_v2/Animations ver2/Char2/Char2_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-sword",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char2/Char2_Sword_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-bow",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char2/Char2_bow_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-2-shield-idle",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char2/Char2_shield_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-shield-walk",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char2/Char2_shield_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-fall",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char2/Char2_fall_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-item-pose",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char2/Char2_Pick_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-pickup",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char2/Char2_Pickup_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-carry-idle",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char2/Char2_carry_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-carry-walk",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char2/Char2_carry_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-throw",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char2/Char2_Throw_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-hit",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char2/Char2_Bump_Hit_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-roll",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char2/Char2_Roll_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-push",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char2/Char2_Push_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-pull",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char2/Char2_Pull_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-swim-idle",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char2/Char2_Idle_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-2-swim",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char2/Char2_Swim_16x16.png",
     "frameWidth": 16,
     "frameHeight": 16
   },
@@ -42,6 +266,118 @@
     "frameHeight": 16
   },
   {
+    "id": "hero-3-sword",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char3/Char3_Sword_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-bow",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char3/Char3_bow_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-3-shield-idle",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char3/Char3_shield_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-shield-walk",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char3/Char3_shield_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-fall",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char3/Char3_fall_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-item-pose",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char3/Char3_Pick_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-pickup",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char3/Char3_Pickup_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-carry-idle",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char3/Char3_carry_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-carry-walk",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char3/Char3_carry_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-throw",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char3/Char3_Throw_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-hit",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char3/Char3_Bump_Hit_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-roll",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char3/Char3_Roll_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-push",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char3/Char3_Push_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-pull",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char3/Char3_Pull_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-swim-idle",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char3/Char3_Idle_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-3-swim",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char3/Char3_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
     "id": "hero-4-idle",
     "archive": "TAP_anim_v2.zip",
     "path": "TAP_anim_v2/Animations ver2/char4/Char4_idle_16px.png",
@@ -52,6 +388,118 @@
     "id": "hero-4-walk",
     "archive": "TAP_anim_v2.zip",
     "path": "TAP_anim_v2/Animations ver2/char4/Char4_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-sword",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/char4/Char4_Sword_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-bow",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/char4/Char4_bow_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-4-shield-idle",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/char4/Char4_shield_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-shield-walk",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/char4/Char4_shield_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-fall",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/char4/Char4_fall_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-item-pose",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/char4/Char4_Pick_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-pickup",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char4/Char4_Pickup_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-carry-idle",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char4/Char4_carry_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-carry-walk",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char4/Char4_carry_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-throw",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char4/Char4_Throw_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-hit",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char4/Char4_Bump_Hit_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-roll",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char4/Char4_Roll_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-push",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char4/Char4_Push_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-pull",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char4/Char4_Pull_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-swim-idle",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char4/Char4_Idle_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-4-swim",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char4/Char4_Swim_16x16.png",
     "frameWidth": 16,
     "frameHeight": 16
   },
@@ -70,6 +518,118 @@
     "frameHeight": 16
   },
   {
+    "id": "hero-5-sword",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char5/Char5_Sword_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-bow",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char5/Char5_bow_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-5-shield-idle",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char5/Char5_shield_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-shield-walk",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char5/Char5_shield_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-fall",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char5/Char5_fall_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-item-pose",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char5/Char5_Pick_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-pickup",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char5/Char5_Pickup_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-carry-idle",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char5/Char5_carry_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-carry-walk",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char5/Char5_carry_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-throw",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/char5/Char5_Throw_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-hit",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char5/Char5_Bump_Hit_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-roll",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char5/Char5_Roll_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-push",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char5/Char5_Push_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-pull",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char5/Char5_Pull_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-swim-idle",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char5/Char5_Idle_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-5-swim",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char5/Char5_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
     "id": "hero-6-idle",
     "archive": "TAP_anim_v2.zip",
     "path": "TAP_anim_v2/Animations ver2/Char6/Char6_idle_16px.png",
@@ -80,6 +640,118 @@
     "id": "hero-6-walk",
     "archive": "TAP_anim_v2.zip",
     "path": "TAP_anim_v2/Animations ver2/Char6/Char6_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-sword",
+    "archive": "TAP_anim_v2.zip",
+    "path": "TAP_anim_v2/Animations ver2/Char6/Char6_Sword_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-bow",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char6/Char6_bow_32px.png",
+    "frameWidth": 32,
+    "frameHeight": 32
+  },
+  {
+    "id": "hero-6-shield-idle",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char6/Char6_shield_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-shield-walk",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char6/Char6_shield_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-fall",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char6/Char6_fall_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-item-pose",
+    "archive": "TAPp_anim_v2.zip",
+    "path": "TAPp_anim_v2/Animations ver2/Char6/Char6_Pick_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-pickup",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/Char6/Char6_Pickup_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-carry-idle",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/Char6/Char6_carry_idle_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-carry-walk",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/Char6/Char6_carry_walk_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-throw",
+    "archive": "TDP_anim_v2.zip",
+    "path": "TDP_anim_v2/Char6/Char6_Throw_item_16px.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-hit",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char6/Char6_Bump_Hit_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-roll",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char6/Char6_Roll_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-push",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char6/Char6_Push_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-pull",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char6/Char6_Pull_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-swim-idle",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char6/Char6_Idle_Swim_16x16.png",
+    "frameWidth": 16,
+    "frameHeight": 16
+  },
+  {
+    "id": "hero-6-swim",
+    "archive": "Additional Animations.zip",
+    "path": "Additional Animations/Char6/Char6_Swim_16x16.png",
     "frameWidth": 16,
     "frameHeight": 16
   },

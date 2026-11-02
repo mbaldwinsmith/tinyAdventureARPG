@@ -102,27 +102,31 @@ The partial asset importer supports this milestone. M02 remains open for the ful
 
 ## M02 — Asset inventory and explicit imports
 
-- [ ] **M02-001** Import the sprite audit's metadata/source mappings into a versioned repository catalogue without duplicating raw archives.
-- [ ] **M02-002** Reconcile the current archives against the audit's hashes and explain any changed counts.
-- [ ] **M02-003** Define canonical logical asset IDs and exact aliases for repeated PNGs and the three identical archive pairs.
-- [ ] **M02-004** Select compatible updated hero, goblin, skeleton and zombie sources; retain documented legacy alternatives.
-- [ ] **M02-005** Build repeatable archive reading/extraction with bounded paths and deterministic output ordering.
-- [ ] **M02-006** Define explicit frame rectangles, direction rows, frame durations, loop rules and stable foot anchors for base hero actions.
-- [ ] **M02-007** Define bow/shield, pickup/carry/throw, roll/hit, push/pull and swim action metadata for supported appearances.
+- [x] **M02-001** Import the sprite audit's metadata/source mappings into a versioned repository catalogue without duplicating raw archives.
+- [x] **M02-002** Reconcile the current archives against the audit's hashes and explain any changed counts.
+- [x] **M02-003** Define canonical logical asset IDs and exact aliases for repeated PNGs and the three identical archive pairs.
+- [x] **M02-004** Select compatible updated hero, goblin, skeleton and zombie sources; retain documented legacy alternatives.
+- [x] **M02-005** Build repeatable archive reading/extraction with bounded paths and deterministic output ordering.
+- [x] **M02-006** Define explicit frame rectangles, direction rows, frame durations, loop rules and stable foot anchors for base hero actions.
+- [x] **M02-007** Define bow/shield, pickup/carry/throw, roll/hit, push/pull and swim action metadata for supported appearances.
 - [ ] **M02-008** Define farming, fishing, hook and magic action metadata and their separate tool/effect attachments.
-- [ ] **M02-009** Resolve the legacy dedicated boomerang pose versus modern throw-item adaptation and record the chosen presentation.
+- [x] **M02-009** Resolve the legacy dedicated boomerang pose versus modern throw-item adaptation and record the chosen presentation.
 - [ ] **M02-010** Define enemy action blocks/recolours and exclude baked labels from runtime frames.
 - [ ] **M02-011** Define the King's mixed-size body/tongue/death frames and attachable divided tongue pieces.
 - [ ] **M02-012** Define terrain adjacency/corner sets; keep old/new biome edge styles distinct and select updated shoreline art.
 - [ ] **M02-013** Define layered tree, building, furniture, boat hull/sail/fitting and oversized prop rectangles.
 - [ ] **M02-014** Define GUI slices, bitmap font mappings, status icons and device prompt mappings.
 - [ ] **M02-015** Generate runtime textures/atlases with pixel-safe padding and explicit manifests; preserve source archives byte-for-byte.
-- [ ] **M02-016** Implement `assets:check` for bounds, missing references, duplicate IDs and required animation coverage.
-- [ ] **M02-017** Build a development asset viewer with animation playback, scale, foot-anchor and hitbox overlays.
+- [x] **M02-016** Implement `assets:check` for bounds, missing references, duplicate IDs and required animation coverage.
+- [x] **M02-017** Build a development asset viewer with animation playback, scale, foot-anchor and hitbox overlays.
 - [ ] **M02-018** Fill identified presentation gaps such as hero death and bomb explosions through approved reuse or deliberately authored effects.
 - [ ] **M02-019** Record asset provenance and third-party notices; keep standalone paid source packs out of distributable builds.
 
 **Acceptance:** assets can be regenerated from a clean checkout; representative animations play without cropped limbs, labels, shifting feet or texture bleeding. Large sprites are never forced into a universal 16px frame size.
+
+### M02 catalogue and hero-animation delivery
+
+Ten tasks are complete in this increment: the reconciled catalogue, exact aliases, selected updated sources, bounded extraction, 456 hero sequences and development workbench. Remaining tool/enemy/King frames, terrain/layer/UI definitions, atlas packing, effects and release notices remain open. The milestone acceptance gate is not yet complete.
 
 ## M03 — Core data, time and state ownership
 

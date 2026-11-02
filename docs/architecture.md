@@ -1,6 +1,6 @@
 # Foundation architecture
 
-This first iteration implements **M01**, with a small authored clearing used to exercise integration. It is not the campaign world, a generated forest, or the M09 vertical slice.
+The foundation implements **M01** and a first **M02** catalogue/animation increment. A small authored clearing exercises the integration. It is not the campaign world, a generated forest, or the M09 vertical slice.
 
 ## Ownership
 
@@ -9,7 +9,7 @@ This first iteration implements **M01**, with a small authored clearing used to 
 - React's Zustand store contains a display snapshot. Buttons send commands; they never edit the session directly. Continuous sprite positions and animation frames stay outside React.
 - `mountGame` creates its own controller, asynchronously loads/validates assets and imports Phaser. Cleanup cancels startup, detaches the handler, removes browser listeners and destroys that mount's game. This accommodates React StrictMode's development mount/cleanup/mount cycle.
 - Phaser owns the preview actor's unsaved transform and animation. Preview movement uses elapsed render time with a bounded step; it does not implement the future fixed-step gameplay/physics system. No authoritative campaign positions or saves exist yet.
-- Menu and background pause reasons compose: closing a menu cannot clear an inactive-window pause. Browser listeners are installed and disposed by the runtime. Movement also requires focus inside the clearing, preventing held keys from moving the actor through UI controls.
+- Menu, background and workbench pause reasons compose: closing a menu cannot clear an inactive-window pause. Browser listeners are installed and disposed by the runtime. Movement also requires focus inside the clearing, preventing held keys from moving the actor through UI controls.
 
 ## Preview-only choices
 
@@ -19,11 +19,13 @@ Audio, controller support, inventory, combat, calendar/farming, persistence, pro
 
 ## Assets
 
-`src/assets/sources.json` maps 20 curated PNGs to exact paths inside two owned raw archives. It includes all six heroes' updated idle/walk sheets plus basic clearing props. Explicit 16px frame dimensions apply only to the inspected hero/chest sheets; tree and other prop image dimensions are retained.
+`src/assets/sources.json` maps 116 selected PNGs to five source archives. `hero-animations.json` defines 456 direction-specific/shared sequences with explicit rectangles, durations, anchors and loop flags. A single validator checks all six appearances and required action families. Game playback and the workbench consume the same definitions.
 
-`npm run assets:build` reads bounded archive members with fflate, checks definitions and PNG/frame dimensions, and writes stable, hash-labelled metadata and unchanged PNGs to ignored `public/generated/`. It never extracts arbitrary archive paths or writes into the raw sources. Files are sorted and stage in an owned temporary directory before replacement.
+The full reviewed catalogue is metadata-only under `docs/sprites/`. Its generator verifies every archive hash/count, matches reviewed annotations by full PNG hash and assigns content-derived canonical IDs with source aliases. Selected updated enemy sources are checked too.
 
-`npm run assets:check` compares output bytes to the archive sources, checks IDs, frame divisibility, manifest contents and unexpected output files. It does not claim a full asset catalogue, a packed texture atlas or coverage of every action. Those remain M02 tasks.
+`assets:build` and `assets:check` share a bounded archive reader with the catalogue generator. They generate/verify selected textures and validate all registered sequence bounds, indices and coverage. Packed atlases and remaining action families are later work.
+
+The development-only workbench uses Vite middleware to inspect previews from `.cache/catalogue/`. React lazy-loads the inspector only in development. Its editable hitbox guides are review tools, not gameplay definitions. The public preview adds presentation-only action commands through the existing typed bridge; no combat effects are implied.
 
 Vite copies only curated public assets into the build. The source ZIPs are not imported by the application and must not appear in `dist/`.
 

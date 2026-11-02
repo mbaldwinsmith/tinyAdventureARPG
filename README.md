@@ -29,7 +29,7 @@ Bring discoveries home. Deposit valuables, plant and tend crops, and welcome the
 
 At the heart of the Kingdom waits its evil King: the crowned, tongue-attacking boss from Vryell's Tiny Castle Pack. Defeating him and restoring the Kingdom is the main objective.
 
-> **Project status:** runnable foundation preview. Explore an authored clearing, select one of six appearances and use the React pause menu. Combat, collisions, inventory, saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
+> **Project status:** runnable foundation preview. Explore an authored clearing, select one of six appearances, preview 19 action families and use the React pause menu. Combat, collisions, inventory, saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
 
 ## A world that remembers
 
@@ -60,15 +60,15 @@ Loss probabilities, equipment eligibility, money handling and partial-stack rule
 
 ## Project status
 
-**M01 application foundation is implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
+**M01 application foundation and the first M02 catalogue/animation increment are implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
 
-| Available now                                                         | Next systems                                              |
-| --------------------------------------------------------------------- | --------------------------------------------------------- |
-| Walkable authored clearing and six hero appearances                   | Collision, cardinal combat and interactions               |
-| Typed game/UI bridge, composed pause reasons and focused UI snapshots | Authoritative campaign rules, time and progression        |
-| Bounded import/check pipeline for 20 curated source PNGs              | Full sprite catalogue, frame metadata and runtime atlases |
-| Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming         |
-| CI workflow and production build                                      | Complete desktop campaign and release validation          |
+| Available now                                                         | Next systems                                                      |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Walkable authored clearing and six hero appearances                   | Collision, cardinal combat and interactions                       |
+| Typed game/UI bridge, composed pause reasons and focused UI snapshots | Authoritative campaign rules, time and progression                |
+| Full source catalogue, aliases and 116 curated runtime PNGs           | Remaining action families, terrain/UI metadata and packed atlases |
+| Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming                 |
+| CI workflow and production build                                      | Complete desktop campaign and release validation                  |
 
 The status/stack badges describe the project, not a promise that every planned feature is present. See [foundation architecture](docs/architecture.md) for ownership and preview-only choices.
 
@@ -112,20 +112,21 @@ npm ci
 npm run dev
 ```
 
-Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **Escape** or the Pause button to open the menu. Selecting a wanderer changes appearance; chest/sign/tree interactions are not implemented. Losing browser-window focus pauses the preview.
+Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **Escape** or the Pause button to open the menu. Selecting a wanderer changes appearance. The action selector plays art previews only; chest/sign/tree interactions and combat are not implemented. Losing browser-window focus pauses the preview.
 
-| Command                                         | Purpose                                           |
-| ----------------------------------------------- | ------------------------------------------------- |
-| `npm run dev`                                   | Build curated assets and start Vite on loopback   |
-| `npm run build`                                 | Build assets, type-check and create `dist/`       |
-| `npm run preview`                               | Serve the production build locally                |
-| `npm run typecheck`                             | Check application and tools/tests                 |
-| `npm run lint`                                  | Run ESLint, including core import boundaries      |
-| `npm run format` / `npm run format:check`       | Write/check Prettier formatting                   |
-| `npm run assets:build` / `npm run assets:check` | Generate/check selected PNGs against raw archives |
-| `npm run test` / `npm run test:watch`           | Run/watch Vitest tests                            |
-| `npm run test:e2e`                              | Run real-browser Playwright integration checks    |
-| `npm run check`                                 | Typecheck, lint, format, assets and unit checks   |
+| Command                                               | Purpose                                                                 |
+| ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| `npm run dev`                                         | Build curated assets and start Vite on loopback                         |
+| `npm run build`                                       | Build assets, type-check and create `dist/`                             |
+| `npm run preview`                                     | Serve the production build locally                                      |
+| `npm run typecheck`                                   | Check application and tools/tests                                       |
+| `npm run lint`                                        | Run ESLint, including core import boundaries                            |
+| `npm run format` / `npm run format:check`             | Write/check Prettier formatting                                         |
+| `npm run catalogue:build` / `npm run catalogue:check` | Rebuild/check the complete source metadata and local inspector previews |
+| `npm run assets:build` / `npm run assets:check`       | Generate/check selected PNGs against raw archives                       |
+| `npm run test` / `npm run test:watch`                 | Run/watch Vitest tests                                                  |
+| `npm run test:e2e`                                    | Run real-browser Playwright integration checks                          |
+| `npm run check`                                       | Typecheck, lint, format, assets and unit checks                         |
 
 Before the first browser test, install Chromium:
 
@@ -148,7 +149,7 @@ The sprite audit found **23 archives, 1,436 PNG occurrences and 716 distinct PNG
 
 Most terrain uses a **16×16 pixel grid**, but action frames, trees, boats, buildings and UI components use other dimensions. Import explicit frame rectangles and attachment points; never apply universal 16×16 slicing. Prefer compatible updated character/enemy animations, preserve alternate terrain styles, and exclude baked sheet labels from runtime frames.
 
-The full audit catalogue was prepared separately and is not yet committed here. The current [curated asset definitions](src/assets/sources.json) cover only the clearing preview. See [asset provenance and rebuilding](docs/assets.md); full catalogue/atlas work remains in M02. Purchased source art is not relicensed by this repository; see [licensing](#licensing).
+The [reviewed source catalogue](docs/sprites/README.md) is now versioned and reproducible from the archives. Development tools include a searchable sprite/animation workbench; the public build contains only selected runtime art. See [asset provenance and rebuilding](docs/assets.md); remaining action families and packed atlases remain in M02. Purchased source art is not relicensed by this repository; see [licensing](#licensing).
 
 ## Platforms
 

@@ -1,3 +1,4 @@
+import type { HeroAction } from '../assets/hero-animations';
 import type { HeroId, PauseReason } from '../core/preview-session';
 
 export interface GameSnapshot {
@@ -6,10 +7,12 @@ export interface GameSnapshot {
   pauseReasons: readonly PauseReason[];
   hero: HeroId;
   error: string | null;
+  animationRequest: { action: HeroAction; sequence: number } | null;
 }
 export type GameCommand =
   | { type: 'pause.set'; reason: PauseReason; active: boolean }
-  | { type: 'appearance.set'; hero: HeroId };
+  | { type: 'appearance.set'; hero: HeroId }
+  | { type: 'animation.preview'; action: HeroAction };
 export type CommandResult =
   { ok: true } | { ok: false; code: 'not-ready' | 'unavailable'; message: string };
 export type GameEvent = { type: 'snapshot.changed'; snapshot: GameSnapshot };
@@ -21,6 +24,7 @@ export const INITIAL_SNAPSHOT: GameSnapshot = {
   pauseReasons: [],
   hero: 1,
   error: null,
+  animationRequest: null,
 };
 
 /** Transport only. The runtime owns state and attaches a single command handler. */

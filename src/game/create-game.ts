@@ -4,9 +4,10 @@ import { manifestSchema, assetSources } from '../assets/definitions';
 import { CLEARING, PREVIEW_SPEED_PIXELS_PER_SECOND } from '../content/clearing';
 import { PreviewController } from './preview-controller';
 import { observeBackgroundPause } from '../platform/browser-pause';
+import { heroAnimations, validateHeroAnimations } from '../assets/hero-animations';
+import type { HeroAction } from '../assets/hero-animations';
 
 type Direction = 'down' | 'left' | 'up' | 'right';
-const directions: Direction[] = ['down', 'left', 'up', 'right'];
 
 /** Cancel before async startup finishes; each mount owns its game, listeners and handler. */
 export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
@@ -26,6 +27,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
       if (!manifest.assets.some((asset) => asset.id === source.id))
         throw new Error(`Missing required asset: ${source.id}`);
     }
+    validateHeroAnimations(heroAnimations, manifest.assets);
     const { default: Phaser } = await import('phaser');
     if (disposed) return;
 
@@ -39,6 +41,9 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         | undefined;
       private direction: Direction = 'down';
       private currentHero = 1;
+      private seenAnimationRequest = 0;
+      private previewAction: HeroAction | null = null;
+      private previewRemainingMilliseconds = 0;
 
       constructor() {
         super('clearing-preview');
@@ -85,20 +90,18 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         this.add.image(286, 124, 'sign').setOrigin(0.5, 1).setDepth(124);
         this.add.image(186, 158, 'chest', 0).setOrigin(0.5, 1).setDepth(158);
 
-        for (let hero = 1; hero <= 6; hero++) {
-          for (const action of ['idle', 'walk']) {
-            directions.forEach((direction, row) => {
-              this.anims.create({
-                key: `${hero}-${action}-${direction}`,
-                frames: this.anims.generateFrameNumbers(`hero-${hero}-${action}`, {
-                  start: row * 4,
-                  end: row * 4 + 3,
-                }),
-                frameRate: action === 'walk' ? 9 : 4,
-                repeat: -1,
-              });
-            });
-          }
+        for (const definition of heroAnimations) {
+          const baseDurationMs = Math.min(...definition.frames.map((frame) => frame.durationMs));
+          this.anims.create({
+            key: definition.id,
+            frames: definition.frames.map((frame) => ({
+              key: definition.texture,
+              frame: frame.index,
+              duration: frame.durationMs - baseDurationMs,
+            })),
+            frameRate: 1000 / baseDurationMs,
+            repeat: definition.loop ? -1 : 0,
+          });
         }
         this.actor = this.add
           .sprite(CLEARING.spawn.x, CLEARING.spawn.y, 'hero-1-idle')
@@ -133,6 +136,24 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           return;
         }
         actor.anims.resume();
+        const request = bridge.snapshot.animationRequest;
+        if (request && request.sequence !== this.seenAnimationRequest) {
+          this.seenAnimationRequest = request.sequence;
+          this.previewAction = request.action;
+          const definition = heroAnimations.find(
+            (animation) => animation.id === `${snapshot.hero}-${request.action}-${this.direction}`,
+          );
+          this.previewRemainingMilliseconds = definition?.loop
+            ? 1200
+            : (definition?.frames.reduce((total, frame) => total + frame.durationMs, 0) ?? 500);
+        }
+        if (this.previewAction && this.previewRemainingMilliseconds > 0) {
+          this.currentHero = snapshot.hero;
+          this.playAction(this.previewAction);
+          this.previewRemainingMilliseconds -= Math.min(deltaMilliseconds, 50);
+          return;
+        }
+        this.previewAction = null;
         const focused = document.activeElement === host || host.contains(document.activeElement);
         const x = focused
           ? Number(this.keys.right.isDown || this.keys.d.isDown) -
@@ -160,9 +181,19 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
             CLEARING.heightPixels - 8,
           );
         }
-        if (this.currentHero !== snapshot.hero) this.currentHero = snapshot.hero;
-        actor.play(`${this.currentHero}-${moving ? 'walk' : 'idle'}-${this.direction}`, true);
+        this.currentHero = snapshot.hero;
+        this.playAction(moving ? 'walk' : 'idle');
         actor.setDepth(actor.y);
+      }
+      private playAction(action: HeroAction) {
+        if (!this.actor) return;
+        const definition = heroAnimations.find(
+          (animation) => animation.id === `${this.currentHero}-${action}-${this.direction}`,
+        );
+        const frame = definition?.frames[0];
+        if (!definition || !frame) return;
+        this.actor.setOrigin(definition.foot.x / frame.width, definition.foot.y / frame.height);
+        this.actor.play(definition.id, true);
       }
     }
 
