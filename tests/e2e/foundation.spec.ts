@@ -271,6 +271,7 @@ test('uses source pixels for all 47 terrain cases and inspects layered boats and
 });
 
 test('pauses and resumes the rendered shoreline with the shared menu pause', async ({ page }) => {
+  test.setTimeout(60000); // Several software-WebGL captures can exceed the default on CI.
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
   const sample = async () => {
@@ -387,10 +388,12 @@ test('renders GUI panel corners from supplied pixels at different sizes and hand
 test('plays the authored explosion to its held endpoint and restarts explicitly', async ({
   page,
 }) => {
+  test.setTimeout(60000);
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  // Keep the pause target ahead of the browser clock, independently of host/transport drift.
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-01-01T00:00:10Z'));
   for (const action of ['death', 'bomb']) {
     await page.getByLabel('Animation to preview').selectOption(action);
     await page.getByRole('button', { name: 'Preview animation', exact: true }).click();

@@ -30,6 +30,7 @@ The first full game release is planned as **1.0.0**. No game version has been re
 - Ten real-browser flows passed using the documented Chromium override. New checks compare resized panel corners with supplied pixels, verify bitmap fallback and the atlas-backed pause skin, freeze actual death/explosion rendering under shared pause, and hold/restart finite effect playback.
 - Production WebGL QA passed at 1440px and 800px with one game canvas, no horizontal overflow or page errors, readable panel/portrait/key UI, effect pause/resume and replacement recovery. Credit/notice URLs load successfully. Source archive reconciliation covers all 23 ZIPs, 1,436 PNG occurrences and 716 canonical images; production excludes source sheets, inspection pixels and development workbench modules.
 - M02 import/presentation acceptance is complete. The new effects are art previews; damage, energy, player death/loss/respawn, controller input, collision and campaign systems remain later milestones. Final gameplay timings and offsets will be validated with those systems.
+- The first remote run passed clean install, asset/check and production build, then exposed a host/browser clock race and a default timeout during repeated software-WebGL screenshots. Use an explicit future virtual-clock target and a 60-second budget for the two capture-heavy flows; retain the exact frozen-pixel assertions.
 
 ### Added — terrain and layered scenery
 
