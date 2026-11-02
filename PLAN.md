@@ -1,8 +1,8 @@
 # Tiny Adventure — First Full Release Plan
 
-**Target:** 1.0.0 desktop browser release. **Current stage:** documentation baseline; no playable application.
+**Target:** 1.0.0 desktop browser release. **Current stage:** M01 runnable foundation preview; campaign implementation remains ahead.
 
-This is the implementation backlog. `[x]` means delivered and verified, not merely designed. All gameplay tasks begin open. The four checked M00 tasks describe the documentation delivered with this baseline.
+This is the implementation backlog. `[x]` means delivered and verified, not merely designed. Completed M00 items record the documentation baseline. M01 now delivers the application foundation; the authored clearing is an integration preview, not completion of later combat, world or campaign milestones.
 
 ## How to use this plan
 
@@ -36,17 +36,17 @@ Confirm or adjust these budgets under M00 before expanding content production. T
 
 ## Milestone dependency guide
 
-| Milestone | Main prerequisites |
-|---|---|
-| M00 decisions / M01 bootstrap | Current documentation and repository |
-| M02 assets / M03 core | M01; use the completed sprite audit as evidence |
-| M04 world / M05 combat | Usable M02 assets and M03 rules |
-| M06 generation / M07 saves | Core IDs, lifecycle and world representation; develop together |
-| M08 inventory / M09 tools | Core inventory contracts, collision, saves and basic combat |
-| M10 builds / M11 village / M12 farming | Core rules, content definitions, saves, UI bridge |
-| M13 coast / M14 campaign | Movement, tools, generation, progression and village systems |
-| M15 UI / M16 presentation | Iterate throughout; finish against integrated gameplay |
-| M17 verification / M18 release | Complete playable campaign and agreed content budget |
+| Milestone                              | Main prerequisites                                             |
+| -------------------------------------- | -------------------------------------------------------------- |
+| M00 decisions / M01 bootstrap          | Current documentation and repository                           |
+| M02 assets / M03 core                  | M01; use the completed sprite audit as evidence                |
+| M04 world / M05 combat                 | Usable M02 assets and M03 rules                                |
+| M06 generation / M07 saves             | Core IDs, lifecycle and world representation; develop together |
+| M08 inventory / M09 tools              | Core inventory contracts, collision, saves and basic combat    |
+| M10 builds / M11 village / M12 farming | Core rules, content definitions, saves, UI bridge              |
+| M13 coast / M14 campaign               | Movement, tools, generation, progression and village systems   |
+| M15 UI / M16 presentation              | Iterate throughout; finish against integrated gameplay         |
+| M17 verification / M18 release         | Complete playable campaign and agreed content budget           |
 
 ---
 
@@ -75,24 +75,30 @@ Confirm or adjust these budgets under M00 before expanding content production. T
 
 ## M01 — Application and development foundation
 
-- [ ] **M01-001** Bootstrap a Phaser 4 + React + TypeScript + Vite application using the official integration template as reference.
-- [ ] **M01-002** Select compatible dependency versions, pin the supported Node.js version and commit one npm lockfile.
-- [ ] **M01-003** Enable strict TypeScript, unchecked-index safeguards and consistent module/path conventions.
-- [ ] **M01-004** Establish `core`, `game`, `bridge`, `ui`, `platform`, `content` and asset-definition boundaries.
-- [ ] **M01-005** Add ESLint rules, including import restrictions that keep framework/platform dependencies out of the core.
-- [ ] **M01-006** Add Prettier configuration, line-ending conventions and generated/vendor exclusions.
-- [ ] **M01-007** Implement the planned dev/build/preview/typecheck/lint/format/test scripts and document actual usage.
-- [ ] **M01-008** Configure Vitest for pure rules and focused integration tests without booting Phaser.
-- [ ] **M01-009** Configure Playwright, browser installation instructions and a Vite-backed real-browser launch smoke check.
-- [ ] **M01-010** Add CI jobs for clean install, typecheck, lint, formatting, tests and production build.
-- [ ] **M01-011** Add an owned Phaser mount/unmount lifecycle with subscription cleanup and safe React development remounts.
-- [ ] **M01-012** Define the typed command/event/snapshot bridge and error results for rejected commands.
-- [ ] **M01-013** Add a Zustand UI store with focused subscriptions and no duplicated authoritative inventory/world state.
-- [ ] **M01-014** Establish a visible development error screen and useful diagnostics for missing content/assets.
-- [ ] **M01-015** Add gitignore/build exclusions for caches, generated artefacts, local saves and purchased-asset extraction output.
-- [ ] **M01-016** Update README setup instructions and status to match the working bootstrap.
+- [x] **M01-001** Bootstrap a Phaser 4 + React + TypeScript + Vite application using the official integration template as reference.
+- [x] **M01-002** Select compatible dependency versions, pin the supported Node.js version and commit one npm lockfile.
+- [x] **M01-003** Enable strict TypeScript, unchecked-index safeguards and consistent module/path conventions.
+- [x] **M01-004** Establish `core`, `game`, `bridge`, `ui`, `platform`, `content` and asset-definition boundaries.
+- [x] **M01-005** Add ESLint rules, including import restrictions that keep framework/platform dependencies out of the core.
+- [x] **M01-006** Add Prettier configuration, line-ending conventions and generated/vendor exclusions.
+- [x] **M01-007** Implement the planned dev/build/preview/typecheck/lint/format/test scripts and document actual usage.
+- [x] **M01-008** Configure Vitest for pure rules and focused integration tests without booting Phaser.
+- [x] **M01-009** Configure Playwright, browser installation instructions and a Vite-backed real-browser launch smoke check.
+- [x] **M01-010** Add CI jobs for clean install, typecheck, lint, formatting, tests and production build.
+- [x] **M01-011** Add an owned Phaser mount/unmount lifecycle with subscription cleanup and safe React development remounts.
+- [x] **M01-012** Define the typed command/event/snapshot bridge and error results for rejected commands.
+- [x] **M01-013** Add a Zustand UI store with focused subscriptions and no duplicated authoritative inventory/world state.
+- [x] **M01-014** Establish a visible development error screen and useful diagnostics for missing content/assets.
+- [x] **M01-015** Add gitignore/build exclusions for caches, generated artefacts, local saves and purchased-asset extraction output.
+- [x] **M01-016** Update README setup instructions and status to match the working bootstrap.
 
 **Acceptance:** a clean checkout can install, launch and build through documented commands. One Phaser instance mounts cleanly under React; CI checks are meaningful and runnable.
+
+### M01 delivery evidence
+
+Implemented a Phaser 4.2.1 / React / TypeScript / Vite preview with 20 curated PNGs, six appearance choices, keyboard movement, composed pause handling, a typed bridge and disposable mount lifecycle. Rule/bridge/asset-boundary checks and real-browser UI/lifecycle/error flows pass; see `CHANGELOG.md` for exact validation and environment notes. CI is configured but its remote run is reported separately.
+
+The partial asset importer supports this milestone. M02 remains open for the full catalogue, canonical aliases, complete action metadata and packed atlases. No M00 design decisions are silently closed by preview defaults.
 
 ## M02 — Asset inventory and explicit imports
 
