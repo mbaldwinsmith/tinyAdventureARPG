@@ -1,15 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { GameBridge } from '../bridge/game-bridge';
 import { HERO_IDS } from '../core/preview-session';
 import { GameCanvas } from './GameCanvas';
 import { createUiStore } from './ui-store';
+import { HERO_ACTIONS } from '../assets/hero-animations';
+import type { HeroAction } from '../assets/hero-animations';
+const AssetWorkbench = import.meta.env.DEV ? lazy(() => import('./AssetWorkbench')) : null;
 
 export function App() {
   const [bridge] = useState(() => new GameBridge());
   const [store] = useState(createUiStore);
   const snapshot = useStore(store, (state) => state.snapshot);
   const [mounted, setMounted] = useState(true);
+  const [workbenchOpen, setWorkbenchOpen] = useState(false);
+  const [previewAction, setPreviewAction] = useState<HeroAction>('sword');
   const [commandError, setCommandError] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const menuOpen = snapshot.pauseReasons.includes('menu');
@@ -77,9 +82,11 @@ export function App() {
                   ? 'Unable to open the path'
                   : !mounted
                     ? 'Scene unloaded'
-                    : menuOpen
-                      ? 'Taking a breather'
-                      : 'The path is open'}
+                    : snapshot.pauseReasons.includes('workbench')
+                      ? 'Inspecting artwork'
+                      : menuOpen
+                        ? 'Taking a breather'
+                        : 'The path is open'}
             </span>
           </div>
           <div
@@ -183,6 +190,40 @@ export function App() {
             </div>
           </div>
         </section>
+        <section className="animation-practice" aria-label="Animation previews">
+          <div>
+            <p className="eyebrow">TRY A NEW MOVE</p>
+            <h2>Bring the artwork to life</h2>
+            <p>Animation preview only — tools, damage and combat come later.</p>
+          </div>
+          <label>
+            Action
+            <select
+              aria-label="Animation to preview"
+              value={previewAction}
+              onChange={(event) => {
+                const action = HERO_ACTIONS.find((candidate) => candidate === event.target.value);
+                if (action) setPreviewAction(action);
+              }}
+            >
+              {HERO_ACTIONS.map((action) => (
+                <option key={action} value={action}>
+                  {action.replaceAll('-', ' ')}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            className="button"
+            disabled={snapshot.status !== 'ready' || !mounted || snapshot.paused}
+            onClick={() => {
+              const result = bridge.send({ type: 'animation.preview', action: previewAction });
+              setCommandError(result.ok ? null : result.message);
+            }}
+          >
+            Preview animation
+          </button>
+        </section>
         {commandError && (
           <p role="alert" className="command-error">
             {commandError}
@@ -194,11 +235,31 @@ export function App() {
             <button className="button button-subtle" onClick={() => setMounted((value) => !value)}>
               {mounted ? 'Unload scene' : 'Mount scene'}
             </button>
+            <button
+              className="button button-subtle"
+              disabled={snapshot.status !== 'ready' || !mounted}
+              onClick={() => {
+                bridge.send({ type: 'pause.set', reason: 'workbench', active: true });
+                setWorkbenchOpen(true);
+              }}
+            >
+              Open sprite workbench
+            </button>
             <p>
               Lifecycle check: exactly one canvas should exist after remounting. This is a
               development-only control.
             </p>
           </details>
+        )}
+        {workbenchOpen && AssetWorkbench && (
+          <Suspense fallback={<p>Opening sprite workbench…</p>}>
+            <AssetWorkbench
+              onClose={() => {
+                bridge.send({ type: 'pause.set', reason: 'workbench', active: false });
+                setWorkbenchOpen(false);
+              }}
+            />
+          </Suspense>
         )}
       </main>
       <footer>

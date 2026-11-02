@@ -1,0 +1,51 @@
+[
+  {
+    "canonicalId": "sprite-1947b92da41dbe72",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Skel/Skel_walk_v2.png",
+    "role": "Skeleton: Skel_walk_v2",
+    "policy": "Prefer this updated action sheet; retain distinct legacy alternatives in the catalogue."
+  },
+  {
+    "canonicalId": "sprite-3f120b95e0aa38db",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Skel/Skel_idle_v2.png",
+    "role": "Skeleton: Skel_idle_v2",
+    "policy": "Prefer this updated action sheet; retain distinct legacy alternatives in the catalogue."
+  },
+  {
+    "canonicalId": "sprite-9cf2228c057d6a0b",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Goblin/Goblin_walk_v2.png",
+    "role": "Goblin: Goblin_walk_v2",
+    "policy": "Prefer this updated action sheet; retain distinct legacy alternatives in the catalogue."
+  },
+  {
+    "canonicalId": "sprite-ab67a9e7131a6206",
+    "archive": "TDP_zombie_v2.zip",
+    "path": "TDP_zombie_v2/Zombie/Zombie_walk_v2.png",
+    "role": "Zombie: Zombie_walk_v2",
+    "policy": "Prefer this updated action sheet; retain distinct legacy alternatives in the catalogue."
+  },
+  {
+    "canonicalId": "sprite-ea855830917f23cb",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Goblin/Goblin_bow_v2.png",
+    "role": "Goblin: Goblin_bow_v2",
+    "policy": "Prefer this updated action sheet; retain distinct legacy alternatives in the catalogue."
+  },
+  {
+    "canonicalId": "sprite-ec7a2146b2cee18f",
+    "archive": "TAP_Enemies_v2.zip",
+    "path": "TAP_Enemies_v2/Goblin/Goblin_idle_v2.png",
+    "role": "Goblin: Goblin_idle_v2",
+    "policy": "Prefer this updated action sheet; retain distinct legacy alternatives in the catalogue."
+  },
+  {
+    "canonicalId": "sprite-fd371298a440a9a2",
+    "archive": "TDP_zombie_v2.zip",
+    "path": "TDP_zombie_v2/Zombie/Zombie_idle_v2.png",
+    "role": "Zombie: Zombie_idle_v2",
+    "policy": "Prefer this updated action sheet; retain distinct legacy alternatives in the catalogue."
+  }
+]

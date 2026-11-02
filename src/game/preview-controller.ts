@@ -7,6 +7,8 @@ export class PreviewController {
   readonly session = new PreviewSession();
   private status: GameSnapshot['status'] = 'loading';
   private error: string | null = null;
+  private animationRequest: GameSnapshot['animationRequest'] = null;
+  private animationSequence = 0;
   private detach: () => void;
 
   constructor(private bridge: GameBridge) {
@@ -37,13 +39,19 @@ export class PreviewController {
           code: 'not-ready',
           message: 'Wait for the clearing to finish loading.',
         };
-      this.session.setHero(command.hero);
+      if (command.type === 'appearance.set') this.session.setHero(command.hero);
+      else this.animationRequest = { action: command.action, sequence: ++this.animationSequence };
     }
     this.publish();
     return { ok: true };
   }
 
   private publish(): void {
-    this.bridge.publish({ ...this.session.snapshot, status: this.status, error: this.error });
+    this.bridge.publish({
+      ...this.session.snapshot,
+      status: this.status,
+      error: this.error,
+      animationRequest: this.animationRequest,
+    });
   }
 }

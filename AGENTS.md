@@ -117,7 +117,7 @@ Recommended supporting tools are Zustand, Zod, Dexie, seedrandom, Vitest, Playwr
 
 ## 6. Sprite and content workflow
 
-The audit found 23 archives, 1,436 PNG occurrences and 716 distinct PNG images/sheets. Recheck against current source hashes if archives change. These counts are not individual sprite/frame/creature counts. The separate audit catalogue is not assumed to exist in the repository until M02 imports it.
+The audit found 23 archives, 1,436 PNG occurrences and 716 distinct PNG images/sheets. Recheck against current source hashes if archives change. These counts are not individual sprite/frame/creature counts. The audit metadata is now versioned under `docs/sprites/`. Use `catalogue:check` to reconcile it against source archives; use the development workbench for pixels and registered frames.
 
 - Read archive paths and included guides; inspect actual pixels. Do not invent names, abilities or frame coordinates from a vague filename alone.
 - Preserve raw source archives. Deduplicate exact bytes into canonical logical assets with source aliases; do not treat similarly named nonidentical files as identical.

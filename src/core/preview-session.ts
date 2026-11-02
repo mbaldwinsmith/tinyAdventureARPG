@@ -1,6 +1,6 @@
 export const HERO_IDS = [1, 2, 3, 4, 5, 6] as const;
 export type HeroId = (typeof HERO_IDS)[number];
-export type PauseReason = 'menu' | 'background';
+export type PauseReason = 'menu' | 'background' | 'workbench';
 
 /** Preview-only state owner. No campaign rules or persistence are implied. */
 export class PreviewSession {

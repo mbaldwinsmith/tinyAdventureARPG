@@ -6,3 +6,7 @@ playwright-report
 test-results
 src/raw sprites
 package-lock.json
+
+docs/sprites/*.json
+.cache/
+src/assets/hero-animations.json

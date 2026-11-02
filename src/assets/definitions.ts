@@ -36,6 +36,7 @@ export const manifestSchema = z.object({
       width: z.number().int().positive(),
       height: z.number().int().positive(),
       sha256: z.string().regex(/^[a-f0-9]{64}$/),
+      canonicalId: z.string().regex(/^sprite-[a-f0-9]{16}$/),
       frameWidth: z.number().int().positive().optional(),
       frameHeight: z.number().int().positive().optional(),
     }),

@@ -56,3 +56,31 @@ test('reports missing curated textures instead of silently opening a broken scen
   await expect(page.getByRole('alert')).toContainText('Could not load texture', { timeout: 30000 });
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
 });
+
+test('inspects the reviewed catalogue, plays framed art and follows an updated enemy source', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByRole('button', { name: 'Open sprite workbench' }).click();
+  const workbench = page.getByRole('region', { name: 'Sprite workbench' });
+  await expect(workbench.getByTestId('catalogue-summary')).toContainText('716 canonical images', {
+    timeout: 30000,
+  });
+  await expect(page.getByRole('button', { name: 'Preview animation', exact: true })).toBeDisabled();
+  await expect(workbench.getByLabel('Validated animation')).toHaveValue('1-idle-down');
+  await workbench.getByRole('button', { name: 'Play animation', exact: true }).click();
+  await expect.poll(() => workbench.getByTestId('frame-count').textContent()).not.toBe('1 / 4');
+  await workbench.getByRole('button', { name: 'Stop animation', exact: true }).click();
+  await workbench.getByLabel('Custom hitbox guide').check();
+  await expect(workbench.getByLabel('Hitbox width')).toBeVisible();
+  await workbench.getByLabel('Search sprites').fill('Goblin_bow_v2');
+  await expect(workbench.locator('.catalogue-card')).toHaveCount(1);
+  await workbench.locator('.catalogue-card').click();
+  await workbench.getByText('Source occurrences & version choice', { exact: true }).click();
+  await expect(workbench.locator('.asset-source')).toContainText('TAP_Enemies_v2.zip');
+  await page.getByRole('button', { name: 'Close workbench' }).click();
+  await expect(page.getByRole('button', { name: 'Preview animation', exact: true })).toBeEnabled();
+  await expect(page.locator('canvas')).toHaveCount(1);
+});
