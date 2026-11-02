@@ -20,6 +20,7 @@ export class PreviewController {
   private lastSnapshot: GameSnapshot | undefined;
   private input: InputPort | undefined;
   private debug = false;
+  private screenShake = false;
   private notice: string | null = null;
   attachInput(input: InputPort) {
     this.input = input;
@@ -80,6 +81,12 @@ export class PreviewController {
           message: 'Wait for the clearing to finish loading.',
         };
       if (command.type === 'animation.preview') {
+        if (this.session.battleActive)
+          return {
+            ok: false,
+            code: 'unavailable',
+            message: 'Leave practice before playing cosmetic previews.',
+          };
         if (this.session.snapshot.paused)
           return { ok: false, code: 'paused', message: 'Resume before previewing an animation.' };
         this.animationRequest = { action: command.action, sequence: ++this.animationSequence };
@@ -95,6 +102,7 @@ export class PreviewController {
           code: 'unavailable',
           message: 'The input service is not ready.',
         };
+      else if (command.type === 'settings.shake') this.screenShake = command.enabled;
       else if (command.type === 'debug.set') {
         if (!import.meta.env.DEV)
           return {
@@ -124,6 +132,7 @@ export class PreviewController {
       this.lastSnapshot.animationRequest !== this.animationRequest ||
       this.lastSnapshot.input !== (this.input?.view ?? DEFAULT_INPUT) ||
       this.lastSnapshot.debug !== this.debug ||
+      this.lastSnapshot.screenShake !== this.screenShake ||
       this.lastSnapshot.notice !== this.notice
     ) {
       this.lastCore = core;
@@ -134,6 +143,7 @@ export class PreviewController {
         animationRequest: this.animationRequest,
         input: this.input?.view ?? DEFAULT_INPUT,
         debug: this.debug,
+        screenShake: this.screenShake,
         notice: this.notice,
       };
     }

@@ -19,7 +19,7 @@ export const worldDefinitionSchema = z
     z.strictObject({
       id: regionIdSchema,
       name: z.string().min(1),
-      style: z.enum(['clearing', 'cottage', 'woodland']),
+      style: z.enum(['clearing', 'cottage', 'woodland', 'practice']),
       width: z.number().int().min(64).max(4096),
       height: z.number().int().min(64).max(4096),
       spawns: z

@@ -10,6 +10,7 @@ import {
 } from '../../src/assets/terrain';
 import { sceneryDefinitions } from '../../src/assets/scenery';
 import { heroAnimations } from '../../src/assets/hero-animations';
+import { presentationAnimations } from '../../src/assets/presentation-animations';
 import { guiSprites, guiPanels, bitmapFonts } from '../../src/assets/gui';
 import { atlasFrameId } from '../../src/assets/atlas';
 export function collectRuntimeFrames(assets: AssetManifest['assets']): SourceRect[] {
@@ -26,7 +27,8 @@ export function collectRuntimeFrames(assets: AssetManifest['assets']): SourceRec
       for (let y = 0; y < source.height; y += source.frameHeight)
         for (let x = 0; x < source.width; x += source.frameWidth)
           add({ texture: source.id, x, y, width: source.frameWidth, height: source.frameHeight });
-  for (const animation of heroAnimations)
+  // Promoted enemy/effect sources use their reviewed rectangles, never whole-sheet fallbacks.
+  for (const animation of [...heroAnimations, ...presentationAnimations])
     for (const frame of animation.frames)
       add({
         texture: animation.texture,

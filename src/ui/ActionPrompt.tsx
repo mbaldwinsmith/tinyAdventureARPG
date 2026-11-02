@@ -1,4 +1,5 @@
 import type { AssetManifest } from '../assets/definitions';
+import { BUTTON_PROPERTIES } from '../core/actions';
 import type { Action, InputView } from '../core/actions';
 import { promptFor } from '../assets/gui';
 import { packedSpriteStyle } from './atlas-ui';
@@ -13,11 +14,9 @@ export function ActionPrompt({
 }) {
   const keyboard = input.device === 'keyboard';
   const button =
-    action === 'interact'
-      ? input.interactButton
-      : action === 'attack'
-        ? input.attackButton
-        : input.pauseButton;
+    action in BUTTON_PROPERTIES
+      ? input[BUTTON_PROPERTIES[action as keyof typeof BUTTON_PROPERTIES]]
+      : -1;
   const control = keyboard
     ? input.keys[action]
     : (['south', 'east', 'west', 'north'][button] ?? '');

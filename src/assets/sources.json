@@ -1192,44 +1192,37 @@
   {
     "id": "enemy-goblin-idle",
     "archive": "TAP_Enemies_v2.zip",
-    "path": "TAP_Enemies_v2/Goblin/Goblin_idle_v2.png",
-    "inspectionOnly": true
+    "path": "TAP_Enemies_v2/Goblin/Goblin_idle_v2.png"
   },
   {
     "id": "enemy-goblin-walk",
     "archive": "TAP_Enemies_v2.zip",
-    "path": "TAP_Enemies_v2/Goblin/Goblin_walk_v2.png",
-    "inspectionOnly": true
+    "path": "TAP_Enemies_v2/Goblin/Goblin_walk_v2.png"
   },
   {
     "id": "enemy-goblin-bow",
     "archive": "TAP_Enemies_v2.zip",
-    "path": "TAP_Enemies_v2/Goblin/Goblin_bow_v2.png",
-    "inspectionOnly": true
+    "path": "TAP_Enemies_v2/Goblin/Goblin_bow_v2.png"
   },
   {
     "id": "enemy-skeleton-idle",
     "archive": "TAP_Enemies_v2.zip",
-    "path": "TAP_Enemies_v2/Skel/Skel_idle_v2.png",
-    "inspectionOnly": true
+    "path": "TAP_Enemies_v2/Skel/Skel_idle_v2.png"
   },
   {
     "id": "enemy-skeleton-walk",
     "archive": "TAP_Enemies_v2.zip",
-    "path": "TAP_Enemies_v2/Skel/Skel_walk_v2.png",
-    "inspectionOnly": true
+    "path": "TAP_Enemies_v2/Skel/Skel_walk_v2.png"
   },
   {
     "id": "enemy-zombie-idle",
     "archive": "TDP_zombie_v2.zip",
-    "path": "TDP_zombie_v2/Zombie/Zombie_idle_v2.png",
-    "inspectionOnly": true
+    "path": "TDP_zombie_v2/Zombie/Zombie_idle_v2.png"
   },
   {
     "id": "enemy-zombie-walk",
     "archive": "TDP_zombie_v2.zip",
-    "path": "TDP_zombie_v2/Zombie/Zombie_walk_v2.png",
-    "inspectionOnly": true
+    "path": "TDP_zombie_v2/Zombie/Zombie_walk_v2.png"
   },
   {
     "id": "enemy-soldier",
@@ -1282,50 +1275,42 @@
   {
     "id": "enemy-bat-left",
     "archive": "Tiny Dungeon Pack.zip",
-    "path": "Tiny Dungeon Pack/Enemies/Bat/Bat_left.png",
-    "inspectionOnly": true
+    "path": "Tiny Dungeon Pack/Enemies/Bat/Bat_left.png"
   },
   {
     "id": "enemy-bat-right",
     "archive": "Tiny Dungeon Pack.zip",
-    "path": "Tiny Dungeon Pack/Enemies/Bat/Bat_right.png",
-    "inspectionOnly": true
+    "path": "Tiny Dungeon Pack/Enemies/Bat/Bat_right.png"
   },
   {
     "id": "enemy-rat-down",
     "archive": "Tiny Dungeon Pack.zip",
-    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_down.png",
-    "inspectionOnly": true
+    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_down.png"
   },
   {
     "id": "enemy-rat-left",
     "archive": "Tiny Dungeon Pack.zip",
-    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_left.png",
-    "inspectionOnly": true
+    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_left.png"
   },
   {
     "id": "enemy-rat-right",
     "archive": "Tiny Dungeon Pack.zip",
-    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_right.png",
-    "inspectionOnly": true
+    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_right.png"
   },
   {
     "id": "enemy-rat-up",
     "archive": "Tiny Dungeon Pack.zip",
-    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_up.png",
-    "inspectionOnly": true
+    "path": "Tiny Dungeon Pack/Enemies/Rat/Rat_up.png"
   },
   {
     "id": "enemy-slime-blue-down",
     "archive": "Tiny Dungeon Pack.zip",
-    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_blue_down.png",
-    "inspectionOnly": true
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_blue_down.png"
   },
   {
     "id": "enemy-slime-blue-up",
     "archive": "Tiny Dungeon Pack.zip",
-    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_blue_up.png",
-    "inspectionOnly": true
+    "path": "Tiny Dungeon Pack/Enemies/Slime/Normal/Slime_blue_up.png"
   },
   {
     "id": "enemy-slime-green-down",

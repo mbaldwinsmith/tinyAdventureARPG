@@ -4,6 +4,7 @@ import { GameBridge } from '../bridge/game-bridge';
 import { useAssetManifest, packedSpriteStyle, usePanelSkin } from './atlas-ui';
 import { ActionPrompt } from './ActionPrompt';
 import { ControlsDialog } from './ControlsDialog';
+import { CombatPanel, DefeatDialog } from './CombatPanel';
 import { InteractionDialog } from './InteractionDialog';
 import { HERO_IDS } from '../core/model';
 import { GameCanvas } from './GameCanvas';
@@ -154,20 +155,24 @@ export function App() {
             <div>
               <span className="location-dot" aria-hidden="true" />
               <h2 id="clearing-title">{snapshot.region.name}</h2>
-              <span className="location-type">FOREST PREVIEW</span>
+              <span className="location-type">
+                {snapshot.combat?.active ? 'COMBAT PRACTICE' : 'FOREST PREVIEW'}
+              </span>
             </div>
             <span className="engine-status" role="status">
               {snapshot.status === 'loading'
                 ? 'Opening the path…'
                 : snapshot.status === 'failed'
                   ? 'Unable to open the path'
-                  : !mounted
-                    ? 'Scene unloaded'
-                    : snapshot.pauseReasons.includes('workbench')
-                      ? 'Inspecting artwork'
-                      : menuOpen
-                        ? 'Taking a breather'
-                        : 'The path is open'}
+                  : snapshot.pauseReasons.includes('death')
+                    ? 'Defeated — practice paused'
+                    : !mounted
+                      ? 'Scene unloaded'
+                      : snapshot.pauseReasons.includes('workbench')
+                        ? 'Inspecting artwork'
+                        : menuOpen
+                          ? 'Taking a breather'
+                          : 'The path is open'}
             </span>
           </div>
           <div className="world-stage">
@@ -218,7 +223,7 @@ export function App() {
               <ActionPrompt manifest={assets} input={snapshot.input} action="interact" /> interact{' '}
               <span className="control-divider">/</span>{' '}
               <ActionPrompt manifest={assets} input={snapshot.input} action="attack" /> swing
-              preview
+              {snapshot.combat?.active ? '' : 'preview'}
             </p>
             <span className="preview-label">
               {snapshot.input.connected
@@ -252,6 +257,7 @@ export function App() {
             </button>
           )}
         </div>
+        <CombatPanel bridge={bridge} snapshot={snapshot} assets={assets} />
         <section className="below-world" aria-label="Preview options and development status">
           <div className="appearance-panel">
             <p className="eyebrow">A FACE FOR THE JOURNEY</p>
@@ -291,8 +297,8 @@ export function App() {
               <p className="eyebrow">A SEED, NOT THE WHOLE GARDEN</p>
               <h2>Something worth growing</h2>
               <p>
-                This first preview brings the artwork and interface together. Combat, storage,
-                farming and the wider Kingdom are still ahead.
+                The first combat trials are ready. Learn the rhythm, try a different encounter, and
+                return to the clearing. Storage, farming and the wider Kingdom are still ahead.
               </p>
               <a
                 href="https://github.com/mbaldwinsmith/tinyAdventureARPG/blob/main/PLAN.md"
@@ -308,7 +314,10 @@ export function App() {
           <div>
             <p className="eyebrow">TRY A NEW MOVE</p>
             <h2>Bring the artwork to life</h2>
-            <p>Animation preview only — tools, damage and combat come later.</p>
+            <p>
+              Cosmetic action previews outside practice. Enter the practice field above for real
+              combat.
+            </p>
           </div>
           <label>
             Action
@@ -329,7 +338,12 @@ export function App() {
           </label>
           <button
             className="button"
-            disabled={snapshot.status !== 'ready' || !mounted || snapshot.paused}
+            disabled={
+              snapshot.status !== 'ready' ||
+              !mounted ||
+              snapshot.paused ||
+              !!snapshot.combat?.active
+            }
             onClick={() => {
               const result = bridge.send({ type: 'animation.preview', action: previewAction });
               setCommandError(result.ok ? null : result.message);
@@ -351,7 +365,12 @@ export function App() {
           </div>
           <button
             className="button button-subtle"
-            disabled={snapshot.status !== 'ready' || !mounted || snapshot.paused}
+            disabled={
+              snapshot.status !== 'ready' ||
+              !mounted ||
+              snapshot.paused ||
+              !!snapshot.combat?.active
+            }
             onClick={() => {
               const result = bridge.send({
                 type: 'calendar.sleep',
@@ -418,6 +437,9 @@ export function App() {
           Artwork by Vryell <span aria-hidden="true">·</span> Created by Mark Baldwin-Smith
         </span>
       </footer>
+      {snapshot.combat?.death?.phase === 'pending' && (
+        <DefeatDialog bridge={bridge} snapshot={snapshot} />
+      )}
       {controlsOpen && <ControlsDialog bridge={bridge} snapshot={snapshot} close={closeControls} />}
       {snapshot.message && (
         <InteractionDialog message={snapshot.message} close={closeInteraction} />

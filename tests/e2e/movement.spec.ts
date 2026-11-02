@@ -239,7 +239,7 @@ test('routes an emulated standard Gamepad API through neutral arming, menus, nav
   await padPress(page, 13);
   await expect(page.getByLabel('Move up key')).toBeFocused();
   await padPress(page, 15);
-  await expect(page.getByLabel('Move up key')).toHaveValue('KeyF');
+  await expect(page.getByLabel('Move up key')).toHaveValue('KeyI');
   await padPress(page, 1);
   await expect(page.getByRole('dialog', { name: 'Controls and bindings' })).toHaveCount(0);
   await expect(page.getByRole('status')).toHaveText('Taking a breather');

@@ -23,6 +23,10 @@ export const WOODLAND_TREES = Array.from({ length: 40 }, (_, i) => ({
   x: 64 + (i % 8) * 112,
   y: 72 + Math.floor(i / 8) * 96,
 })).filter((p) => Math.abs(p.x - 480) > 40 && Math.abs(p.y - 256) > 30);
+export const PRACTICE_BENCHES = [
+  { x: 174, y: 119 },
+  { x: 320, y: 160 },
+] as const;
 export const PREVIEW_WORLD = new WorldRegistry([
   {
     id: 'region:clearing',
@@ -182,6 +186,28 @@ export const PREVIEW_WORLD = new WorldRegistry([
         'Read woodland sign',
         'The woodland continues beyond this first trail. This larger authored region demonstrates bounded camera follow; generated forests are still ahead.',
       ),
+    ],
+  },
+  {
+    id: 'region:practice',
+    name: 'The practice field',
+    style: 'practice',
+    width: 480,
+    height: 272,
+    spawns: [{ id: 'entry', position: { x: 240, y: 220 }, facing: 'up' }],
+    objects: [
+      object('practice-door', 240, 256),
+      ...PRACTICE_BENCHES.map((p, i) => object(`practice-bench-${i}`, p.x, p.y)),
+    ],
+    solids: PRACTICE_BENCHES.map((p, i) =>
+      solid(`bench-${i}`, p.x - 24, p.y - 8, 48, 8, `practice-bench-${i}`),
+    ),
+    water: [],
+    interactions: [
+      interaction('practice-door', 'door', 240, 256, 'Leave practice field', '', {
+        regionId: 'region:clearing',
+        spawn: 'start',
+      }),
     ],
   },
 ]);

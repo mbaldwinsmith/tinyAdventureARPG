@@ -22,7 +22,7 @@ The supplied palette notes credit **Rosy-42 by PineTreePizza**, with three addit
 
 Frame timing, reference feet, attachment offsets, layering, GUI glyph metrics and scene composition are project-authored metadata. The modern boomerang pose deliberately reuses supplied throw-item art. Hero death presentation deliberately reuses supplied fall art with a fade. Bomb presentation reuses throw-item art followed by a code-authored six-frame pixel explosion. These are presentation adaptations; no separate supplied death/explosion sheet is claimed.
 
-The explosion geometry and this metadata are project software under the existing repository licence. Source pixels remain Vryell's artwork. Combat, inventory, death losses and tool simulation are separate, later game systems.
+The explosion geometry and this metadata are project software under the existing repository licence. Source pixels remain Vryell's artwork. M05 adds code-authored attack/aim telegraphs, arrows, coin markers, shield/hit feedback and enemy held-pose death fades. Promoted enemy sources retain their reviewed frames and direction coverage; no separate supplied strike/death sheet is claimed where none exists. Authoritative combat is separate from these pixels; inventory, campaign loss rules and most tool simulations remain later work.
 
 ## Third-party software
 

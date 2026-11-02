@@ -2,11 +2,13 @@ import {
   ARROW_ACTIONS,
   DEFAULT_INPUT,
   DEFAULT_KEYS,
+  BUTTON_PROPERTIES,
+  BUTTON_ACTIONS,
   PadReader,
   keyCodeSchema,
   normalizedVector,
 } from '../core/actions';
-import type { Action, InputView, Navigation, PadSample } from '../core/actions';
+import type { Action, InputView, Navigation, PadSample, ButtonAction } from '../core/actions';
 import type { CommandResult } from '../bridge/game-bridge';
 import { copyData, freezeData } from '../core/data';
 
@@ -15,7 +17,7 @@ export interface InputPort {
   reset(): void;
   setPaused(active: boolean): void;
   remapKey(action: Action, code: string): CommandResult;
-  remapButton(action: 'interact' | 'attack' | 'pause', button: number): CommandResult;
+  remapButton(action: ButtonAction, button: number): CommandResult;
 }
 /** Owns device state/preferences, never player/world state. One instance per game mount. */
 export class ActionInput implements InputPort {
@@ -132,20 +134,13 @@ export class ActionInput implements InputPort {
     this.update({ keys: { ...this.current.keys, [action]: parsed.data } });
     return { ok: true };
   }
-  remapButton(action: 'interact' | 'attack' | 'pause', button: number): CommandResult {
+  remapButton(action: ButtonAction, button: number): CommandResult {
     if (![0, 2, 3, 4, 5, 8, 9].includes(button))
       return { ok: false, code: 'invalid-command', message: 'Choose a supported standard button.' };
-    const property =
-      action === 'interact'
-        ? 'interactButton'
-        : action === 'attack'
-          ? 'attackButton'
-          : 'pauseButton';
+    const property = BUTTON_PROPERTIES[action];
     if (
-      ['interactButton', 'attackButton', 'pauseButton'].some(
-        (key) =>
-          key !== property &&
-          this.current[key as 'interactButton' | 'attackButton' | 'pauseButton'] === button,
+      BUTTON_ACTIONS.some(
+        (other) => other !== action && this.current[BUTTON_PROPERTIES[other]] === button,
       )
     )
       return { ok: false, code: 'unavailable', message: 'That button is already assigned.' };
@@ -155,7 +150,15 @@ export class ActionInput implements InputPort {
   }
   resetBindings() {
     this.reset();
-    this.update({ keys: { ...DEFAULT_KEYS }, interactButton: 0, attackButton: 2, pauseButton: 9 });
+    this.update({
+      keys: { ...DEFAULT_KEYS },
+      interactButton: 0,
+      attackButton: 2,
+      pauseButton: 9,
+      guardButton: 4,
+      rollButton: 3,
+      bowButton: 5,
+    });
   }
   poll(paused: boolean) {
     const focused = this.hasFocus();
@@ -174,14 +177,14 @@ export class ActionInput implements InputPort {
     });
     if (paused) {
       for (const action of sampled.navigation) this.navigate(action);
-      return { x: 0, y: 0, pressed: [] as Action[] };
+      return { x: 0, y: 0, guard: false, pressed: [] as Action[] };
     }
     if (sampled.active && !focused) {
       this.host.focus();
       this.reset();
-      return { x: 0, y: 0, pressed: [] as Action[] };
+      return { x: 0, y: 0, guard: false, pressed: [] as Action[] };
     }
-    if (!focused) return { x: 0, y: 0, pressed: [] as Action[] };
+    if (!focused) return { x: 0, y: 0, guard: false, pressed: [] as Action[] };
     const down = (action: Action) =>
       this.keys.has(this.current.keys[action]) ||
       Object.entries(ARROW_ACTIONS).some(
@@ -194,6 +197,10 @@ export class ActionInput implements InputPort {
     const vector = this.current.device === 'keyboard' ? keyboard : { x: sampled.x, y: sampled.y };
     const pressed = [...this.pressed, ...sampled.pressed];
     this.pressed.clear();
-    return { ...vector, pressed };
+    return {
+      ...vector,
+      guard: this.current.device === 'keyboard' ? down('guard') : sampled.guard,
+      pressed,
+    };
   }
 }
