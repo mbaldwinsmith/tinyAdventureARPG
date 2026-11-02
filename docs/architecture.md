@@ -1,6 +1,6 @@
 # Foundation architecture
 
-The foundation implements **M01** and the **M02** catalogue, animation and terrain/scenery increments. A small authored clearing exercises the integration. It is not the campaign world, a generated forest, or the M09 vertical slice.
+The foundation implements **M01** and **M02** asset inventory/imports. A small authored clearing exercises the integration. It is not the campaign world, a generated forest, or the M09 vertical slice.
 
 ## Ownership
 
@@ -19,13 +19,13 @@ Audio, controller support, inventory, combat, calendar/farming, persistence, pro
 
 ## Assets
 
-`src/assets/sources.json` maps 286 curated sources across 14 archives, with 121 explicitly marked inspection-only and 165 emitted runtime PNGs. `hero-animations.json` defines 672 direction-specific/shared sequences with explicit rectangles, durations, anchors and loop flags. A single validator checks all six appearances and required action families. Game playback and the workbench consume the same definitions.
+`src/assets/sources.json` maps 314 curated sources across 16 archives, with 147 explicitly marked inspection-only and 167 runtime sources packed into one atlas. `hero-animations.json` defines 720 direction-specific/shared sequences with explicit rectangles, durations, anchors and loop flags. A single validator checks all six appearances and required action families. Game playback and the workbench consume the same definitions.
 
 The full reviewed catalogue is metadata-only under `docs/sprites/`. Its generator verifies every archive hash/count, matches reviewed annotations by full PNG hash and assigns content-derived canonical IDs with source aliases. Selected updated enemy sources are checked too.
 
-`assets:build` and `assets:check` share a bounded archive reader with the catalogue generator. They generate/verify selected textures and validate all registered sequence bounds, indices and coverage. Enemy/tool-variant/King/component metadata adds 1,736 validated sequences. Label exclusions, nonstandard direction orders, mixed-size rectangles and detached attachment geometry are explicit. Terrain adds 35 profiles with style-specific adjacency contracts; scenery adds 279 explicit compositions/source views with bounded parts and sockets. Packed atlases and GUI slicing remain later work.
+`assets:build` and `assets:check` share a bounded archive reader with the catalogue generator. They generate/verify selected textures and validate all registered sequence bounds, indices and coverage. Enemy/tool-variant/King/component metadata adds 1,736 validated sequences. Label exclusions, nonstandard direction orders, mixed-size rectangles and detached attachment geometry are explicit. Terrain adds 35 profiles with style-specific adjacency contracts; scenery adds 279 explicit compositions/source views with bounded parts and sockets. Manifest v2 maps 3,763 stable source rectangles to padded atlas frames. GUI slicing, bitmap glyphs, physical prompts and authored effects are documented in [their contract](sprites/gui-atlases-effects.md).
 
-The development-only workbench uses Vite middleware to inspect previews from `.cache/catalogue/`. React lazy-loads the inspector only in development. Its editable hitbox guides and attachment sockets are review tools, not gameplay definitions. The King's divided tongue can be assembled in four directions with bounded, contiguous segment placement. Non-looping animations hold their final frame. The public preview adds presentation-only action commands through the existing typed bridge; no combat effects are implied.
+The development-only workbench uses Vite middleware to inspect previews from `.cache/catalogue/`. React lazy-loads the inspector only in development. Its editable hitbox guides and attachment sockets are review tools, not gameplay definitions. The King's divided tongue can be assembled in four directions with bounded, contiguous segment placement. Non-looping animations hold their final frame. The public preview adds presentation-only action commands through the existing typed bridge; death/bomb visuals remain presentation previews without damage, possessions or respawn rules.
 
 Vite copies only curated public assets into the build. Inspection-only textures stay in the development catalogue cache and are skipped by the game preloader. `createClearingScenery` owns the authored tile/shore/prop illustration and named Phaser texture rectangles. Its shoreline clock advances only after the shared session pause check; it is not the later authoritative gameplay clock. Actor and scenery feet share one depth band.
 

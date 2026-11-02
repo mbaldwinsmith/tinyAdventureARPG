@@ -10,3 +10,5 @@ package-lock.json
 docs/sprites/*.json
 .cache/
 src/assets/hero-animations.json
+
+THIRD_PARTY_NOTICES.md

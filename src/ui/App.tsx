@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { GameBridge } from '../bridge/game-bridge';
+import { useAssetManifest, packedSpriteStyle, usePanelSkin } from './atlas-ui';
+import { KeyPrompt } from './KeyPrompt';
 import { HERO_IDS } from '../core/preview-session';
 import { GameCanvas } from './GameCanvas';
 import { createUiStore } from './ui-store';
@@ -9,6 +11,8 @@ import type { HeroAction } from '../assets/hero-animations';
 const AssetWorkbench = import.meta.env.DEV ? lazy(() => import('./AssetWorkbench')) : null;
 
 export function App() {
+  const assets = useAssetManifest();
+  const panelSkin = usePanelSkin(assets, 'panel-green');
   const [bridge] = useState(() => new GameBridge());
   const [store] = useState(createUiStore);
   const snapshot = useStore(store, (state) => state.snapshot);
@@ -48,7 +52,7 @@ export function App() {
             disabled={snapshot.status !== 'ready' || !mounted}
             onClick={() => pause(true)}
           >
-            Pause <kbd>Esc</kbd>
+            Pause <KeyPrompt manifest={assets} control="Escape" label="Esc" />
           </button>
         </div>
       </header>
@@ -129,10 +133,10 @@ export function App() {
           <div className="controls-bar">
             <p>
               <span className="key-group">
-                <kbd>W</kbd>
-                <kbd>A</kbd>
-                <kbd>S</kbd>
-                <kbd>D</kbd>
+                <KeyPrompt manifest={assets} control="KeyW" label="W" />
+                <KeyPrompt manifest={assets} control="KeyA" label="A" />
+                <KeyPrompt manifest={assets} control="KeyS" label="S" />
+                <KeyPrompt manifest={assets} control="KeyD" label="D" />
               </span>{' '}
               or arrow keys to wander <span className="control-divider">/</span> Click the clearing
               to focus
@@ -159,9 +163,11 @@ export function App() {
                 >
                   <span
                     className="hero-portrait"
-                    style={{
-                      backgroundImage: `url(${import.meta.env.BASE_URL}generated/hero-${hero}-idle.png)`,
-                    }}
+                    style={packedSpriteStyle(
+                      assets,
+                      { texture: `hero-${hero}-idle`, x: 0, y: 0, width: 16, height: 16 },
+                      42 / 16,
+                    )}
                   />
                   <span className="hero-number">0{hero}</span>
                 </button>
@@ -270,7 +276,8 @@ export function App() {
       </footer>
       <dialog
         ref={dialog}
-        className="pause-dialog"
+        className={`pause-dialog ${panelSkin ? 'pixel-panel' : ''}`}
+        style={panelSkin}
         onCancel={(event) => {
           event.preventDefault();
           pause(false);

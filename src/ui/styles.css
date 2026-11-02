@@ -757,3 +757,29 @@ footer span span {
   margin: 0.5rem 0;
   font-size: 0.8rem;
 }
+
+.packed-key {
+  display: inline-block;
+  vertical-align: middle;
+}
+.sprite-key {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.pause-dialog.pixel-panel,
+.pause-dialog.pixel-panel p:not(.eyebrow) {
+  color: #f5ffe8;
+}
+.pause-dialog.pixel-panel .eyebrow {
+  color: #ffcf70;
+}

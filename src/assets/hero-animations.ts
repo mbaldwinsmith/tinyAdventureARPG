@@ -32,6 +32,8 @@ export const HERO_ACTIONS = [
   'fish-pull',
   'hook',
   'magic',
+  'death',
+  'bomb',
 ] as const;
 export type HeroAction = (typeof HERO_ACTIONS)[number];
 export const DIRECTIONS = ['down', 'left', 'up', 'right'] as const;

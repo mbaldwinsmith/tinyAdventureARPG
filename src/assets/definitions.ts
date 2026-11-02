@@ -29,11 +29,11 @@ if (new Set(assetSources.map((source) => source.id)).size !== assetSources.lengt
 }
 
 export const manifestSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   assets: z.array(
     z.object({
       id: z.string(),
-      file: z.string(),
+      sourceFile: z.string(),
       inspectionOnly: z.boolean(),
       width: z.number().int().positive(),
       height: z.number().int().positive(),
@@ -41,6 +41,35 @@ export const manifestSchema = z.object({
       canonicalId: z.string().regex(/^sprite-[a-f0-9]{16}$/),
       frameWidth: z.number().int().positive().optional(),
       frameHeight: z.number().int().positive().optional(),
+    }),
+  ),
+  pages: z.array(
+    z.object({
+      id: z.string().regex(/^atlas-\d+$/),
+      image: z.string().regex(/^atlas-\d+\.png$/),
+      data: z.string().regex(/^atlas-\d+\.json$/),
+      width: z.number().int().positive().max(2048),
+      height: z.number().int().positive().max(2048),
+      imageSha256: z.string(),
+      dataSha256: z.string(),
+    }),
+  ),
+  frames: z.array(
+    z.object({
+      id: z.string(),
+      page: z.string(),
+      source: z.object({
+        texture: z.string(),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        width: z.number().int().positive(),
+        height: z.number().int().positive(),
+      }),
+      x: z.number().int().nonnegative(),
+      y: z.number().int().nonnegative(),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+      pixelHash: z.string(),
     }),
   ),
 });

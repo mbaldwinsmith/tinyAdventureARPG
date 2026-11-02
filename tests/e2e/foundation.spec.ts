@@ -50,7 +50,7 @@ test('disposes its canvas and bridge handler cleanly before mounting a fresh run
 test('reports missing curated textures instead of silently opening a broken scene', async ({
   page,
 }) => {
-  await page.route('**/generated/hero-1-idle.png', (route) =>
+  await page.route('**/generated/atlas-0.png', (route) =>
     route.fulfill({ status: 404, body: 'missing fixture' }),
   );
   await page.goto('/');
@@ -306,4 +306,131 @@ test('pauses and resumes the rendered shoreline with the shared menu pause', asy
   await expect(page.getByRole('dialog')).not.toBeVisible();
   const resumed = await sample();
   await expect.poll(sample).not.toBe(resumed);
+});
+
+test('renders GUI panel corners from supplied pixels at different sizes and handles unsupported font text', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await expect(page.locator('.packed-key')).toHaveCount(5);
+  await page.getByRole('button', { name: 'Pause Esc' }).click();
+  await expect
+    .poll(() =>
+      page.getByRole('dialog').evaluate((node) => getComputedStyle(node).borderImageSource),
+    )
+    .toContain('data:image/png');
+  await page.getByRole('button', { name: 'Back to the clearing' }).click();
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByRole('button', { name: 'Open sprite workbench' }).click();
+  const wb = page.getByRole('region', { name: 'Sprite workbench' });
+  await wb.getByLabel('Search sprites').fill('TalkBox_Green_16x16');
+  await wb.getByRole('button', { name: /TalkBox_Green_16x16.*48×48px/ }).click();
+  const sample = wb.getByLabel('Rendered GUI sample');
+  for (const [width, height] of [
+    [64, 32],
+    [360, 180],
+  ]) {
+    if (!width || !height) throw new Error('Missing panel size fixture');
+    await wb.getByLabel('Panel sample width').fill(String(width));
+    await wb.getByLabel('Panel sample height').fill(String(height));
+    await expect(sample).toHaveAttribute('width', String(width));
+    await expect(sample).toHaveAttribute('height', String(height));
+    await expect
+      .poll(async () =>
+        sample.evaluate(async (node) => {
+          const catalogue = (await (await fetch('/__catalogue/index.json')).json()) as {
+            assets: { id: string; sources: { path: string }[] }[];
+          };
+          const source = catalogue.assets.find((a) =>
+            a.sources.some((s) => s.path.endsWith('/TalkBox_Green_16x16.png')),
+          );
+          if (!source) throw new Error('Missing panel source');
+          const image = new Image();
+          image.src = `/__catalogue/${source.id}.png`;
+          await image.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = 96;
+          canvas.height = 96;
+          const ctx = canvas.getContext('2d'),
+            actual = (node as HTMLCanvasElement).getContext('2d');
+          if (!ctx || !actual) throw new Error('No panel comparison canvas');
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(image, 0, 0, 96, 96);
+          for (const [sx, sy, dx, dy] of [
+            [0, 0, 0, 0],
+            [88, 0, (node as HTMLCanvasElement).width - 8, 0],
+            [0, 88, 0, (node as HTMLCanvasElement).height - 8],
+            [88, 88, (node as HTMLCanvasElement).width - 8, (node as HTMLCanvasElement).height - 8],
+          ]) {
+            if (sx === undefined || sy === undefined || dx === undefined || dy === undefined)
+              throw new Error('Missing corner fixture');
+            if (
+              Array.from(ctx.getImageData(sx, sy, 8, 8).data).join(',') !==
+              Array.from(actual.getImageData(dx, dy, 8, 8).data).join(',')
+            )
+              return false;
+          }
+          return true;
+        }),
+      )
+      .toBe(true);
+  }
+  await wb.getByLabel('Search sprites').fill('Fonts/Font_light.png');
+  await wb.locator('.catalogue-card').click();
+  await wb.getByLabel('Bitmap sample text').fill('Ready?\n🦊');
+  await expect(wb.getByTestId('glyph-support')).toContainText('Unsupported characters use ?: 🦊');
+  await wb.getByLabel('Bitmap sample text').fill('Ready?');
+  await expect(wb.getByTestId('glyph-support')).toHaveText('All characters mapped');
+});
+
+test('plays the authored explosion to its held endpoint and restarts explicitly', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  for (const action of ['death', 'bomb']) {
+    await page.getByLabel('Animation to preview').selectOption(action);
+    await page.getByRole('button', { name: 'Preview animation', exact: true }).click();
+    await page.clock.runFor(action === 'death' ? 400 : 500);
+    await page.getByRole('button', { name: 'Pause Esc' }).click();
+    await page.clock.runFor(20);
+    const options = {
+      style:
+        '.pause-dialog { opacity: 0 !important; } .pause-dialog::backdrop { background: transparent !important; backdrop-filter: none !important; }',
+    };
+    const frozen = await page.locator('.game-canvas canvas').screenshot(options);
+    await page.clock.runFor(700);
+    expect(await page.locator('.game-canvas canvas').screenshot(options)).toEqual(frozen);
+    await page.getByRole('button', { name: 'Back to the clearing' }).click();
+    await page.clock.runFor(1200);
+  }
+  await page.clock.resume();
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByRole('button', { name: 'Open sprite workbench' }).click();
+  await page.getByText('Authored presentation effects', { exact: true }).click();
+  const effect = page.getByRole('region', { name: 'Authored explosion preview' });
+  await effect.getByRole('button', { name: 'Play explosion' }).click();
+  await expect(effect.getByTestId('explosion-frame')).toHaveText('Frame 6 / 6');
+  const terminal = await effect
+    .getByLabel('Pixel explosion')
+    .evaluate((node) => (node as HTMLCanvasElement).toDataURL());
+  await page.waitForTimeout(400);
+  expect(
+    await effect
+      .getByLabel('Pixel explosion')
+      .evaluate((node) => (node as HTMLCanvasElement).toDataURL()),
+  ).toBe(terminal);
+  await effect.getByRole('button', { name: 'Play explosion' }).click();
+  await expect
+    .poll(() =>
+      effect
+        .getByLabel('Pixel explosion')
+        .evaluate((node) => (node as HTMLCanvasElement).toDataURL()),
+    )
+    .not.toBe(terminal);
+  await effect.getByLabel('Explosion frame').fill('0');
+  await expect(effect.getByTestId('explosion-frame')).toHaveText('Frame 1 / 6');
 });

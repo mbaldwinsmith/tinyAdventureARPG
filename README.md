@@ -29,7 +29,7 @@ Bring discoveries home. Deposit valuables, plant and tend crops, and welcome the
 
 At the heart of the Kingdom waits its evil King: the crowned, tongue-attacking boss from Vryell's Tiny Castle Pack. Defeating him and restoring the Kingdom is the main objective.
 
-> **Project status:** runnable foundation preview. Explore an authored clearing with tiled paths, a cottage and an animated pond, select one of six appearances, preview 28 action families and use the React pause menu. Combat, collisions, inventory, saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
+> **Project status:** runnable foundation preview. Explore an authored clearing with tiled paths, a cottage and an animated pond, select one of six appearances, preview 30 action families and use the React pause menu. Combat, collisions, inventory, saves, farming and generated worlds are not implemented yet. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
 
 ## A world that remembers
 
@@ -60,13 +60,13 @@ Loss probabilities, equipment eligibility, money handling and partial-stack rule
 
 ## Project status
 
-**M01 application foundation and the M02 catalogue, animation and terrain/scenery increments are implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
+**M01 application foundation and M02 asset inventory/imports are implemented.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
 
 | Available now                                                         | Next systems                                       |
 | --------------------------------------------------------------------- | -------------------------------------------------- |
 | Walkable authored clearing and six hero appearances                   | Collision, cardinal combat and interactions        |
 | Typed game/UI bridge, composed pause reasons and focused UI snapshots | Authoritative campaign rules, time and progression |
-| Full source catalogue, aliases and 165 curated runtime PNGs           | GUI metadata and packed atlases                    |
+| Full catalogue, 3,763 padded atlas frames, GUI mappings and credits   | Core data, time and progression                    |
 | Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming  |
 | CI workflow and production build                                      | Complete desktop campaign and release validation   |
 
@@ -123,7 +123,7 @@ Vite prints its local address. Click the clearing to focus it, then use **WASD o
 | `npm run lint`                                        | Run ESLint, including core import boundaries                            |
 | `npm run format` / `npm run format:check`             | Write/check Prettier formatting                                         |
 | `npm run catalogue:build` / `npm run catalogue:check` | Rebuild/check the complete source metadata and local inspector previews |
-| `npm run assets:build` / `npm run assets:check`       | Generate/check selected PNGs against raw archives                       |
+| `npm run assets:build` / `npm run assets:check`       | Generate/check padded atlases, frame metadata and notices               |
 | `npm run test` / `npm run test:watch`                 | Run/watch Vitest tests                                                  |
 | `npm run test:e2e`                                    | Run real-browser Playwright integration checks                          |
 | `npm run check`                                       | Typecheck, lint, format, assets and unit checks                         |
@@ -137,9 +137,9 @@ npm run test:e2e
 
 Linux CI uses `npx playwright install --with-deps chromium`. Environments with an existing compatible Chromium executable can set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its absolute path. The packaged browser used in this development environment is not a project dependency or a distributable asset.
 
-`npm run check` expects generated assets: run `npm run assets:build` first after a clean install. `npm run dev` and `npm run build` do this automatically. CI uses the same documented commands. Raw ZIPs, local saves, generated outputs and browser reports are excluded from version control/build sources.
+`npm run check` expects generated assets: run `npm run assets:build` first after a clean install. `npm run dev` and `npm run build` do this automatically. CI uses the same documented commands. Local saves, generated outputs and browser reports are excluded from version control. Original ZIPs remain development inputs and are excluded from distributable builds.
 
-The production build uses relative asset URLs, ready for static subdirectory hosting. No deployment is configured by this iteration. To expose a development server deliberately, pass `-- --host 0.0.0.0`; local loopback is the default.
+The production build uses relative asset URLs, ready for static subdirectory hosting. The owner-private Site preview is published separately from the GitHub source; no credentials or Site identity are stored in this application repository. To expose a development server deliberately, pass `-- --host 0.0.0.0`; local loopback is the default.
 
 ## Artwork and asset workflow
 
@@ -149,7 +149,7 @@ The sprite audit found **23 archives, 1,436 PNG occurrences and 716 distinct PNG
 
 Most terrain uses a **16×16 pixel grid**, but action frames, trees, boats, buildings and UI components use other dimensions. Import explicit frame rectangles and attachment points; never apply universal 16×16 slicing. Prefer compatible updated character/enemy animations, preserve alternate terrain styles, and exclude baked sheet labels from runtime frames.
 
-The [reviewed source catalogue](docs/sprites/README.md) is now versioned and reproducible from the archives. Development tools include a searchable sprite/animation workbench; the public build contains only selected runtime art. See [asset provenance and rebuilding](docs/assets.md); tool/enemy/King frame contracts are documented in [animation layouts](docs/sprites/animation-layouts.md). Terrain adjacency and layered scenery are documented in the [terrain/scenery contract](docs/sprites/terrain-scenery.md). GUI definitions and packed atlases remain in M02. Purchased source art is not relicensed by this repository; see [licensing](#licensing).
+The [reviewed source catalogue](docs/sprites/README.md) is now versioned and reproducible from the archives. Development tools include a searchable sprite/animation workbench; the public build contains only selected runtime art. See [asset provenance and rebuilding](docs/assets.md); tool/enemy/King frame contracts are documented in [animation layouts](docs/sprites/animation-layouts.md). Terrain adjacency and layered scenery are documented in the [terrain/scenery contract](docs/sprites/terrain-scenery.md). The [GUI/atlas/effects contract](docs/sprites/gui-atlases-effects.md) records the completed M02 packing, UI mappings and authored effect previews. Purchased source art is not relicensed by this repository; see [licensing](#licensing).
 
 ## Platforms
 
@@ -167,7 +167,7 @@ Start with [AGENTS.md](AGENTS.md), choose a small coherent group of tasks from [
 
 The software and repository documentation are **proprietary**, under the existing [LICENSE](LICENSE). Public visibility is not an open-source licence.
 
-Vryell retains rights to the purchased artwork. Those assets have their own terms and are not covered by the software licence. Preserve the original archives and attribution records; do not publish standalone asset downloads or treat the source packs as freely redistributable. Third-party libraries retain their respective licences.
+Vryell retains rights to the purchased artwork. Those assets have their own terms and are not covered by the software licence. Preserve the original archives and attribution records; do not publish standalone asset downloads or treat the source packs as freely redistributable. Third-party libraries retain their respective licences. See [artwork provenance](LICENSE-ASSETS.md) and [bundled software notices](THIRD_PARTY_NOTICES.md); both are included in production assets.
 
 ---
 

@@ -3,6 +3,7 @@ import type { SpriteCatalogue } from '../assets/catalogue-types';
 import { catalogueSchema } from '../assets/catalogue-schema';
 import { manifestSchema } from '../assets/definitions';
 import type { AssetManifest } from '../assets/definitions';
+import { EffectsInspector } from './EffectsInspector';
 import { AssetInspector } from './AssetInspector';
 
 export default function AssetWorkbench({ onClose }: { onClose: () => void }) {
@@ -77,6 +78,10 @@ export default function AssetWorkbench({ onClose }: { onClose: () => void }) {
             {catalogue.counts.unique_pngs} canonical images ·{' '}
             {catalogue.counts.support_text_entries} support-text entries
           </p>
+          <details>
+            <summary>Authored presentation effects</summary>
+            <EffectsInspector />
+          </details>
           <div className="catalogue-filters">
             <label>
               Search sprites
