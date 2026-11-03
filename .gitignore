@@ -5,6 +5,7 @@ public/.generated-staging/
 coverage/
 playwright-report/
 test-results/
+test-results-production/
 *.tsbuildinfo
 .env
 .env.*

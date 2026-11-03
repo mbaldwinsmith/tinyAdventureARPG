@@ -1,3 +1,4 @@
+import { EXPEDITION_PORTAL } from '../core/generated-world';
 import { WorldRegistry } from '../core/world';
 import { CLEARING } from './clearing';
 
@@ -53,6 +54,7 @@ export const PREVIEW_WORLD = new WorldRegistry([
       object('clearing-wayfarer', 310, 172),
       object('clearing-plot', 176, 202),
       object('clearing-box', 260, 198),
+      { id: EXPEDITION_PORTAL.id, position: EXPEDITION_PORTAL.position },
     ],
     solids: [
       ...CLEARING.trees.map(([x, y], i) =>
@@ -74,6 +76,7 @@ export const PREVIEW_WORLD = new WorldRegistry([
     ],
     water: [{ x: 336, y: 144, width: 96, height: 80 }],
     interactions: [
+      EXPEDITION_PORTAL,
       interaction(
         'clearing-sign',
         'sign',

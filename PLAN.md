@@ -1,6 +1,6 @@
 # Tiny Adventure — First Full Release Plan
 
-**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M05 complete: application/assets, state/time, world/input and practice combat/enemy behaviours. M06 persistent surfaces and anchor dungeons are next.
+**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M06 complete: application/assets, state/time, world/input, combat and persistent expeditions. M07 durable saves and recovery are next.
 
 This is the implementation backlog. `[x]` means delivered and verified, not merely designed. Completed M00 items record the documentation baseline. M01 now delivers the application foundation; the authored clearing is an integration preview, not completion of later combat, world or campaign milestones.
 
@@ -57,9 +57,10 @@ Confirm or adjust these budgets under M00 before expanding content production. T
 - [x] **M00-003** Establish `CHANGELOG.md` and its task-completion update contract.
 - [x] **M00-004** Write detailed repository-wide agent instructions in `AGENTS.md`.
 - [ ] **M00-005** Confirm the first-release content budget and explicitly record any adjustments to the proposed baseline.
-- [ ] **M00-006** Decide whether the wider overworld is fixed, seeded per save or a hybrid; keep discovered surface regions persistent.
+- [x] **M00-006** Decide whether the wider overworld is fixed, seeded per save or a hybrid; keep discovered surface regions persistent.
 - [ ] **M00-007** Confirm fixed village geography, reserved expansion plots and how recruited residents change its appearance.
-- [ ] **M00-008** Define exact dungeon reset timing, successor anchor encounters and behaviour after a player exits a defeated instance.
+- [ ] **M00-008** Define exact dungeon reset timing, successor anchor encounters and behaviour after a player exits a defeated instance. Reset timing is confirmed in M00-008a; campaign successor encounter variety remains open.
+- [x] **M00-008a** Retain a defeated occupied dungeon until its reward is collected and the player exits; generate the successor only on the next entry.
 - [ ] **M00-009** Define post-King play and restoration state, preserving victory when repeatable dungeons regenerate.
 - [ ] **M00-010** Define carried-item loss eligibility, equipped-item treatment, probabilities, stack losses and money handling.
 - [ ] **M00-011** Define permanent tool ownership separately from losable enchanted equipment and temporary effects.
@@ -216,26 +217,36 @@ Practice provides a borrowed combat kit, refills on an explicit new trial and re
 
 ## M06 — Persistent surfaces and anchor dungeons
 
-- [ ] **M06-001** Define region topology, entrances, exits, room tags, tool requirements and encounter/reward slots.
-- [ ] **M06-002** Build a small set of hand-authored room templates with validated entrances and collision.
-- [ ] **M06-003** Generate connected dungeon graphs with required tool/reward/boss routes and optional branches.
-- [ ] **M06-004** Validate reachability using the player's obtainable tool set; reject or repair unsolvable layouts.
-- [ ] **M06-005** Place keys, switches and puzzle dependencies without locking required items behind themselves.
-- [ ] **M06-006** Generate forest clearings/trails as outdoor rooms and corridors with natural-looking boundaries.
-- [ ] **M06-007** Add recognisable landmarks, secret clearings and shortcuts to persistent forest layouts.
-- [ ] **M06-008** Generate desert/winter/coastal surface regions using the confirmed first-release topology policy.
-- [ ] **M06-009** Persist first-generated surface geometry and save subsequent object changes separately.
-- [ ] **M06-010** Define renewable enemy/resource refresh rules separately from terrain, one-time treasure and solved puzzles.
-- [ ] **M06-011** Preserve an anchored interior's instance across leaving, death, saving and reloading.
-- [ ] **M06-012** Mark anchor defeat and clear rewards without immediately destroying the occupied instance.
-- [ ] **M06-013** Create a successor dungeon only at the agreed safe lifecycle boundary and increment its generation identity.
-- [ ] **M06-014** Preserve campaign unlocks and restoration flags across repeatable dungeon generations.
-- [ ] **M06-015** Add explored/unexplored map discovery with persistent entrance/shortcut markers.
-- [ ] **M06-016** Provide seed/region/instance diagnostics and reproducible generation fixtures for bugs.
-- [ ] **M06-017** Check a representative seed corpus for connectivity, gate solvability, exit placement and bounded generation time.
-- [ ] **M06-018** Verify surface persistence and dungeon lifecycle across multiple full village round trips and deaths.
+- [x] **M06-001** Define region topology, entrances, exits, room tags, tool requirements and encounter/reward slots.
+- [x] **M06-002** Build a small set of hand-authored room templates with validated entrances and collision.
+- [x] **M06-003** Generate connected dungeon graphs with required tool/reward/boss routes and optional branches.
+- [x] **M06-004** Validate reachability using the player's obtainable tool set; reject or repair unsolvable layouts.
+- [x] **M06-005** Place keys, switches and puzzle dependencies without locking required items behind themselves.
+- [x] **M06-006** Generate forest clearings/trails as outdoor rooms and corridors with natural-looking boundaries.
+- [x] **M06-007** Add recognisable landmarks, secret clearings and shortcuts to persistent forest layouts.
+- [x] **M06-008** Generate desert/winter/coastal surface regions using the confirmed first-release topology policy.
+- [x] **M06-009** Persist first-generated surface geometry and save subsequent object changes separately.
+- [x] **M06-010** Define renewable enemy/resource refresh rules separately from terrain, one-time treasure and solved puzzles.
+- [x] **M06-011** Preserve an anchored interior's instance across leaving, death, saving and reloading.
+- [x] **M06-012** Mark anchor defeat and clear rewards without immediately destroying the occupied instance.
+- [x] **M06-013** Create a successor dungeon only at the agreed safe lifecycle boundary and increment its generation identity.
+- [x] **M06-014** Preserve campaign unlocks and restoration flags across repeatable dungeon generations.
+- [x] **M06-015** Add explored/unexplored map discovery with persistent entrance/shortcut markers.
+- [x] **M06-016** Provide seed/region/instance diagnostics and reproducible generation fixtures for bugs.
+- [x] **M06-017** Check a representative seed corpus for connectivity, gate solvability, exit placement and bounded generation time.
+- [x] **M06-018** Verify surface persistence and dungeon lifecycle across multiple full village round trips and deaths.
 
 **Acceptance:** the world can be learned. A living anchor always preserves its dungeon; only the specified defeated-anchor transition generates a successor. Required routes remain solvable.
+
+### M06 delivery evidence
+
+All 18 M06 tasks are complete. The confirmed hybrid topology connects a fixed village to four once-generated surface biomes and a repeatable crypt. Nine-room geometry, three authored templates, branches, key/switch/axe dependencies, landmarks, caches, shortcuts and encounter/reward slots are stored independently of mutable changes. Capability and physical route validation have bounded retries/fallback. Renewables refresh only under the saved offscreen/later-day policy; permanent terrain, puzzles, rewards and discoveries remain intact.
+
+Living-anchor instances retain geometry, enemy health and drops across village trips, deaths and JSON checkpoint reload. Actual warden combat permits one reward; the occupied defeated instance survives. Exit after claiming marks pending; the next entry validates a successor and increments instance/generation identity. Permanent tools, unlocks and Kingdom victory/restoration remain outside repeatable instances. The paused explored map includes retained markers and reproduction diagnostics.
+
+Validation: 91 unit tests, a 500-layout corpus, 23 browser integration flows and a production smoke check pass. Real keyboard play solves the forest/crypt tool routes, defeats the warden, claims its reward, exits, re-enters generation two and travels through desert, winter and coast. Checkpoint fixtures cover three village round trips and two deaths. Atlas/scene-failure regressions cover the biome-ground and palm promotions plus preservation of the original creation error and retry. Type/lint/format/catalogue/archive/atlas checks and the production build pass. Screenshots verify responsive forest/map and generated-region presentation; controller hardware is still untested.
+
+Checkpoint persistence is not durable browser storage. M07 save slots/migrations, M08 inventory transactions, M09 full tool actions/equipment, campaign acquisition order/loss rules and successor boss variety remain open. The current crypt uses a skeleton warden; expedition combat borrows the practice kit. The trail axe is permanent route access, not a claim that full axe combat/resource tools exist. See [generation](docs/generation.md) for exact policies and the retained-instance limit.
 
 ## M07 — Saving, storage and death consistency
 

@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { expect, test } from '@playwright/test';
 import type * as TerrainModule from '../../src/assets/terrain';
 
@@ -476,4 +477,51 @@ test('advances the shared calendar only during active play and rests through an 
   await page.clock.runFor(500);
   await expect(time).not.toHaveText(inspecting ?? '');
   expect(errors).toEqual([]);
+});
+
+test('keeps the original region-creation failure visible after a scene restart and recovers on retry', async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+  await page.route('**/generated/manifest.json', async (route) => {
+    const response = await route.fetch(),
+      data = z
+        .looseObject({
+          frames: z.array(z.looseObject({ source: z.looseObject({ texture: z.string() }) })),
+        })
+        .parse(await response.json());
+    await route.fulfill({
+      response,
+      json: {
+        ...data,
+        frames: data.frames.filter((frame) => frame.source.texture !== 'world-cottage-floor'),
+      },
+    });
+  });
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
+  await page.locator('.game-canvas').focus();
+  await page.keyboard.down('ArrowUp');
+  await page.clock.runFor(300);
+  await page.keyboard.up('ArrowUp');
+  await page.clock.runFor(100);
+  await page.keyboard.down('ArrowLeft');
+  await page.clock.runFor(2050);
+  await page.keyboard.up('ArrowLeft');
+  await page.clock.runFor(100);
+  await page.keyboard.press('e');
+  await page.clock.runFor(500);
+  await expect(page.getByRole('alert')).toContainText('Missing packed frame: world-cottage-floor');
+  const failure = await page.getByRole('alert').textContent();
+  await page.clock.runFor(1000);
+  expect(await page.getByRole('alert').textContent()).toBe(failure);
+  await expect(page.locator('canvas')).toHaveCount(1);
+  await page.unroute('**/generated/manifest.json');
+  // A reload boots a new Phaser loop; let its asynchronous assets receive animation frames.
+  await page.clock.resume();
+  await page.getByRole('button', { name: 'Try again' }).click();
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await expect(page.locator('canvas')).toHaveCount(1);
 });

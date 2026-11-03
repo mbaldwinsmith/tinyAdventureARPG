@@ -1,14 +1,14 @@
 import { z } from 'zod';
 import { entityIdSchema, regionIdSchema } from './ids';
 import { directionSchema, positionSchema } from './model';
-import type { Region, Position } from './model';
+import type { Region, Position, RetainedArea } from './model';
 import { rectSchema, freeFoot } from './motion';
 import type { Rect } from './motion';
 import { freezeData } from './data';
 
 const interactionSchema = z.strictObject({
   id: entityIdSchema,
-  kind: z.enum(['door', 'sign', 'npc', 'chest', 'farm-plot', 'carryable']),
+  kind: z.enum(['door', 'sign', 'npc', 'chest', 'farm-plot', 'carryable', 'portal', 'generated']),
   position: positionSchema,
   label: z.string().min(1).max(80),
   text: z.string().max(1000),
@@ -19,7 +19,17 @@ export const worldDefinitionSchema = z
     z.strictObject({
       id: regionIdSchema,
       name: z.string().min(1),
-      style: z.enum(['clearing', 'cottage', 'woodland', 'practice']),
+      style: z.enum([
+        'clearing',
+        'cottage',
+        'woodland',
+        'practice',
+        'forest',
+        'desert',
+        'winter',
+        'coast',
+        'crypt',
+      ]),
       width: z.number().int().min(64).max(4096),
       height: z.number().int().min(64).max(4096),
       spawns: z
@@ -75,7 +85,8 @@ export class WorldRegistry {
         if (target.kind === 'door') {
           if (!target.destination) throw new Error('Door needs a destination');
           this.spawn(target.destination.regionId, target.destination.spawn);
-        } else if (target.destination !== null) throw new Error('Non-door destination');
+        } else if (target.kind !== 'portal' && target.destination !== null)
+          throw new Error('Non-door destination');
       }
       for (const spawn of region.spawns)
         if (
@@ -100,24 +111,9 @@ export class WorldRegistry {
     return spawn;
   }
   solidEntries(id: string, state: Region) {
-    const region = this.region(id);
     if (state.kind !== 'surface' || state.phase === 'unvisited')
       throw new Error('Missing active geometry');
-    return region.solids.flatMap((s) => {
-      if (s.owner !== null && state.changes.removedObjects.includes(s.owner)) return [];
-      const original = region.objects.find((o) => o.id === s.owner),
-        current = state.geometry.objects.find((o) => o.id === s.owner);
-      return [
-        {
-          owner: s.owner,
-          rect: {
-            ...s.rect,
-            x: s.rect.x + (current && original ? current.position.x - original.position.x : 0),
-            y: s.rect.y + (current && original ? current.position.y - original.position.y : 0),
-          },
-        },
-      ];
-    });
+    return solidEntriesFor(this.region(id), state);
   }
   solids(id: string, state: Region): Rect[] {
     return this.solidEntries(id, state).map((s) => s.rect);
@@ -139,4 +135,27 @@ export function targetInReach(
       : facing === 'left'
         ? dx <= 4
         : dx >= -4;
+}
+
+export function solidEntriesFor(region: RegionDefinition, state: RetainedArea) {
+  return region.solids.flatMap((s) => {
+    if (
+      s.owner !== null &&
+      (state.changes.removedObjects.includes(s.owner) ||
+        state.changes.openedPassages.includes(s.owner))
+    )
+      return [];
+    const original = region.objects.find((o) => o.id === s.owner),
+      current = state.geometry.objects.find((o) => o.id === s.owner);
+    return [
+      {
+        owner: s.owner,
+        rect: {
+          ...s.rect,
+          x: s.rect.x + (current && original ? current.position.x - original.position.x : 0),
+          y: s.rect.y + (current && original ? current.position.y - original.position.y : 0),
+        },
+      },
+    ];
+  });
 }

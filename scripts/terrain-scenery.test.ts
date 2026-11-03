@@ -1,19 +1,30 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { createAtlasLookup } from '../src/assets/atlas';
 import { manifestSchema } from '../src/assets/definitions';
 import {
   normalizeTerrainMask,
   terrainFrame,
   terrainMaskAt,
   terrainProfiles,
+  biomeGround,
   validateTerrain,
 } from '../src/assets/terrain';
-import { sceneryDefinitions, validateScenery } from '../src/assets/scenery';
-const textures = manifestSchema.parse(
+import { sceneryDefinitions, validateScenery, sceneryById } from '../src/assets/scenery';
+const manifest = manifestSchema.parse(
   JSON.parse(readFileSync('public/generated/manifest.json', 'utf8')),
-).assets;
+);
+const textures = manifest.assets;
 
 describe('terrain topology contract', () => {
+  it('resolves every promoted biome plain ground frame from the runtime atlas, beyond adjacency patches', () => {
+    const lookup = createAtlasLookup(manifest);
+    for (const palette of ['grasslands', 'desert', 'snow'] as const)
+      expect(lookup(biomeGround(palette)).id).toBeTruthy();
+    for (const id of ['tree-original', 'tree-palm'])
+      for (const part of sceneryById(id).parts) expect(lookup(part.rect).id).toBeTruthy();
+  });
+
   it('normalizes all neighbour inputs to 47 stable cases and removes disconnected diagonal claims', () => {
     const masks = new Set<number>();
     for (let mask = 0; mask < 256; mask++) {

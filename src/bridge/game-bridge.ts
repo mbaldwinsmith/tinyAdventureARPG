@@ -6,7 +6,7 @@ import type { combatView } from '../core/combat';
 import type { EntityId } from '../core/ids';
 import type { PauseReason } from '../core/time';
 import { pauseReasonSchema } from '../core/time';
-import type { DomainEvent, CoreResult } from '../core/session';
+import type { DomainEvent, CoreResult, GameSession } from '../core/session';
 import { coreCommandSchema } from '../core/session';
 import { freezeData } from '../core/data';
 import { DEFAULT_INPUT, actionSchema, BUTTON_ACTIONS } from '../core/actions';
@@ -29,6 +29,7 @@ export interface GameSnapshot {
   input: InputView;
   debug: boolean;
   notice: string | null;
+  expedition: ReturnType<GameSession['expeditionView']>;
   combat: ReturnType<typeof combatView> | null;
   screenShake: boolean;
 }
@@ -82,6 +83,7 @@ export const INITIAL_SNAPSHOT: GameSnapshot = freezeData({
   debug: false,
   notice: null,
   combat: null,
+  expedition: null,
   screenShake: false,
 });
 

@@ -99,6 +99,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
       private overlay: PhaserTypes.GameObjects.Graphics | undefined;
       private debugText: PhaserTypes.GameObjects.Text | undefined;
       private regionId = '';
+      private transitionSequence = 0;
       private pendingRestart = false;
       private seenRequest = 0;
       private preview: HeroAction | null = null;
@@ -112,11 +113,19 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
       create() {
         try {
           input.reset();
+          // Phaser reuses this Scene instance. Shutdown destroys the old display objects.
+          this.actor = undefined;
+          this.scenery = undefined;
+          this.battle = undefined;
+          this.explosion = undefined;
+          this.overlay = undefined;
+          this.debugText = undefined;
           this.pendingRestart = false;
           this.preview = null;
           this.remainingMs = 0;
           this.elapsedMs = 0;
           this.regionId = controller.session.snapshot.region.id;
+          this.transitionSequence = controller.session.snapshot.transitionSequence;
           this.seenRequest = bridge.snapshot.animationRequest?.sequence ?? 0;
           const region = controller.session.regionDefinition,
             state = controller.session.actor;
@@ -170,6 +179,12 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           });
           this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
             input.reset();
+            this.actor = undefined;
+            this.scenery = undefined;
+            this.battle = undefined;
+            this.explosion = undefined;
+            this.overlay = undefined;
+            this.debugText = undefined;
             for (const key of [
               'x',
               'y',
@@ -196,7 +211,11 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         }
       }
       private restartIfNeeded() {
-        if (this.regionId === controller.session.snapshot.region.id) return false;
+        if (
+          this.regionId === controller.session.snapshot.region.id &&
+          this.transitionSequence === controller.session.snapshot.transitionSequence
+        )
+          return false;
         if (!this.pendingRestart) {
           this.pendingRestart = true;
           input.reset();
@@ -206,7 +225,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         return true;
       }
       private advancePresentation(deltaMs: number) {
-        if (disposed || !this.actor || this.pendingRestart) return;
+        if (disposed || bridge.snapshot.status === 'failed' || !this.actor || this.pendingRestart)
+          return;
         if (this.restartIfNeeded()) return;
         const intent = input.poll(controller.session.snapshot.paused);
         const combat = controller.session.snapshot.combat;

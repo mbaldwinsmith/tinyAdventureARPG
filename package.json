@@ -21,7 +21,8 @@
     "test:e2e": "playwright test",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run catalogue:check && npm run assets:check && npm run test",
     "catalogue:build": "node --import tsx scripts/catalogue.ts build",
-    "catalogue:check": "node --import tsx scripts/catalogue.ts check"
+    "catalogue:check": "node --import tsx scripts/catalogue.ts check",
+    "test:production": "playwright test -c playwright.production.config.ts"
   },
   "dependencies": {
     "phaser": "4.2.1",

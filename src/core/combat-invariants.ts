@@ -1,13 +1,29 @@
 import type { SaveState } from './model';
 import { COMBAT_RULES } from '../content/combat';
 export function assertCombatInvariants(state: SaveState) {
-  const combat = state.combat;
-  if (!combat) return;
+  const battles = [...state.world.savedCombats, ...(state.combat ? [state.combat] : [])];
+  if (new Set(battles.map((c) => `${c.regionId}/${c.instanceId}`)).size !== battles.length)
+    throw new Error('Duplicate area encounter');
+  const deaths = battles.flatMap((c) => (c.death ? [c.death.id] : []));
+  if (new Set(deaths).size !== deaths.length) throw new Error('Duplicate defeat identity');
+  for (const combat of battles) assertBattle(state, combat);
+}
+function assertBattle(state: SaveState, combat: NonNullable<SaveState['combat']>) {
   const region = state.world.regions.find((r) => r.id === combat.regionId);
-  if (!region || region.kind !== 'surface' || region.phase === 'unvisited')
+  if (
+    !region ||
+    (region.kind === 'surface' && (region.phase === 'unvisited' || combat.instanceId !== null)) ||
+    (region.kind === 'dungeon' &&
+      !state.world.dungeons.some((d) => d.id === combat.instanceId && d.regionId === region.id))
+  )
     throw new Error('Combat region is unavailable');
-  const width = region.geometry.width * region.geometry.tilePixels,
-    height = region.geometry.height * region.geometry.tilePixels;
+  const geometry =
+    region.kind === 'surface'
+      ? region.geometry
+      : state.world.dungeons.find((d) => d.id === combat.instanceId)?.geometry;
+  if (!geometry) throw new Error('Missing battle geometry');
+  const width = geometry.width * geometry.tilePixels,
+    height = geometry.height * geometry.tilePixels;
   const inBounds = (p: { x: number; y: number }) =>
     p.x >= 0 && p.y >= 0 && p.x <= width && p.y <= height;
   const identities = new Set<string>();
@@ -61,11 +77,17 @@ export function assertCombatInvariants(state: SaveState) {
     )
       throw new Error('Invalid combat action');
   }
-  if ((state.player.actor.resources.health.current === 0) !== (combat.death?.phase === 'pending'))
+  if (
+    combat === state.combat &&
+    (state.player.actor.resources.health.current === 0) !== (combat.death?.phase === 'pending')
+  )
     throw new Error('Invalid player health/defeat state');
   if (
     combat.death?.phase === 'pending' &&
-    (state.player.actor.resources.health.current !== 0 || state.player.regionId !== combat.regionId)
+    (state.player.actor.resources.health.current !== 0 ||
+      state.player.regionId !== combat.regionId ||
+      state.player.instanceId !== combat.instanceId ||
+      combat !== state.combat)
   )
     throw new Error('Invalid pending player defeat');
   if (combat.death && combat.death.id >= combat.nextSequence)

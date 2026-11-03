@@ -137,9 +137,9 @@ export function ControlsDialog({
         Screen shake on impact
       </label>
       <p className="small-copy">
-        Bindings apply to this session. Sword, shield, roll and bow work in the practice field;
-        action previews remain cosmetic outside it. Pointer clicks can activate a nearby highlighted
-        object.
+        Bindings apply to this session. Sword, shield, roll and bow work in the practice field and
+        expeditions; action previews remain cosmetic outside combat. Pointer clicks can activate a
+        nearby highlighted object.
       </p>
       {error && <p role="alert">{error}</p>}
       <button ref={done} className="button" onClick={close}>

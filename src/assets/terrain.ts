@@ -235,13 +235,10 @@ export function validateTerrain(textures: AssetManifest['assets']): void {
         for (const y of [0, 1, 2] as const) validateRect(shoreFrame(x, y, phase, mode), textures);
 }
 
-export const clearingGrass: SourceRect = {
-  texture: 'terrain-new-grasslands',
-  x: 48,
-  y: 32,
-  width: 16,
-  height: 16,
-};
+export function biomeGround(palette: BiomePalette): SourceRect {
+  return { texture: `terrain-new-${palette}`, x: 48, y: 32, width: 16, height: 16 };
+}
+export const clearingGrass: SourceRect = biomeGround('grasslands');
 export const clearingGrassDetails: readonly SourceRect[] = [176, 192, 208].map((x) => ({
   texture: 'terrain-new-grasslands',
   x,

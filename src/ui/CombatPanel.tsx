@@ -22,41 +22,55 @@ export function CombatPanel({
     <section className="combat-panel" aria-label="Combat practice">
       <div>
         <p className="eyebrow">LEARN THE RHYTHM</p>
-        <h2>{combat?.active ? 'The practice field' : 'Try your first encounter'}</h2>
+        <h2>
+          {snapshot.expedition
+            ? 'Expedition combat'
+            : combat?.active
+              ? 'The practice field'
+              : 'Try your first encounter'}
+        </h2>
         <p className="small-copy">
-          Watch the golden windup. Strike, block from the front, or roll clear. Practice refills
-          health and energy; defeat retains your possessions.
+          {snapshot.expedition
+            ? 'The warden guards a one-time reward. Find the route tools, read its windup and strike or block.'
+            : 'Watch the golden windup. Strike, block from the front, or roll clear. Practice refills health and energy; defeat retains your possessions.'}
         </p>
       </div>
-      <div className="trial-controls">
-        <label>
-          Encounter
-          <select
-            aria-label="Practice encounter"
-            value={trial}
-            onChange={(e) => {
-              const next = trialSchema.safeParse(e.target.value);
-              if (next.success) setTrial(next.data);
+      {!snapshot.expedition && (
+        <div className="trial-controls">
+          <label>
+            Encounter
+            <select
+              aria-label="Practice encounter"
+              value={trial}
+              onChange={(e) => {
+                const next = trialSchema.safeParse(e.target.value);
+                if (next.success) setTrial(next.data);
+              }}
+            >
+              <option value="melee">Skeleton &amp; zombie</option>
+              <option value="archer">Goblin archer</option>
+              <option value="swarm">Bat, rat &amp; slime</option>
+              <option value="mixed">Mixed encounter</option>
+            </select>
+          </label>
+          <button
+            className="button"
+            disabled={
+              snapshot.status !== 'ready' ||
+              snapshot.paused ||
+              snapshot.carrying ||
+              !!snapshot.expedition
+            }
+            onClick={() => {
+              const result = bridge.send({ type: 'combat.start', trial });
+              setError(result.ok ? null : result.message);
+              if (result.ok) focus();
             }}
           >
-            <option value="melee">Skeleton &amp; zombie</option>
-            <option value="archer">Goblin archer</option>
-            <option value="swarm">Bat, rat &amp; slime</option>
-            <option value="mixed">Mixed encounter</option>
-          </select>
-        </label>
-        <button
-          className="button"
-          disabled={snapshot.status !== 'ready' || snapshot.paused || snapshot.carrying}
-          onClick={() => {
-            const result = bridge.send({ type: 'combat.start', trial });
-            setError(result.ok ? null : result.message);
-            if (result.ok) focus();
-          }}
-        >
-          {combat?.active ? 'Start new trial' : 'Enter practice field'}
-        </button>
-      </div>
+            {combat?.active ? 'Start new trial' : 'Enter practice field'}
+          </button>
+        </div>
+      )}
       {combat?.active && (
         <div className="combat-hud" data-testid="combat-hud">
           <div className="combat-pools">
@@ -66,7 +80,7 @@ export function CombatPanel({
                 {combat.health} / {combat.maximumHealth}
               </span>
               <progress
-                aria-label="Practice health"
+                aria-label={snapshot.expedition ? 'Expedition health' : 'Practice health'}
                 max={combat.maximumHealth}
                 value={combat.health}
               />
@@ -77,7 +91,7 @@ export function CombatPanel({
                 {combat.energy} / {combat.maximumEnergy}
               </span>
               <progress
-                aria-label="Practice energy"
+                aria-label={snapshot.expedition ? 'Expedition energy' : 'Practice energy'}
                 max={combat.maximumEnergy}
                 value={combat.energy}
               />
@@ -108,7 +122,9 @@ export function CombatPanel({
           <p className="combat-feedback" aria-live="polite" data-testid="combat-feedback">
             {combat.feedback ||
               (combat.completed
-                ? 'Encounter cleared. Collect the coins or try another trial.'
+                ? snapshot.expedition
+                  ? 'Encounter cleared. Collect the coins and explore the reward room.'
+                  : 'Encounter cleared. Collect the coins or try another trial.'
                 : 'Golden ring: windup. Red: active attack. Keep room to recover.')}
           </p>
           {combat.drop && (
@@ -126,8 +142,13 @@ export function CombatPanel({
             </button>
           )}
           <p className="small-copy">
-            The marked exit is at the south edge. Arrow shots cost energy, never ammunition. A new
-            trial explicitly resets its enemies and refills your pools.
+            {snapshot.expedition
+              ? 'Glowing trail markers lead between regions.'
+              : 'The marked exit is at the south edge.'}{' '}
+            Arrow shots cost energy, never ammunition.{' '}
+            {snapshot.expedition
+              ? 'Gates and discoveries remain when you return.'
+              : 'A new trial explicitly resets its enemies and refills your pools.'}
           </p>
         </div>
       )}
@@ -148,14 +169,15 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
     <dialog
       ref={ref}
       className="interaction-dialog"
-      aria-label="Defeated in practice"
+      aria-label={snapshot.expedition ? 'Defeated on expedition' : 'Defeated in practice'}
       onCancel={(e) => e.preventDefault()}
     >
       <p className="eyebrow">TAKE A BREATH</p>
       <h2>Another chance.</h2>
       <p>
-        The field is paused. Your possessions are safe. Return to the entrance with full health and
-        energy; defeated enemies and unclaimed coins remain.
+        The field is paused. Your possessions are safe. Return{' '}
+        {snapshot.expedition ? 'to the village' : 'to the entrance'} with full health and energy;
+        defeated enemies and unclaimed coins remain.
       </p>
       <button
         ref={button}
@@ -170,7 +192,7 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
             );
         }}
       >
-        Return to practice entrance
+        {snapshot.expedition ? 'Return to village' : 'Return to practice entrance'}
       </button>
       {error && <p role="alert">{error}</p>}
     </dialog>

@@ -14,6 +14,7 @@ import {
 } from './ids';
 import { calendarSchema, clockSchema, timeRulesSchema } from './time';
 import { randomStateSchema } from './random';
+import { layoutSchema } from './generation-model';
 import { combatStateSchema } from './combat-model';
 import { damageTypeSchema } from '../content/schemas';
 
@@ -80,9 +81,10 @@ export const actorSchema = z.strictObject({
     )
     .max(64),
 });
-const geometrySchema = z
+export const geometrySchema = z
   .strictObject({
     version: z.literal(1),
+    generated: layoutSchema.nullable().default(null),
     width: z.number().int().min(1).max(256),
     height: z.number().int().min(1).max(256),
     tilePixels: z.number().int().min(1).max(128),
@@ -90,7 +92,10 @@ const geometrySchema = z
     objects: z.array(z.strictObject({ id: entityIdSchema, position: positionSchema })).max(10000),
   })
   .refine((g) => g.tiles.length === g.width * g.height, 'Geometry tile count mismatch');
-const changesSchema = z.strictObject({
+export const changesSchema = z.strictObject({
+  exploredRooms: z.array(z.number().int().min(0).max(8)).default([]),
+  discoveredMarkers: z.array(entityIdSchema).default([]),
+  refreshDay: z.number().int().positive().default(1),
   openedObjects: z.array(entityIdSchema).default([]),
   removedObjects: z.array(entityIdSchema),
   openedPassages: z.array(entityIdSchema),
@@ -138,6 +143,7 @@ export const saveSchema = z.strictObject({
       dungeon: z.literal(1),
       loot: z.literal(1),
     }),
+    savedCombats: z.array(combatStateSchema).max(1000).default([]),
     nextId: z.number().int().positive().safe(),
     regions: z.array(regionSchema).max(1000),
     dungeons: z.array(dungeonSchema).max(1000),
@@ -176,3 +182,7 @@ export const saveSchema = z.strictObject({
   random: randomStateSchema,
 });
 export type SaveState = z.infer<typeof saveSchema>;
+
+export type Geometry = z.infer<typeof geometrySchema>;
+export type AreaChanges = z.infer<typeof changesSchema>;
+export type RetainedArea = { geometry: Geometry; changes: AreaChanges };
