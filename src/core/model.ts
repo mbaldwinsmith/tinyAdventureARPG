@@ -1,3 +1,5 @@
+import { lossPolicySchema } from './death-loss';
+import { persistentDomainsSchema } from './persistent-domains';
 import { z } from 'zod';
 import {
   entityIdSchema,
@@ -131,8 +133,39 @@ export const dungeonSchema = z.strictObject({
   }),
 });
 export type Dungeon = z.infer<typeof dungeonSchema>;
+const possessionSummary = z.strictObject({
+  id: itemInstanceIdSchema,
+  templateId: itemIdSchema,
+  quantity: z.number().int().positive().max(999),
+});
+export const deathReportSchema = z.strictObject({
+  deathId: z.number().int().positive().safe(),
+  regionId: regionIdSchema,
+  instanceId: instanceIdSchema.nullable(),
+  policy: z.enum(['practice', 'materials-v1']),
+  lostMoney: uint,
+  losses: z.array(possessionSummary).max(500),
+  retained: z.array(possessionSummary).max(500),
+  retainedMoney: uint,
+});
 export const saveSchema = z.strictObject({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(2),
+  deathRules: lossPolicySchema
+    .extend({ version: z.literal(1), unit: z.literal('each'), equipment: z.literal('protected') })
+    .default({
+      version: 1,
+      unit: 'each',
+      equipment: 'protected',
+      materialChance: 0.25,
+      moneyFraction: 0.1,
+    }),
+  lastDeath: deathReportSchema.nullable().default(null),
+  nextTransaction: z.number().int().positive().safe().default(1),
+  domains: persistentDomainsSchema.default({
+    farm: { plots: [] },
+    village: { residents: [] },
+    quests: [],
+  }),
   combat: combatStateSchema.nullable().default(null),
   contentVersion: z.literal(1),
   world: z.strictObject({
@@ -143,7 +176,7 @@ export const saveSchema = z.strictObject({
       dungeon: z.literal(1),
       loot: z.literal(1),
     }),
-    savedCombats: z.array(combatStateSchema).max(1000).default([]),
+    savedCombats: z.array(combatStateSchema).max(2000).default([]),
     nextId: z.number().int().positive().safe(),
     regions: z.array(regionSchema).max(1000),
     dungeons: z.array(dungeonSchema).max(1000),

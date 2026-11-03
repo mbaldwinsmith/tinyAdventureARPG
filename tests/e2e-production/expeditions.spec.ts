@@ -45,6 +45,24 @@ test('ships the generated forest and paused map in the production bundle without
   await page.screenshot({ path: testInfo.outputPath('production-map-800.png'), fullPage: true });
   await page.getByRole('button', { name: 'Close map' }).click();
   await page.clock.runFor(100);
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
+  await page.reload();
+  await expect
+    .poll(
+      async () => {
+        await page.clock.runFor(100);
+        return page.getByRole('status').textContent();
+      },
+      { timeout: 30000 },
+    )
+    .toBe('The path is open');
+  await expect(page.locator('#clearing-title')).toHaveText('Whispering forest');
+  await page.getByRole('button', { name: 'Saved adventures', exact: true }).click();
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
+  await expect(page.getByRole('dialog', { name: 'Saved adventures' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('production-saves-800.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Return to adventure' }).click();
   await expect(page.locator('canvas')).toHaveCount(1);
   expect(errors).toEqual([]);
 });

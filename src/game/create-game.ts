@@ -1,3 +1,5 @@
+import { DexieSaveRepository } from '../platform/saves/dexie-repository';
+import { downloadBackup } from '../platform/saves/files';
 import type PhaserTypes from 'phaser';
 import type { GameBridge } from '../bridge/game-bridge';
 import { assetSources } from '../assets/definitions';
@@ -21,7 +23,10 @@ import { createWorldView, DEPTH } from './world-view';
 
 /** A mount owns its controller, device listeners, background observer and single Phaser game. */
 export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
-  const controller = new PreviewController(bridge);
+  const controller = new PreviewController(bridge, {
+    repository: new DexieSaveRepository(),
+    download: downloadBackup,
+  });
   const input = new ActionInput(
     host,
     () => controller.inputChanged(),
@@ -35,6 +40,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
     bridge.send({ type: 'pause.set', reason: 'background', active: background });
   });
   const start = async () => {
+    await controller.initialize();
+    if (disposed) return;
     const manifest = await loadAssetManifest();
     for (const source of assetSources)
       if (!manifest.assets.some((asset) => asset.id === source.id))

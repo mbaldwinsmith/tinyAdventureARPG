@@ -25,6 +25,7 @@
     "test:production": "playwright test -c playwright.production.config.ts"
   },
   "dependencies": {
+    "dexie": "4.4.7",
     "phaser": "4.2.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -44,6 +45,7 @@
     "eslint": "10.14.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.7",
+    "fake-indexeddb": "6.2.7",
     "fflate": "0.8.3",
     "pngjs": "7.0.0",
     "prettier": "3.9.10",

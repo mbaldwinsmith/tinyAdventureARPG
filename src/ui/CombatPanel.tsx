@@ -1,3 +1,4 @@
+import { CheckpointRecovery } from './SavePanel';
 import { useEffect, useRef, useState } from 'react';
 import type { GameBridge, GameSnapshot } from '../bridge/game-bridge';
 import type { AssetManifest } from '../assets/definitions';
@@ -164,6 +165,9 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
     ref.current?.showModal();
     button.current?.focus();
   }, []);
+  useEffect(() => {
+    if (!snapshot.saves?.busy && !snapshot.saves?.pending) button.current?.focus();
+  }, [snapshot.saves?.busy, snapshot.saves?.pending]);
   const death = snapshot.combat?.death;
   return (
     <dialog
@@ -175,13 +179,14 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
       <p className="eyebrow">TAKE A BREATH</p>
       <h2>Another chance.</h2>
       <p>
-        The field is paused. Your possessions are safe. Return{' '}
-        {snapshot.expedition ? 'to the village' : 'to the entrance'} with full health and energy;
-        defeated enemies and unclaimed coins remain.
+        {snapshot.expedition
+          ? `The expedition is paused. Each carried material unit has a ${Math.round(snapshot.lossPolicy.materialChance * 100)}% loss chance, and ${Math.round(snapshot.lossPolicy.moneyFraction * 100)}% of carried money is lost, rounded down. Equipment, deposits, permanent tools and discoveries are protected. The return and loss result are checkpointed once.`
+          : 'The field is paused. Your possessions are safe. Return to the entrance with full health and energy; defeated enemies and unclaimed coins remain.'}
       </p>
       <button
         ref={button}
         className="button"
+        disabled={!!snapshot.saves?.busy || !!snapshot.saves?.pending}
         onClick={() => {
           if (!death) return;
           const result = bridge.send({ type: 'combat.respawn', deathId: death.id });
@@ -194,6 +199,7 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
       >
         {snapshot.expedition ? 'Return to village' : 'Return to practice entrance'}
       </button>
+      <CheckpointRecovery bridge={bridge} snapshot={snapshot} />
       {error && <p role="alert">{error}</p>}
     </dialog>
   );

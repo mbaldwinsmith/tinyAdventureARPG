@@ -153,7 +153,7 @@ export const PREVIEW_WORLD = new WorldRegistry([
         230,
         96,
         'Open cottage chest',
-        'An empty local chest. Its location is separate from the travel chest outside.',
+        'This local chest keeps its own items and money, separate from the travel chest outside. Close this inspection and choose Open local storage while nearby.',
       ),
     ],
   },

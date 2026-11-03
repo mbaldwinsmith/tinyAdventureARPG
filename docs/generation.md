@@ -24,7 +24,7 @@ One active combat record is owned by the session. Other areas' records move into
 | Unclaimed coin or living ordinary enemy                                                        | Retained; no erasure or full-health reset                                                                            |
 | Crypt enemies/resources                                                                        | Retained for the instance; replacement only with a safe successor                                                    |
 
-Rest advances the calendar; it does not itself regenerate occupied terrain or act as a durable save. Same-day re-entry cannot repeatedly farm renewables. Checkpoint continuation retains the refresh day and drop claim state.
+Rest advances the calendar in a durable checkpoint; it does not itself regenerate occupied terrain. Same-day re-entry cannot repeatedly farm renewables. Checkpoint continuation retains the refresh day and drop claim state.
 
 ## Anchored crypt boundary
 
@@ -36,7 +36,7 @@ Rest advances the calendar; it does not itself regenerate occupied terrain or ac
 
 The repeatable integration successor is another skeleton warden in a fresh v1 layout. Old records remain in the checkpoint for identity/history safety; the schema currently bounds retained instances to 1,000 and reports the limit rather than reusing an ID. Campaign boss variety, the King fight and long-term retention/compaction remain later work. Permanent tools, unlocks, discoveries, King victory and restoration live outside these instances and are never reset by regeneration.
 
-The expedition borrows M05's sword/shield/roll/bow kit. The trail axe is a real permanent route capability acquired through interaction; this does not implement M09 axe combat or approve the campaign's acquisition sequence. Expedition defeat uses an explicit loss-free preview boundary: resolve once, restore pools and return to the village while retaining the encounter. Campaign loss policy remains an M00/M07 integration choice.
+The expedition borrows M05's sword/shield/roll/bow kit. The trail axe is a real permanent route capability acquired through interaction; this does not implement M09 axe combat or approve the campaign's acquisition sequence. Expedition defeat applies the confirmed materials-only policy: independent 25% loss per carried material unit and 10% carried-money loss rounded down. Equipment, deposits, permanent tools and discoveries remain protected. The precise result, random continuation and village respawn commit together while retaining the encounter. Practice remains loss-free; see [saves](saves.md).
 
 ## Discovery, reproduction and validation
 
@@ -44,4 +44,4 @@ The explored map pauses the shared gameplay clock with its own composed reason. 
 
 The corpus covers 100 seeds across five region types (500 layouts), all eight orientations, physical floor connectivity, spawn/placement clearance, dependency solvability and a coarse 15-second regression ceiling. Separate fixtures cover self-locked keys/switches/tools, invalid edges, corrupt geometry, bounded fallback/rejection, three village round trips, repeated deaths and checkpoint continuation, claimed/unclaimed refresh rules, real warden combat, reward idempotence and successor preservation of permanent victory. Browser flows walk actual geometry and operate real gates/maps/combat rather than mutating the browser's session.
 
-**Checkpoint persistence is implemented; durable browser storage is M07.** A page reload currently starts a fresh preview. Additive prerelease schema-v1 fields have defaults for older fixtures, but this is not a migration/version-history implementation or a claim that real save slots already exist.
+**Durable browser checkpoints are implemented in M07.** Reload resumes the active slot, including full geometry, gates, claims, anchor history and saved encounters. Explicit v1-to-v2 migration preserves older synthetic checkpoints; unsupported/corrupt data is blocked and recoverable originals are retained. See [saves](saves.md) for browser limits and backup/recovery flows.

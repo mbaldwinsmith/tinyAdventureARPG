@@ -1006,3 +1006,131 @@ footer span span {
 .diagnostics {
   overflow-wrap: anywhere;
 }
+
+.save-panel,
+.storage-panel,
+.loss-report {
+  margin: 1.25rem 0;
+  padding: 1.2rem 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #edf0e3;
+}
+.save-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+.save-panel > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+.save-panel small,
+.save-slots small {
+  display: block;
+  color: #60736b;
+  font-size: 0.75rem;
+}
+.save-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: #853f36;
+  font-size: 0.85rem;
+}
+.save-dialog {
+  width: min(52rem, calc(100vw - 2rem));
+}
+.save-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.7rem 0;
+}
+.save-slots {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.8rem;
+  max-height: 24rem;
+  overflow: auto;
+}
+.save-slots li {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  background: #e9eddf;
+  border-radius: 4px;
+}
+.save-slots p {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.save-new {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.save-new label,
+.storage-money label,
+.storage-item label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+}
+.save-import,
+.save-recovery {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+}
+.save-import input {
+  max-width: 100%;
+  margin-top: 0.5rem;
+}
+.save-progress {
+  font-weight: 600;
+}
+.storage-dialog {
+  width: min(52rem, calc(100vw - 2rem));
+}
+.storage-money {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.storage-money input,
+.storage-item input {
+  max-width: 7rem;
+}
+.storage-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.storage-item {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.8rem 0;
+  border-top: 1px solid var(--line);
+}
+.loss-report h2 {
+  font-size: 1.2rem;
+  margin: 0.3rem 0;
+}
+@media (max-width: 760px) {
+  .save-new,
+  .storage-columns {
+    grid-template-columns: 1fr;
+  }
+  .save-panel,
+  .storage-panel,
+  .loss-report {
+    padding: 1rem;
+  }
+}

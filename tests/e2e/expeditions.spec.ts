@@ -311,12 +311,16 @@ test('walks the tool route and clears a crypt anchor, retaining the occupied rew
   await walk(page, state, { x: anchor.position.x, y: anchor.position.y + 30 });
   await fightNearby(page, state);
   await expect(page.locator('.expedition-summary')).toContainText('anchor defeated');
+  await reloadCheckpoint(page);
+  await expect(page.locator('.expedition-summary')).toContainText('Generation 1 · anchor defeated');
   await approach(page, state, 'reward');
   await expect(page.getByRole('dialog', { name: 'Claim anchor reward' })).toContainText(
     'five coins',
   );
   await page.getByRole('button', { name: 'Continue exploring' }).click();
   await page.clock.runFor(100);
+  await expect(page.locator('.expedition-summary')).toContainText('Generation 1 · anchor defeated');
+  await reloadCheckpoint(page);
   await expect(page.locator('.expedition-summary')).toContainText('Generation 1 · anchor defeated');
   await page.getByLabel('World collision overlay').uncheck();
   await page.clock.runFor(150);
@@ -326,6 +330,7 @@ test('walks the tool route and clears a crypt anchor, retaining the occupied rew
   await approach(page, state, 'portal-0');
   await expect(page.locator('#clearing-title')).toHaveText('Whispering forest');
   enterArea(state, PREVIEW_WORLD, 'region:forest');
+  await reloadCheckpoint(page);
   await approach(page, state, 'portal-4');
   await expect(page.locator('#clearing-title')).toHaveText('The anchored crypt');
   await expect(page.locator('.expedition-summary')).toContainText('Generation 2 · anchor living');
@@ -352,3 +357,22 @@ test('walks the tool route and clears a crypt anchor, retaining the occupied rew
   await expect(page.locator('canvas')).toHaveCount(1);
   expect(errors).toEqual([]);
 });
+
+async function reloadCheckpoint(page: Page) {
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
+  await page.reload();
+  // Reload creates a new Phaser boot loop while the test clock remains paused.
+  await expect
+    .poll(
+      async () => {
+        await page.clock.runFor(100);
+        return page.getByRole('status').textContent();
+      },
+      { timeout: 30000 },
+    )
+    .toBe('The path is open');
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByLabel('World collision overlay').check();
+  await page.clock.runFor(200);
+  await page.locator('.game-canvas').focus();
+}

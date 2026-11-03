@@ -88,7 +88,7 @@ export const PREVIEW_CONTENT = new ContentRegistry({
 });
 export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
   return saveSchema.parse({
-    schemaVersion: 1,
+    schemaVersion: 2,
     contentVersion: 1,
     world: {
       id: 'world:preview',

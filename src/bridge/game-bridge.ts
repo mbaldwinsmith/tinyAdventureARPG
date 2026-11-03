@@ -1,3 +1,6 @@
+import { EXPEDITION_LOSS_POLICY } from '../core/death-loss';
+import type { SaveView } from '../game/save-manager';
+import { MAX_SAVE_BYTES } from '../platform/saves/codec';
 import type { HeroAction } from '../assets/hero-animations';
 import { HERO_ACTIONS } from '../assets/hero-animations';
 import { z } from 'zod';
@@ -13,6 +16,10 @@ import { DEFAULT_INPUT, actionSchema, BUTTON_ACTIONS } from '../core/actions';
 import type { InputView, Navigation } from '../core/actions';
 
 export interface GameSnapshot {
+  saves: Readonly<SaveView> | null;
+  storage: GameSession['storageView'];
+  deathReport: GameSession['deathReport'];
+  lossPolicy: typeof EXPEDITION_LOSS_POLICY;
   status: 'loading' | 'ready' | 'failed';
   paused: boolean;
   pauseReasons: readonly PauseReason[];
@@ -35,7 +42,14 @@ export interface GameSnapshot {
 }
 export const gameCommandSchema = z.discriminatedUnion('type', [
   coreCommandSchema.options[0].extend({
-    reason: pauseReasonSchema.exclude(['loading', 'failure', 'interaction', 'death']),
+    reason: pauseReasonSchema.exclude([
+      'loading',
+      'failure',
+      'interaction',
+      'death',
+      'saving',
+      'saves',
+    ]),
   }),
   coreCommandSchema.options[1],
   coreCommandSchema.options[2],
@@ -46,6 +60,36 @@ export const gameCommandSchema = z.discriminatedUnion('type', [
   coreCommandSchema.options[7],
   coreCommandSchema.options[8],
   coreCommandSchema.options[9],
+  coreCommandSchema.options[10],
+  coreCommandSchema.options[11],
+  z.strictObject({ type: z.literal('save.open'), open: z.boolean() }),
+  z.strictObject({ type: z.literal('save.write') }),
+  z.strictObject({
+    type: z.literal('save.load'),
+    id: z.string().min(1).max(160),
+    revision: z.number().int().positive().safe(),
+  }),
+  z.strictObject({
+    type: z.literal('save.new'),
+    name: z.string().trim().min(1).max(48),
+    seed: z.string().max(128),
+    hero: z.union([
+      z.literal(1),
+      z.literal(2),
+      z.literal(3),
+      z.literal(4),
+      z.literal(5),
+      z.literal(6),
+    ]),
+  }),
+  z.strictObject({ type: z.literal('save.import'), text: z.string().max(MAX_SAVE_BYTES) }),
+  z.strictObject({ type: z.literal('save.export'), id: z.string().min(1).max(160).nullable() }),
+  z.strictObject({ type: z.literal('save.recover'), id: z.string().min(1).max(160) }),
+  z.strictObject({ type: z.literal('save.retry') }),
+  z.strictObject({ type: z.literal('save.cancel') }),
+  z.strictObject({ type: z.literal('save.copy') }),
+  z.strictObject({ type: z.literal('save.session-only') }),
+  z.strictObject({ type: z.literal('save.retry-storage') }),
   z.strictObject({ type: z.literal('animation.preview'), action: z.enum(HERO_ACTIONS) }),
   z.strictObject({ type: z.literal('input.key.set'), action: actionSchema, code: z.string() }),
   z.strictObject({
@@ -66,6 +110,10 @@ export type GameEvent =
 type CommandHandler = (command: GameCommand) => CommandResult;
 
 export const INITIAL_SNAPSHOT: GameSnapshot = freezeData({
+  saves: null,
+  storage: null,
+  deathReport: null,
+  lossPolicy: EXPEDITION_LOSS_POLICY,
   status: 'loading',
   paused: false,
   pauseReasons: [],

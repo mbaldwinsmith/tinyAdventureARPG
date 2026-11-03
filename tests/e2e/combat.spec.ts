@@ -51,6 +51,7 @@ test('blocks a telegraphed melee strike, lands distinct sword hits and collects 
   await page.keyboard.up('ArrowUp');
   await page.clock.runFor(150);
   await page.getByRole('button', { name: 'Collect nearby coin' }).click();
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
   await page.clock.runFor(150);
   await expect(page.getByTestId('combat-coins')).toHaveText('1 coins');
   expect((await battle(page)).drops.filter((d) => d.claimed)).toHaveLength(1);

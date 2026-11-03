@@ -1,3 +1,5 @@
+import { readSaveState } from './save-state';
+import { transferItem, transferMoney } from './transactions';
 import { retainedArea, areaDefinition, enterArea } from './expeditions';
 import { roomAt } from './generation';
 import { z } from 'zod';
@@ -17,7 +19,7 @@ import { copyData, freezeData } from './data';
 import { saveSchema, heroSchema, directionSchema, positionSchema } from './model';
 import type { HeroId, Position, SaveState } from './model';
 import { allocatedId } from './ids';
-import { entityIdSchema, toolIdSchema } from './ids';
+import { entityIdSchema, toolIdSchema, itemInstanceIdSchema } from './ids';
 import type { WorldRegistry, Interaction } from './world';
 import { targetInReach, solidEntriesFor } from './world';
 import { footRect, freeFoot, overlaps, segmentBlocked } from './motion';
@@ -44,6 +46,21 @@ export const coreCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('combat.guard'), active: z.boolean() }),
   z.strictObject({ type: z.literal('combat.collect'), dropId: z.string() }),
   z.strictObject({ type: z.literal('combat.respawn'), deathId: z.number().int().positive() }),
+  z.strictObject({
+    type: z.literal('storage.item'),
+    chestId: entityIdSchema,
+    direction: z.enum(['deposit', 'withdraw']),
+    itemId: itemInstanceIdSchema,
+    quantity: z.number().int().positive().max(999),
+    expectedTransaction: z.number().int().positive().safe(),
+  }),
+  z.strictObject({
+    type: z.literal('storage.money'),
+    chestId: entityIdSchema,
+    direction: z.enum(['deposit', 'withdraw']),
+    amount: z.number().int().positive().safe(),
+    expectedTransaction: z.number().int().positive().safe(),
+  }),
 ]);
 export type CoreCommand = z.infer<typeof coreCommandSchema>;
 export type CoreResult =
@@ -58,7 +75,9 @@ type EventBody =
   | { type: 'player.appearance-changed'; hero: HeroId }
   | { type: 'calendar.day-started'; day: number; cause: 'rollover' | 'sleep' };
 type WorldEvent =
-  { type: 'world.region-entered'; regionId: string } | { type: 'interaction.changed' };
+  | { type: 'world.region-entered'; regionId: string }
+  | { type: 'interaction.changed' }
+  | { type: 'storage.changed'; chestId: string };
 export type DomainEvent = (EventBody | WorldEvent | CombatEvent) & {
   sequence: number;
   tick: number;
@@ -88,6 +107,9 @@ interface CoreSnapshot {
   readonly carrying: boolean;
   readonly swimming: boolean;
   readonly transitionSequence: number;
+  readonly storage: GameSession['storageView'];
+  readonly deathReport: GameSession['deathReport'];
+  readonly lossPolicy: { materialChance: number; moneyFraction: number };
   readonly expedition: ReturnType<GameSession['expeditionView']>;
   readonly combat: ReturnType<typeof combatView> | null;
 }
@@ -108,7 +130,7 @@ export class GameSession {
     private world?: WorldRegistry,
   ) {
     this.content = content;
-    this.state = saveSchema.parse(input);
+    this.state = readSaveState(input, content);
     assertWorldInvariants(this.state, content);
     this.random = new RandomStreams(this.state.world.seed, this.state.random);
     if (this.state.combat?.death?.phase === 'pending') this.pauses.set('death', true);
@@ -144,7 +166,9 @@ export class GameSession {
     const calendar = calendarView(this.state.calendar, this.state.timeRules),
       reasons = this.pauses.snapshot();
     const target = this.nearestTarget();
-    const expedition = this.expeditionView();
+    const expedition = this.expeditionView(),
+      storage = this.storageView,
+      deathReport = this.deathReport;
     const combat = this.state.combat
       ? combatView(
           this.state.combat,
@@ -156,6 +180,9 @@ export class GameSession {
       : null;
     if (
       !this.cached ||
+      JSON.stringify(this.cached.storage) !== JSON.stringify(storage) ||
+      (this.cached.deathReport !== deathReport &&
+        JSON.stringify(this.cached.deathReport) !== JSON.stringify(deathReport)) ||
       JSON.stringify(this.cached.expedition) !== JSON.stringify(expedition) ||
       this.cached.hero !== this.state.player.hero ||
       this.cached.pauseReasons.join(',') !== reasons.join(',') ||
@@ -186,6 +213,12 @@ export class GameSession {
         transitionSequence: this.transitionSequence,
         combat,
         expedition,
+        storage,
+        deathReport,
+        lossPolicy: {
+          materialChance: this.state.deathRules.materialChance,
+          moneyFraction: this.state.deathRules.moneyFraction,
+        },
       });
     return this.cached;
   }
@@ -215,6 +248,8 @@ export class GameSession {
     if (!parsed.success)
       return { ok: false, code: 'invalid-command', message: 'The command has invalid fields.' };
     const command = parsed.data;
+    if (command.type === 'storage.item' || command.type === 'storage.money')
+      return this.storageCommand(command);
     if (command.type.startsWith('combat.')) return this.combatCommand(command);
     if (command.type === 'pause.set') {
       if (command.active && this.state.combat) this.state.combat.guard = false;
@@ -411,11 +446,43 @@ export class GameSession {
         const draft = copyData(this.state),
           battle = draft.combat;
         if (!battle?.death) return unavailable('Missing defeat checkpoint.');
-        battle.death.phase = 'resolved';
+        const deathRandom = new RandomStreams(this.state.world.seed, this.random.snapshot());
+        const loss = resolveDeathLoss(draft.player, this.content, draft.deathRules, () =>
+          deathRandom.next('death'),
+        );
+        draft.player.carried = loss.carried;
+        battle.death = {
+          ...battle.death,
+          phase: 'resolved',
+          lostItems: loss.lostItems,
+          lostMoney: loss.lostMoney,
+          losses: loss.losses,
+        };
+        draft.lastDeath = {
+          deathId: battle.death.id,
+          regionId: draft.player.regionId,
+          instanceId: draft.player.instanceId,
+          policy: 'materials-v1',
+          losses: loss.losses,
+          lostMoney: loss.lostMoney,
+          retained: loss.carried.items.map((i) => ({
+            id: i.id,
+            templateId: i.templateId,
+            quantity: i.quantity,
+          })),
+          retainedMoney: loss.carried.money,
+        };
         draft.player.actor.resources.health.current = draft.player.actor.resources.health.maximum;
         draft.player.actor.resources.energy.current = draft.player.actor.resources.energy.maximum;
-        enterArea(draft, this.world, 'region:clearing', 'start');
-        assertWorldInvariants(draft, this.content);
+        try {
+          enterArea(draft, this.world, 'region:clearing', 'start');
+          assertWorldInvariants(draft, this.content);
+        } catch (error) {
+          return unavailable(
+            error instanceof Error ? error.message : 'The village entrance is blocked.',
+          );
+        }
+        this.random = deathRandom;
         this.state = draft;
         this.transitionSequence++;
         this.pauses.set('death', false);
@@ -423,8 +490,7 @@ export class GameSession {
         this.emit({
           type: 'combat.player-respawned',
           subject: String(command.deathId),
-          message:
-            'Returned to the village with possessions retained. The dungeon instance remains anchored.',
+          message: `Returned to the village. Lost ${loss.losses.reduce((n, l) => n + l.quantity, 0)} material units and ${loss.lostMoney} coins; equipment, deposits and permanent tools are protected.`,
         });
         this.emit({
           type: 'pause.changed',
@@ -453,6 +519,21 @@ export class GameSession {
         phase: 'resolved',
         lostItems: loss.lostItems,
         lostMoney: loss.lostMoney,
+        losses: loss.losses,
+      };
+      this.state.lastDeath = {
+        deathId: s.death.id,
+        regionId: this.state.player.regionId,
+        instanceId: null,
+        policy: 'practice',
+        losses: [],
+        lostMoney: 0,
+        retained: loss.carried.items.map((i) => ({
+          id: i.id,
+          templateId: i.templateId,
+          quantity: i.quantity,
+        })),
+        retainedMoney: loss.carried.money,
       };
       actor.position = { ...spawn.position };
       actor.facing = spawn.facing;
@@ -853,6 +934,147 @@ export class GameSession {
     this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
     this.emit({ type: 'interaction.changed' });
     return { ok: true };
+  }
+  get storageView() {
+    if (!this.world || this.state.player.carrying) return null;
+    const target = this.nearestTarget();
+    if (target?.kind !== 'chest') return null;
+    const chest = this.state.player.deposits.find(
+      (d) =>
+        d.chestId === target.id &&
+        d.regionId === this.state.player.regionId &&
+        d.instanceId === this.state.player.instanceId,
+    );
+    const view = (inventory: SaveState['player']['carried']) => ({
+      capacity: inventory.capacity,
+      money: inventory.money,
+      items: inventory.items.map((i) => ({
+        ...copyData(i),
+        name: this.content.item(i.templateId).name,
+        equipped: this.state.player.equipment.some((e) => e.itemId === i.id),
+      })),
+    });
+    return freezeData({
+      id: target.id,
+      name: target.label,
+      expectedTransaction: this.state.nextTransaction,
+      carried: view(this.state.player.carried),
+      deposited: view(chest?.inventory ?? { capacity: 20, items: [], money: 0 }),
+    });
+  }
+  get deathReport() {
+    const report = this.state.lastDeath;
+    if (!report) return null;
+    const view = (list: typeof report.losses) =>
+      list.map((l) => ({ ...copyData(l), name: this.content.item(l.templateId).name }));
+    return freezeData({
+      ...copyData(report),
+      losses: view(report.losses),
+      retained: view(report.retained),
+    });
+  }
+  private storageCommand(
+    command: Extract<CoreCommand, { type: 'storage.item' | 'storage.money' }>,
+  ): CoreResult {
+    const fail = (message: string): CoreResult => ({ ok: false, code: 'unavailable', message });
+    if (this.pauses.snapshot().some((r) => r !== 'storage'))
+      return fail('Close other menus before using the chest.');
+    if (command.expectedTransaction !== this.state.nextTransaction)
+      return fail('That transfer was already applied or the chest changed.');
+    const view = this.storageView;
+    if (!view || view.id !== command.chestId) return fail('Stand nearby and face this chest.');
+    if (!Number.isSafeInteger(this.state.nextTransaction + 1))
+      return fail('Transaction limit reached.');
+    let chest = this.state.player.deposits.find(
+      (d) =>
+        d.chestId === command.chestId &&
+        d.regionId === this.state.player.regionId &&
+        d.instanceId === this.state.player.instanceId,
+    );
+    const empty = {
+      chestId: command.chestId,
+      regionId: this.state.player.regionId,
+      instanceId: this.state.player.instanceId,
+      inventory: { capacity: 20, items: [], money: 0 },
+    };
+    const current = chest ?? empty,
+      depositing = command.direction === 'deposit';
+    if (
+      command.type === 'storage.item' &&
+      depositing &&
+      this.state.player.equipment.some((e) => e.itemId === command.itemId)
+    )
+      return fail('Unequip that item before depositing it.');
+    let nextItemId = this.state.world.nextId;
+    try {
+      const source = depositing ? this.state.player.carried : current.inventory,
+        destination = depositing ? current.inventory : this.state.player.carried;
+      const moved =
+        command.type === 'storage.money'
+          ? transferMoney(source, destination, command.amount)
+          : transferItem(
+              source,
+              destination,
+              command.itemId,
+              command.quantity,
+              this.content,
+              () => {
+                if (!Number.isSafeInteger(nextItemId + 1))
+                  throw new Error('Item identity limit reached.');
+                return itemInstanceIdSchema.parse(
+                  allocatedId(this.state.world.id, nextItemId++, 'item-instance'),
+                );
+              },
+            );
+      if (!chest) {
+        chest = empty;
+        this.state.player.deposits.push(chest);
+      }
+      this.state.player.carried = depositing ? moved.source : moved.destination;
+      chest.inventory = depositing ? moved.destination : moved.source;
+      this.state.world.nextId = nextItemId;
+      this.state.nextTransaction++;
+      this.emit({ type: 'storage.changed', chestId: chest.chestId });
+      return { ok: true };
+    } catch (error) {
+      return fail(error instanceof Error ? error.message : 'The transfer could not be applied.');
+    }
+  }
+  /** A detached candidate is never read by the renderer or UI before its durable commit. */
+  stage(input: CoreCommand) {
+    const draft = new GameSession(this.export(), this.content, this.world);
+    for (const reason of this.pauses.snapshot())
+      if (reason !== 'saving') draft.pauses.set(reason, true);
+    draft.message = this.message;
+    draft.transitionSequence = this.transitionSequence;
+    const result = draft.dispatch(input);
+    return { draft, result };
+  }
+  adopt(draft: GameSession, forceScene = false) {
+    if (this.busy || draft.content !== this.content || draft.world !== this.world)
+      throw new Error('Invalid state adoption');
+    const data = draft.export(),
+      events = draft.consumeEvents();
+    const sequence = this.state.clock.eventSequence,
+      transition = this.transitionSequence;
+    this.state = data;
+    this.state.clock.eventSequence = Math.max(sequence, data.clock.eventSequence);
+    this.random = new RandomStreams(data.world.seed, data.random);
+    this.message = draft.message;
+    for (const reason of ['death', 'interaction'] as const)
+      this.pauses.set(reason, draft.pauses.snapshot().includes(reason));
+    this.transitionSequence = forceScene
+      ? Math.max(transition, draft.transitionSequence) + 1
+      : draft.transitionSequence;
+    for (const event of events) {
+      const { sequence: ignoredSequence, tick: ignoredTick, ...body } = event;
+      void ignoredSequence;
+      void ignoredTick;
+      this.emit(body);
+    }
+    if (forceScene)
+      this.emit({ type: 'world.region-entered', regionId: this.state.player.regionId });
+    this.cached = undefined;
   }
   nextRandom(stream: RandomStream): number {
     if (this.busy) throw new Error('Random draws must be requested outside movement resolution');

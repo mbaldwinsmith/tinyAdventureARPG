@@ -197,7 +197,7 @@ export function damagePlayer(
     `Hit for ${amount}${a.resources.energy.current < R.guardEnergy ? ' — shield energy is low.' : '.'}`,
   );
   if (a.resources.health.current === 0 && s.death?.phase !== 'pending') {
-    s.death = { id: s.nextSequence++, phase: 'pending', lostItems: [], lostMoney: 0 };
+    s.death = { id: s.nextSequence++, phase: 'pending', lostItems: [], lostMoney: 0, losses: [] };
     s.projectiles = [];
     c.emit({
       type: 'combat.player-defeated',
