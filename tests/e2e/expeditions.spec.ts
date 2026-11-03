@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { toolIdSchema } from '../../src/core/ids';
 import { createPreviewSave } from '../../src/content/preview';
 import { PREVIEW_WORLD } from '../../src/content/world';
 import { enterArea, retainedArea, areaDefinition } from '../../src/core/expeditions';
@@ -16,9 +17,11 @@ async function pose(page: Page) {
   }));
 }
 async function move(page: Page, key: string, ms: number) {
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
   await page.keyboard.down(key);
   await page.clock.runFor(ms);
   await page.keyboard.up(key);
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
   await page.clock.runFor(120);
 }
 /** Test-side route planning reads the same saved fixture, but all movement goes through real keys. */
@@ -291,18 +294,13 @@ async function solve(page: Page, state: SaveState, kind: string) {
   if (kind.startsWith('gate-') || kind === 'shortcut') area.changes.openedPassages.push(p.id);
   else area.changes.openedObjects.push(p.id);
 }
-test('walks the tool route and clears a crypt anchor, retaining the occupied reward room until exit and generating its successor on re-entry', async ({
+test('solves the crypt route and clears its anchor, retaining the occupied reward room until exit and generating its successor on re-entry', async ({
   page,
 }, testInfo) => {
   test.setTimeout(300000);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  const state = await openForest(page);
-  for (const kind of ['key', 'gate-key', 'switch', 'gate-switch', 'axe', 'gate-axe'])
-    await solve(page, state, kind);
-  await approach(page, state, 'portal-4');
-  await expect(page.locator('#clearing-title')).toHaveText('The anchored crypt');
-  enterArea(state, PREVIEW_WORLD, 'region:crypt');
+  const state = await openCryptCheckpoint(page);
   for (const kind of ['key', 'gate-key', 'switch', 'gate-switch', 'gate-axe'])
     await solve(page, state, kind);
   const layout = retainedArea(state).geometry.generated,
@@ -334,9 +332,19 @@ test('walks the tool route and clears a crypt anchor, retaining the occupied rew
   await approach(page, state, 'portal-4');
   await expect(page.locator('#clearing-title')).toHaveText('The anchored crypt');
   await expect(page.locator('.expedition-summary')).toContainText('Generation 2 · anchor living');
-  await page.getByRole('button', { name: 'Travel to Whispering forest', exact: true }).click();
-  await page.clock.runFor(300);
-  enterArea(state, PREVIEW_WORLD, 'region:forest');
+  await expect(page.locator('canvas')).toHaveCount(1);
+  expect(errors).toEqual([]);
+});
+
+test('walks the unlocked forest routes into desert, winter and coast and returns from each biome', async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(300000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const state = await openForest(page);
+  for (const kind of ['key', 'gate-key', 'switch', 'gate-switch', 'axe', 'gate-axe'])
+    await solve(page, state, kind);
   for (const [portal, region, name] of [
     ['portal-1', 'region:desert', 'Amber dunes'],
     ['portal-2', 'region:winter', 'Winter hollows'],
@@ -375,4 +383,54 @@ async function reloadCheckpoint(page: Page) {
   await page.getByLabel('World collision overlay').check();
   await page.clock.runFor(200);
   await page.locator('.game-canvas').focus();
+}
+
+/** Isolate the crypt lifecycle using the public backup import flow. The separate
+ * forest/biome journey earns every route tool through actual keyboard play. */
+async function openCryptCheckpoint(page: Page) {
+  const state = createPreviewSave();
+  enterArea(state, PREVIEW_WORLD, 'region:forest');
+  state.player.permanent.tools.push(toolIdSchema.parse('tool:axe'));
+  const forest = retainedArea(state);
+  for (const placement of forest.geometry.generated?.placements ?? []) {
+    if (placement.kind.startsWith('gate-')) forest.changes.openedPassages.push(placement.id);
+    else if (['key', 'switch', 'axe'].includes(placement.kind))
+      forest.changes.openedObjects.push(placement.id);
+  }
+  // The return trail is already cleared in this lifecycle fixture; ordinary
+  // forest combat is exercised by the separate keyboard expedition journey.
+  if (!state.combat) throw new Error('Missing fixture forest encounter');
+  for (const enemy of state.combat.enemies) {
+    enemy.health = 0;
+    enemy.phase = 'dead';
+    enemy.deathTick = 0;
+  }
+  state.combat.completed = true;
+  state.combat.drops = state.combat.enemies.map((enemy) => ({
+    id: `${enemy.id}:drop`,
+    position: { ...enemy.position },
+    money: 1,
+    claimed: true,
+  }));
+  state.player.carried.money += state.combat.enemies.length;
+  enterArea(state, PREVIEW_WORLD, 'region:crypt');
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
+  await page.getByRole('button', { name: 'Saved adventures', exact: true }).click();
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
+  await page.getByLabel('Import backup as a new adventure', { exact: true }).setInputFiles({
+    name: 'crypt-lifecycle-fixture.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(state)),
+  });
+  await expect(page.getByRole('dialog', { name: 'Saved adventures' })).toHaveCount(0);
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByLabel('World collision overlay').check();
+  await page.clock.runFor(250);
+  await expect(page.locator('#clearing-title')).toHaveText('The anchored crypt');
+  await page.locator('.game-canvas').focus();
+  return state;
 }
