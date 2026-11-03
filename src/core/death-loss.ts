@@ -12,6 +12,13 @@ export const EXPEDITION_LOSS_POLICY = lossPolicySchema.parse({
   materialChance: 0.25,
   moneyFraction: 0.1,
 });
+/** Treat the saved decimal fraction exactly; multiplying near MAX_SAFE_INTEGER
+ * by 0.1 can round upward before Math.floor gets to apply the loss rule. */
+function moneyFraction(amount: number, fraction: number): number {
+  const [mantissa = '0', exponent = '0'] = fraction.toString().split('e');
+  const places = (mantissa.split('.')[1]?.length ?? 0) - Number(exponent);
+  return Number((BigInt(amount) * BigInt(mantissa.replace('.', ''))) / 10n ** BigInt(places));
+}
 export function resolveDeathLoss(
   player: SaveState['player'],
   content: ContentRegistry,
@@ -51,7 +58,7 @@ export function resolveDeathLoss(
     }
     return true;
   });
-  const lostMoney = Math.floor(result.money * policy.moneyFraction);
+  const lostMoney = moneyFraction(result.money, policy.moneyFraction);
   result.money -= lostMoney;
   return { carried: result, lostItems, lostMoney, losses };
 }

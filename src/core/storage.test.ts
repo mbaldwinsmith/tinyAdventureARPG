@@ -194,6 +194,10 @@ describe('atomic local storage and confirmed per-unit loss', () => {
     expect(loss.carried.items[0]).toMatchObject({ id: 'item-instance:wood', quantity: 2 });
     expect(loss.carried.items[1]).toEqual(sword);
     expect(state.player).toEqual(before);
+    state.player.carried.money = 9007199254740989;
+    expect(
+      resolveDeathLoss(state.player, PREVIEW_CONTENT, EXPEDITION_LOSS_POLICY, () => 0.9).lostMoney,
+    ).toBe(900719925474098);
   });
   it('migrates the supported v1 fixture without rerolling geography, discoveries, money or random continuation and rejects future versions', () => {
     const legacy: unknown = legacyFixture,
