@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameBridge, GameSnapshot } from '../bridge/game-bridge';
-import { ACTIONS, KEY_CODES } from '../core/actions';
+import { ACTIONS, KEY_CODES, BUTTON_ACTIONS, BUTTON_PROPERTIES } from '../core/actions';
 const labels = {
   up: 'Move up',
   left: 'Move left',
   down: 'Move down',
   right: 'Move right',
   interact: 'Interact',
-  attack: 'Swing preview',
+  attack: 'Sword',
+  guard: 'Shield',
+  roll: 'Roll',
+  bow: 'Bow',
   pause: 'Pause',
 };
 const buttonChoices = [
@@ -93,18 +96,12 @@ export function ControlsDialog({
           focus controls and left/right to change a selector.
         </p>
         <div className="binding-grid">
-          {(['interact', 'attack', 'pause'] as const).map((action) => (
+          {BUTTON_ACTIONS.map((action) => (
             <label key={action}>
               {labels[action]}
               <select
                 aria-label={`${labels[action]} controller button`}
-                value={
-                  action === 'interact'
-                    ? snapshot.input.interactButton
-                    : action === 'attack'
-                      ? snapshot.input.attackButton
-                      : snapshot.input.pauseButton
-                }
+                value={snapshot.input[BUTTON_PROPERTIES[action]]}
                 onChange={(event) => {
                   const result = bridge.send({
                     type: 'input.button.set',
@@ -118,11 +115,10 @@ export function ControlsDialog({
                   <option
                     key={id}
                     value={id}
-                    disabled={
-                      (action !== 'interact' && snapshot.input.interactButton === id) ||
-                      (action !== 'attack' && snapshot.input.attackButton === id) ||
-                      (action !== 'pause' && snapshot.input.pauseButton === id)
-                    }
+                    disabled={BUTTON_ACTIONS.some(
+                      (other) =>
+                        other !== action && snapshot.input[BUTTON_PROPERTIES[other]] === id,
+                    )}
                   >
                     {label}
                   </option>
@@ -132,9 +128,18 @@ export function ControlsDialog({
           ))}
         </div>
       </fieldset>
+      <label className="shake-setting">
+        <input
+          type="checkbox"
+          checked={snapshot.screenShake}
+          onChange={(e) => bridge.send({ type: 'settings.shake', enabled: e.target.checked })}
+        />{' '}
+        Screen shake on impact
+      </label>
       <p className="small-copy">
-        Bindings apply to this session. Swing is an animation preview; damage and combat come later.
-        Pointer clicks can activate a nearby highlighted object.
+        Bindings apply to this session. Sword, shield, roll and bow work in the practice field;
+        action previews remain cosmetic outside it. Pointer clicks can activate a nearby highlighted
+        object.
       </p>
       {error && <p role="alert">{error}</p>}
       <button ref={done} className="button" onClick={close}>

@@ -68,7 +68,7 @@ The fittings sheet is **63×80**. Three full 16px columns contain anchors, chest
 
 ## Production boundary and validation
 
-The curated manifest now contains **316 source records from 16 unchanged archives**. It packs **172 runtime sources into a padded atlas** and keeps **144 inspection-only records** behind the catalogue. The full source art, raw ZIPs and development inspectors remain excluded from production. Original single-tree and grass source records become inspection alternatives when their layered/tiled replacements are used.
+The curated manifest now contains **316 source records from 16 unchanged archives**. It packs **187 runtime sources into a padded atlas** and keeps **129 inspection-only records** behind the catalogue. The full source art, raw ZIPs and development inspectors remain excluded from production. Original single-tree and grass source records become inspection alternatives when their layered/tiled replacements are used.
 
 `assets:check` validates terrain coverage/dimensions, the updated shore layout, all scenery source rectangles, composition extents, unique IDs and attachment points, alongside prior hero/enemy checks. Presentation feet, layer cuts and boat offsets are authored reference choices, never transparent-image collision bounds.
 

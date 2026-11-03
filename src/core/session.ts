@@ -1,4 +1,15 @@
 import { z } from 'zod';
+import { trialSchema } from './combat-model';
+import type { CombatEvent } from './combat-model';
+import {
+  createBattle,
+  beginAction,
+  combatMovement,
+  stepBattle,
+  combatView,
+  nearestDrop,
+} from './combat';
+import { resolveDeathLoss, PRACTICE_LOSS_POLICY } from './death-loss';
 import type { ContentRegistry } from '../content/schemas';
 import { copyData, freezeData } from './data';
 import { saveSchema, heroSchema, directionSchema, positionSchema } from './model';
@@ -22,6 +33,15 @@ export const coreCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('calendar.sleep'), expectedDay: z.number().int().positive() }),
   z.strictObject({ type: z.literal('world.interact'), target: entityIdSchema.nullable() }),
   z.strictObject({ type: z.literal('interaction.dismiss') }),
+  z.strictObject({ type: z.literal('combat.start'), trial: trialSchema }),
+  z.strictObject({
+    type: z.literal('combat.action'),
+    action: z.enum(['sword', 'roll', 'bow']),
+    facing: directionSchema.nullable(),
+  }),
+  z.strictObject({ type: z.literal('combat.guard'), active: z.boolean() }),
+  z.strictObject({ type: z.literal('combat.collect'), dropId: z.string() }),
+  z.strictObject({ type: z.literal('combat.respawn'), deathId: z.number().int().positive() }),
 ]);
 export type CoreCommand = z.infer<typeof coreCommandSchema>;
 export type CoreResult =
@@ -37,7 +57,10 @@ type EventBody =
   | { type: 'calendar.day-started'; day: number; cause: 'rollover' | 'sleep' };
 type WorldEvent =
   { type: 'world.region-entered'; regionId: string } | { type: 'interaction.changed' };
-export type DomainEvent = (EventBody | WorldEvent) & { sequence: number; tick: number };
+export type DomainEvent = (EventBody | WorldEvent | CombatEvent) & {
+  sequence: number;
+  tick: number;
+};
 export interface StepContext {
   readonly tick: number;
   readonly stepMs: number;
@@ -63,6 +86,7 @@ interface CoreSnapshot {
   readonly carrying: boolean;
   readonly swimming: boolean;
   readonly transitionSequence: number;
+  readonly combat: ReturnType<typeof combatView> | null;
 }
 /** The sole owner of serializable state, random streams and gameplay time. */
 export class GameSession {
@@ -84,6 +108,21 @@ export class GameSession {
     this.state = saveSchema.parse(input);
     assertWorldInvariants(this.state, content);
     this.random = new RandomStreams(this.state.world.seed, this.state.random);
+    if (this.state.combat?.death?.phase === 'pending') this.pauses.set('death', true);
+    if (this.state.combat) {
+      if (!world) throw new Error('Combat checkpoints require authored collision geometry');
+      const definition = world.region(this.state.combat.regionId);
+      const retained = this.state.world.regions.find((r) => r.id === definition.id);
+      if (!retained) throw new Error('Missing combat region');
+      const solids = world.solids(definition.id, retained);
+      for (const enemy of this.state.combat.enemies)
+        if (
+          ![enemy.position, enemy.home].every((position) =>
+            freeFoot(position, definition.width, definition.height, solids),
+          )
+        )
+          throw new Error('Combat actor spawned inside a solid');
+    }
     if (
       world &&
       !freeFoot(
@@ -99,6 +138,15 @@ export class GameSession {
     const calendar = calendarView(this.state.calendar, this.state.timeRules),
       reasons = this.pauses.snapshot();
     const target = this.nearestTarget();
+    const combat = this.state.combat
+      ? combatView(
+          this.state.combat,
+          this.state.player.actor,
+          this.tick,
+          this.battleActive,
+          this.state.player.carried.money,
+        )
+      : null;
     if (
       !this.cached ||
       this.cached.hero !== this.state.player.hero ||
@@ -110,7 +158,8 @@ export class GameSession {
       this.cached.nearby?.label !== target?.label ||
       this.cached.message !== this.message ||
       this.cached.carrying !== !!this.state.player.carrying ||
-      this.cached.swimming !== this.swimming
+      this.cached.swimming !== this.swimming ||
+      JSON.stringify(this.cached.combat) !== JSON.stringify(combat)
     )
       this.cached = freezeData({
         hero: this.state.player.hero,
@@ -126,6 +175,7 @@ export class GameSession {
         carrying: !!this.state.player.carrying,
         swimming: this.swimming,
         transitionSequence: this.transitionSequence,
+        combat,
       });
     return this.cached;
   }
@@ -135,7 +185,7 @@ export class GameSession {
   get tick() {
     return this.state.clock.tick;
   }
-  private emit(event: EventBody | WorldEvent): void {
+  private emit(event: EventBody | WorldEvent | CombatEvent): void {
     this.events.push(
       freezeData({
         ...event,
@@ -155,7 +205,9 @@ export class GameSession {
     if (!parsed.success)
       return { ok: false, code: 'invalid-command', message: 'The command has invalid fields.' };
     const command = parsed.data;
+    if (command.type.startsWith('combat.')) return this.combatCommand(command);
     if (command.type === 'pause.set') {
+      if (command.active && this.state.combat) this.state.combat.guard = false;
       if (this.pauses.set(command.reason, command.active))
         this.emit({
           type: 'pause.changed',
@@ -178,7 +230,9 @@ export class GameSession {
       this.emit({ type: 'interaction.changed' });
     } else if (command.type === 'world.interact') {
       return this.interact(command.target);
-    } else {
+    } else if (command.type === 'calendar.sleep') {
+      if (this.battleActive)
+        return { ok: false, code: 'unavailable', message: 'Leave practice before resting.' };
       if (this.pauses.paused)
         return { ok: false, code: 'paused', message: 'Resume the clearing before resting.' };
       if (command.expectedDay !== this.state.calendar.day)
@@ -216,12 +270,16 @@ export class GameSession {
           stepMs: STEP_MS,
           position: { ...actor.position },
           facing: actor.facing,
-          movementSpeedPixelsPerSecond: actor.stats.movementSpeedPixelsPerSecond,
+          movementSpeedPixelsPerSecond:
+            actor.stats.movementSpeedPixelsPerSecond *
+            (this.battleActive && this.state.combat?.guard ? 0.35 : 1),
           regionId: this.state.player.regionId,
         });
-        const movement = movementSchema.parse(
+        const desired = movementSchema.parse(
           resolve ? resolve(context) : { position: context.position, facing: context.facing },
         );
+        const battle = this.battleContext(this.tick + 1);
+        const movement = battle ? combatMovement(battle, desired) : desired;
         const region = this.state.world.regions.find((r) => r.id === this.state.player.regionId);
         const geometry =
           region?.kind === 'surface' && region.phase !== 'unvisited'
@@ -266,6 +324,19 @@ export class GameSession {
         this.state.calendar.elapsedTicks++;
         if (this.state.calendar.elapsedTicks === this.state.timeRules.ticksPerDay)
           this.startDay('rollover');
+        if (battle) {
+          stepBattle(battle);
+          if (this.state.combat?.death?.phase === 'pending') {
+            this.pauses.set('death', true);
+            this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
+            this.state.clock.remainderMs = 0;
+            return {
+              steps: i + 1,
+              simulatedMs: (i + 1) * STEP_MS,
+              droppedMs: Math.max(0, elapsedMs - (i + 1) * STEP_MS),
+            };
+          }
+        }
       }
       this.state.clock.remainderMs = budget.remainderMs;
     } finally {
@@ -276,6 +347,157 @@ export class GameSession {
       simulatedMs: budget.steps * STEP_MS,
       droppedMs: budget.droppedMs,
     };
+  }
+  get battleActive() {
+    return !!this.state.combat && this.state.combat.regionId === this.state.player.regionId;
+  }
+  get battlePresentation() {
+    return this.battleActive ? freezeData(copyData(this.state.combat)) : null;
+  }
+  private battleContext(tick: number) {
+    const state = this.state.combat;
+    if (!state || !this.battleActive) return null;
+    return {
+      state,
+      actor: this.state.player.actor,
+      tick,
+      width: this.regionDefinition.width,
+      height: this.regionDefinition.height,
+      solids: this.solids,
+      emit: (event: CombatEvent) => this.emit(event),
+    };
+  }
+  private combatCommand(command: CoreCommand): CoreResult {
+    const s = this.state.combat,
+      actor = this.state.player.actor;
+    const unavailable = (message: string): CoreResult => ({
+      ok: false,
+      code: 'unavailable',
+      message,
+    });
+    if (command.type === 'combat.respawn') {
+      if (!s || s.death?.phase !== 'pending' || s.death.id !== command.deathId)
+        return unavailable('That defeat was already resolved.');
+      if (this.pauses.snapshot().some((r) => r !== 'death'))
+        return unavailable('Close other menus before returning.');
+      const spawn = this.world?.spawn(s.regionId, 'entry');
+      if (!spawn) return unavailable('The practice entrance is unavailable.');
+      if (
+        !freeFoot(
+          spawn.position,
+          this.regionDefinition.width,
+          this.regionDefinition.height,
+          this.solids,
+        )
+      )
+        return unavailable('The practice entrance is blocked.');
+      const loss = resolveDeathLoss(this.state.player, this.content, PRACTICE_LOSS_POLICY, () =>
+        this.random.next('death'),
+      );
+      this.state.player.carried = loss.carried;
+      s.death = {
+        ...s.death,
+        phase: 'resolved',
+        lostItems: loss.lostItems,
+        lostMoney: loss.lostMoney,
+      };
+      actor.position = { ...spawn.position };
+      actor.facing = spawn.facing;
+      actor.resources.health.current = actor.resources.health.maximum;
+      actor.resources.energy.current = actor.resources.energy.maximum;
+      s.action = null;
+      s.guard = false;
+      s.projectiles = [];
+      s.invulnerableUntil = this.tick + 100;
+      s.hurtUntil = 0;
+      s.lastDamageTick = this.tick;
+      for (const e of s.enemies)
+        if (e.health > 0) {
+          e.position = { ...e.home };
+          e.phase = 'idle';
+          e.phaseTicks = 0;
+          e.path = [];
+        }
+      s.feedback = 'Returned to the practice entrance. Possessions retained.';
+      s.feedbackUntil = this.tick + 150;
+      this.state.clock.remainderMs = 0;
+      this.pauses.set('death', false);
+      this.emit({
+        type: 'pause.changed',
+        paused: this.pauses.paused,
+        reasons: this.pauses.snapshot(),
+      });
+      this.emit({
+        type: 'combat.player-respawned',
+        subject: String(s.death.id),
+        message: s.feedback,
+      });
+      return { ok: true };
+    }
+    if (this.pauses.paused)
+      return { ok: false, code: 'paused', message: 'Close the current menu first.' };
+    if (command.type === 'combat.start') {
+      if (!this.world || this.state.player.carrying)
+        return unavailable('Set down the box before entering practice.');
+      const destination = this.state.world.regions.find((r) => r.id === 'region:practice');
+      if (!destination || destination.kind !== 'surface' || destination.phase === 'unvisited')
+        return unavailable('Practice is unavailable.');
+      const spawn = this.world.spawn(destination.id, 'entry');
+      const definition = this.world.region(destination.id);
+      const solids = this.world.solids(destination.id, destination);
+      const next = createBattle(command.trial, (s?.generation ?? 0) + 1, this.tick);
+      next.nextSequence = s?.nextSequence ?? 1;
+      if (
+        !freeFoot(spawn.position, definition.width, definition.height, solids) ||
+        next.enemies.some(
+          (enemy) => !freeFoot(enemy.position, definition.width, definition.height, solids),
+        )
+      )
+        return unavailable('The practice entrance is blocked.');
+      this.activeRegion().phase = 'dormant';
+      destination.phase = 'active';
+      this.state.player.regionId = destination.id;
+      actor.position = { ...spawn.position };
+      actor.facing = spawn.facing;
+      if (!this.state.player.permanent.discoveredRegions.includes(destination.id))
+        this.state.player.permanent.discoveredRegions.push(destination.id);
+      actor.resources.health.current = actor.resources.health.maximum;
+      actor.resources.energy.current = actor.resources.energy.maximum;
+      this.state.combat = next;
+      this.state.clock.remainderMs = 0;
+      this.transitionSequence++;
+      this.emit({ type: 'world.region-entered', regionId: destination.id });
+      return { ok: true };
+    }
+    if (!s || !this.battleActive) return unavailable('Enter a practice trial first.');
+    if (command.type === 'combat.action') {
+      const error = beginAction(
+        s,
+        actor,
+        command.action,
+        this.tick,
+        command.facing ?? actor.facing,
+      );
+      return error ? unavailable(error) : { ok: true };
+    }
+    if (command.type === 'combat.guard') {
+      if (command.active && (s.action || this.tick < s.hurtUntil))
+        return unavailable('Recover before raising the shield.');
+      s.guard = command.active;
+      return { ok: true };
+    }
+    if (command.type === 'combat.collect') {
+      const drop = nearestDrop(s, actor.position);
+      if (!drop || drop.id !== command.dropId || drop.claimed)
+        return unavailable('Move closer to an unclaimed coin.');
+      if (this.state.player.carried.money > Number.MAX_SAFE_INTEGER - drop.money)
+        return unavailable('Coin capacity reached.');
+      drop.claimed = true;
+      this.state.player.carried.money += drop.money;
+      this.emit({ type: 'combat.drop-claimed', subject: drop.id, message: 'Collected one coin.' });
+      return { ok: true };
+    }
+    return unavailable('Unknown combat command.');
   }
   get regionDefinition() {
     if (!this.world) throw new Error('No authored world attached');
@@ -357,6 +579,11 @@ export class GameSession {
   private interact(requested: EntityId | null): CoreResult {
     if (this.pauses.paused)
       return { ok: false, code: 'paused', message: 'Close the current menu first.' };
+    if (
+      this.battleActive &&
+      (this.state.combat?.action || this.tick < (this.state.combat?.hurtUntil ?? 0))
+    )
+      return { ok: false, code: 'unavailable', message: 'Recover before interacting.' };
     const target = this.nearestTarget();
     if (!target || (requested !== null && target.id !== requested))
       return { ok: false, code: 'unavailable', message: 'Move closer and face the object.' };
@@ -417,6 +644,11 @@ export class GameSession {
         )
       )
         return { ok: false, code: 'unavailable', message: 'The destination doorway is blocked.' };
+      if (this.state.combat) {
+        this.state.combat.guard = false;
+        this.state.combat.action = null;
+        this.state.combat.projectiles = [];
+      }
       region.phase = 'dormant';
       destination.phase = 'active';
       this.state.player.regionId = destination.id;

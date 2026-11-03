@@ -2,13 +2,14 @@ import type { HeroAction } from '../assets/hero-animations';
 import { HERO_ACTIONS } from '../assets/hero-animations';
 import { z } from 'zod';
 import type { HeroId } from '../core/model';
+import type { combatView } from '../core/combat';
 import type { EntityId } from '../core/ids';
 import type { PauseReason } from '../core/time';
 import { pauseReasonSchema } from '../core/time';
 import type { DomainEvent, CoreResult } from '../core/session';
 import { coreCommandSchema } from '../core/session';
 import { freezeData } from '../core/data';
-import { DEFAULT_INPUT, actionSchema } from '../core/actions';
+import { DEFAULT_INPUT, actionSchema, BUTTON_ACTIONS } from '../core/actions';
 import type { InputView, Navigation } from '../core/actions';
 
 export interface GameSnapshot {
@@ -28,23 +29,31 @@ export interface GameSnapshot {
   input: InputView;
   debug: boolean;
   notice: string | null;
+  combat: ReturnType<typeof combatView> | null;
+  screenShake: boolean;
 }
 export const gameCommandSchema = z.discriminatedUnion('type', [
   coreCommandSchema.options[0].extend({
-    reason: pauseReasonSchema.exclude(['loading', 'failure', 'interaction']),
+    reason: pauseReasonSchema.exclude(['loading', 'failure', 'interaction', 'death']),
   }),
   coreCommandSchema.options[1],
   coreCommandSchema.options[2],
   coreCommandSchema.options[3],
   coreCommandSchema.options[4],
+  coreCommandSchema.options[5],
+  coreCommandSchema.options[6],
+  coreCommandSchema.options[7],
+  coreCommandSchema.options[8],
+  coreCommandSchema.options[9],
   z.strictObject({ type: z.literal('animation.preview'), action: z.enum(HERO_ACTIONS) }),
   z.strictObject({ type: z.literal('input.key.set'), action: actionSchema, code: z.string() }),
   z.strictObject({
     type: z.literal('input.button.set'),
-    action: z.enum(['interact', 'attack', 'pause']),
+    action: z.enum(BUTTON_ACTIONS),
     button: z.number().int(),
   }),
   z.strictObject({ type: z.literal('debug.set'), enabled: z.boolean() }),
+  z.strictObject({ type: z.literal('settings.shake'), enabled: z.boolean() }),
 ]);
 export type GameCommand = z.infer<typeof gameCommandSchema>;
 export type CommandResult =
@@ -72,6 +81,8 @@ export const INITIAL_SNAPSHOT: GameSnapshot = freezeData({
   input: DEFAULT_INPUT,
   debug: false,
   notice: null,
+  combat: null,
+  screenShake: false,
 });
 
 /** Transport only. The runtime owns state and attaches a single command handler. */

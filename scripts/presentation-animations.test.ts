@@ -11,6 +11,7 @@ import {
   validateToolSockets,
 } from '../src/assets/sprite-attachments';
 import { heroAnimations, DIRECTIONS } from '../src/assets/hero-animations';
+import { createAtlasLookup } from '../src/assets/atlas';
 
 const textures = manifestSchema.parse(
   JSON.parse(readFileSync('public/generated/manifest.json', 'utf8')),
@@ -20,6 +21,25 @@ if (!first) throw new Error('No presentation fixture');
 const frame = first.frames[0];
 if (!frame) throw new Error('No frame fixture');
 describe('reviewed enemy and tool presentation sources', () => {
+  it('packs every reviewed frame of promoted runtime animations instead of a whole-sheet fallback', () => {
+    const manifest = manifestSchema.parse(
+      JSON.parse(readFileSync('public/generated/manifest.json', 'utf8')),
+    );
+    const lookup = createAtlasLookup(manifest);
+    const runtime = presentationAnimations.filter((animation) =>
+      manifest.assets.some((asset) => asset.id === animation.texture && !asset.inspectionOnly),
+    );
+    expect(runtime.some((animation) => animation.id === 'enemy-goblin-bow-up')).toBe(true);
+    for (const animation of runtime)
+      for (const frame of animation.frames)
+        expect(lookup({ texture: animation.texture, ...frame }).source).toMatchObject({
+          texture: animation.texture,
+          x: frame.x,
+          y: frame.y,
+          width: frame.width,
+          height: frame.height,
+        });
+  });
   it('validates mixed-size sequences, recolour blocks and attachment sources against actual generated textures', () => {
     validatePresentationAnimations(presentationAnimations, textures);
     validateSpriteAttachments(textures);

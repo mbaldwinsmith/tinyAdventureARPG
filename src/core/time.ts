@@ -8,6 +8,7 @@ export const pauseReasonSchema = z.enum([
   'interaction',
   'loading',
   'failure',
+  'death',
 ]);
 export type PauseReason = z.infer<typeof pauseReasonSchema>;
 export class PauseReasons {

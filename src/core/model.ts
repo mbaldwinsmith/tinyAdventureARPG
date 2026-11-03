@@ -14,6 +14,7 @@ import {
 } from './ids';
 import { calendarSchema, clockSchema, timeRulesSchema } from './time';
 import { randomStateSchema } from './random';
+import { combatStateSchema } from './combat-model';
 import { damageTypeSchema } from '../content/schemas';
 
 const uint = z.number().int().nonnegative().safe();
@@ -127,6 +128,7 @@ export const dungeonSchema = z.strictObject({
 export type Dungeon = z.infer<typeof dungeonSchema>;
 export const saveSchema = z.strictObject({
   schemaVersion: z.literal(1),
+  combat: combatStateSchema.nullable().default(null),
   contentVersion: z.literal(1),
   world: z.strictObject({
     id: worldIdSchema,

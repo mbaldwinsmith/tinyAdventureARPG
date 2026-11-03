@@ -29,7 +29,7 @@ Bring discoveries home. Deposit valuables, plant and tend crops, and welcome the
 
 At the heart of the Kingdom waits its evil King: the crowned, tongue-attacking boss from Vryell's Tiny Castle Pack. Defeating him and restoring the Kingdom is the main objective.
 
-> **Project status:** runnable foundation preview. Explore three authored regions with foot collision, doors, nearby interactions, carrying and swimming previews; use remappable keyboard controls or a standard-mapped controller. Select one of six appearances, preview 30 action families, watch active-play day/season time and rest until tomorrow. Combat, inventory transactions, durable browser saves, farming and generated worlds remain later work. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
+> **Project status:** runnable foundation preview. Explore three authored regions with foot collision, doors, nearby interactions, carrying and swimming previews; use remappable keyboard controls or a standard-mapped controller. Select one of six appearances, preview 30 action families, watch active-play day/season time and rest until tomorrow. Enter a separate practice field for sword, shield, roll and bow combat against six enemy behaviours. Inventory transactions, durable browser saves, farming and generated worlds remain later work. The design below describes the intended game; [PLAN.md](PLAN.md) tracks delivered work.
 
 ## A world that remembers
 
@@ -60,15 +60,16 @@ Loss probabilities, equipment eligibility, money handling and partial-stack rule
 
 ## Project status
 
-**M01–M04 are implemented: application foundation, asset imports, core state/time, and world movement/input.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
+**M01–M05 are implemented: application/assets, core state/time, world/input and cardinal combat/enemy behaviours.** The preview brings Phaser 4, React and the owned artwork together; it is not yet the complete adventure.
 
-| Available now                                                         | Next systems                                      |
-| --------------------------------------------------------------------- | ------------------------------------------------- |
-| Clearing, cottage and woodland with collision and safe travel         | Cardinal combat and enemy behaviour               |
-| Typed game/UI bridge, composed pause reasons and focused UI snapshots | Combat and campaign progression                   |
-| Full catalogue, 3,849 padded atlas frames, GUI mappings and credits   | Durable browser saves and inventory interactions  |
-| Strict TypeScript, lint/format rules, unit tests and browser checks   | Inventory, banking, saves, generation and farming |
-| CI workflow and production build                                      | Complete desktop campaign and release validation  |
+| Available now                                                             | Next systems                                                  |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Clearing, cottage and woodland with collision and safe travel             | Persistent surfaces and anchor dungeons                       |
+| Typed game/UI bridge, composed pause reasons and focused UI snapshots     | Generation and campaign progression                           |
+| Full catalogue, 3,985 padded atlas frames, GUI mappings and credits       | Durable browser saves and inventory interactions              |
+| Sword/shield/roll/bow, six enemy behaviours, rewards and practice respawn | Persistent surfaces, dungeon anchors and campaign progression |
+| Strict TypeScript, lint/format rules, unit tests and browser checks       | Inventory, banking, saves, generation and farming             |
+| CI workflow and production build                                          | Complete desktop campaign and release validation              |
 
 The status/stack badges describe the project, not a promise that every planned feature is present. See [foundation architecture](docs/architecture.md) for ownership and preview-only choices.
 
@@ -89,7 +90,7 @@ One repository and one application, with clear ownership boundaries:
 
 **The game owns authoritative gameplay state.** React sends commands and consumes focused snapshots. Phaser runs continuous world activity; React does not receive every entity position on every frame. The game core remains independent of React, Phaser, the DOM and storage APIs.
 
-GameSession now owns validated world/player data, independent resumable random streams, 20ms gameplay steps, composable pauses and the day/season calendar. Phaser commits resolved movement once per step; React receives focused snapshots. See the [core state/time contract](docs/core-state.md) for schemas, event order, checkpoint APIs and configurable preview defaults. See the [world/input contract](docs/world-input.md) for collision, rendering, travel and controls. Full campaign rules and durable storage remain in the plan.
+GameSession now owns validated world/player data, independent resumable random streams, 20ms gameplay steps, composable pauses and the day/season calendar. Phaser commits resolved movement once per step; React receives focused snapshots. See the [core state/time contract](docs/core-state.md) for schemas, event order, checkpoint APIs and configurable preview defaults. See [combat rules and scope](docs/combat.md) and the [world/input contract](docs/world-input.md) for collision, rendering, travel and controls. Full campaign rules and durable storage remain in the plan.
 
 ### Supporting tools
 
@@ -112,7 +113,7 @@ npm ci
 npm run dev
 ```
 
-Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **E** near a highlighted door, sign, NPC, chest, farm plot or small box; click the highlighted target as an alternative. Use **Space** for a cosmetic sword preview and **Escape** or the Pause button for the menu. Open **Controls** to remap keys and action buttons for this session; arrows remain available. Standard-mapped controllers use the left stick/D-pad, south face button to interact/confirm, west face button to preview a swing, Start to pause and east face button to cancel. Release sticks/buttons after connecting or closing a modal. Selecting a wanderer changes appearance. The action selector plays art previews only; chests contain no inventory, farm plots are inspections and the carried box is one world prop. Losing browser-window focus pauses the preview. The calendar advances only during active play; menus and the workbench pause it. **Rest until tomorrow** starts the next calendar day. Rest does not yet heal, grow crops or write a durable save. Day/season lengths and other balance values remain configurable preview defaults pending M00 decisions.
+Vite prints its local address. Click the clearing to focus it, then use **WASD or arrow keys** to move. Use **E** near a highlighted door, sign, NPC, chest, farm plot or small box; click the highlighted target as an alternative. Use **Space** for a sword attack in practice (cosmetic swing outside it), **Q** to hold a shield, **R** to roll and **F** to fire a bow. Use **Escape** or the Pause button for the menu. Open **Controls** to remap keys and action buttons for this session; arrows remain available. Standard-mapped controllers use the left stick/D-pad, south face button to interact/confirm, west face button for the sword, left bumper for shield, north face for roll, right bumper for bow, Start to pause and east face button to cancel. Release sticks/buttons after connecting or closing a modal. Select an encounter and **Enter practice field** for actual combat; **Start new trial** resets that encounter and refills pools. Defeat pauses the field and offers one return to its entrance while retaining possessions, dead enemies and unclaimed coins. The south exit returns to the clearing. Selecting a wanderer changes appearance. The action selector plays art previews only; chests contain no inventory, farm plots are inspections and the carried box is one world prop. Losing browser-window focus pauses the preview. The calendar advances only during active play; menus and the workbench pause it. **Rest until tomorrow** starts the next calendar day. Rest does not yet heal, grow crops or write a durable save. Day/season lengths and other balance values remain configurable preview defaults pending M00 decisions.
 
 | Command                                               | Purpose                                                                 |
 | ----------------------------------------------------- | ----------------------------------------------------------------------- |

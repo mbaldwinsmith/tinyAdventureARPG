@@ -1,6 +1,6 @@
 # Core state, time and ownership
 
-M03 supplies framework-independent rules and serializable data contracts. M04 also routes three authored regions, validated interactions and retained object changes through this owner, alongside active-play time and rest. Combat, world generation, inventory actions, farming and durable browser saving remain later milestones.
+M03 supplies framework-independent rules and serializable data contracts. M04 also routes three authored regions, validated interactions and retained object changes through this owner, alongside active-play time and rest. M05 adds serializable combat actions, enemies, projectiles, drops and defeat transitions in a separate practice region; [combat rules](combat.md) describe their fixed-step integration. World generation, inventory actions, farming and durable browser saving remain later milestones.
 
 ## One authoritative owner
 
@@ -31,7 +31,7 @@ The core uses **20ms steps (50Hz)**. For each render frame:
 
 There is no second physics loop or automatic collision integration in this clearing. The core independently rejects a final position overlapping an authored solid; no second integration or Arcade Physics clock runs. A seeded stream does not imply deterministic cross-platform physics.
 
-Menu, settings, interaction, background, workbench, loading and failure pause reasons compose. The bridge can control menu/settings/background/workbench; loading/failure belong to the runtime and interaction pause belongs to interaction commands. Removing one reason leaves the others active. Future combat, AI and farming updates must use these same gameplay steps; they must not introduce independent real-time timers.
+Menu, settings, interaction, background, workbench, loading, failure and death pause reasons compose. The bridge can control menu/settings/background/workbench; loading/failure belong to the runtime and interaction/death pauses belong to their authoritative commands. Removing one reason leaves the others active. Combat and AI use these gameplay steps. Future farming updates must use these same gameplay steps; they must not introduce independent real-time timers.
 
 ## Calendar and rest
 
@@ -53,7 +53,7 @@ Commands validate at the bridge and core boundaries. Ready-state restrictions be
 
 For an accepted command, the owner mutates state, allocates monotonically ordered event sequence numbers and builds its immutable display snapshot. The bridge installs that committed snapshot **before** delivering ordered domain events, then sends `snapshot.changed`. Reentrant commands during delivery are rejected, preventing interleaved batches. Events are drained, not retained as an unbounded UI history or replayed on load. Event sequence state is saved; transient animation requests are not.
 
-Snapshots retain their object identity until status, appearance, pause, preview request, region/nearby target, interaction message, carrying/swimming, input preferences/device, debug visibility, failure notice or displayed calendar values change. They exclude positions and simulation ticks. With the current day length, calendar publication is roughly 2.4 changes/second rather than 50 updates/second; explicit commands publish immediately. When future HUD fields arrive, their subscriptions should remain similarly focused/bounded.
+Snapshots retain their object identity until status, appearance, pause, preview request, region/nearby target, interaction message, carrying/swimming, quantised combat HUD, input preferences/device, debug visibility, failure notice or displayed calendar values change. They exclude positions and simulation ticks. With the current day length, calendar publication is roughly 2.4 changes/second rather than 50 updates/second; explicit commands publish immediately. When future HUD fields arrive, their subscriptions should remain similarly focused/bounded.
 
 ## Region and anchor lifecycle
 

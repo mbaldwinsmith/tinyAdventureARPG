@@ -11,7 +11,7 @@ import {
   shoreFrame,
 } from '../assets/terrain';
 import { CLEARING, clearingPathAt } from '../content/clearing';
-import { WOODLAND_TREES, woodlandPathAt } from '../content/world';
+import { WOODLAND_TREES, woodlandPathAt, PRACTICE_BENCHES } from '../content/world';
 import type { GameSession } from '../core/session';
 import type { SourceRect } from '../assets/terrain';
 
@@ -144,6 +144,14 @@ export function createWorldView(
     walls.lineStyle(2, 0x87929a).lineBetween(16, 24, 304, 24);
     compose('bench', 112, 88);
     chests.set('entity:cottage-chest', prop(230, 96, 'chest'));
+  } else if (region.style === 'practice') {
+    for (const p of PRACTICE_BENCHES) compose('bench', p.x, p.y);
+    const marking = scene.add
+      .graphics()
+      .setDepth(DEPTH.details + 2)
+      .lineStyle(1, 0xf2dca6, 0.65);
+    marking.strokeRect(24, 24, 432, 224).strokeCircle(240, 220, 12);
+    marking.lineStyle(2, 0xe7cf8a).strokeRect(228, 256, 24, 5);
   } else {
     for (const point of WOODLAND_TREES) compose('tree-original', point.x, point.y);
     prop(512, 272, 'sign');

@@ -1,6 +1,6 @@
 # World rendering and action input
 
-M04 supplies a traversable authored clearing, cottage and larger woodland. These exercise collision, retained world objects, safe entry, camera follow and UI focus. They do not define campaign topology or generate a forest.
+M04 supplies a traversable authored clearing, cottage and larger woodland. M05 adds a separate practice field and [combat rules](combat.md); the M04 evidence below records its original preview scope. These exercise collision, retained world objects, safe entry, camera follow and UI focus. They do not define campaign topology or generate a forest.
 
 ## Scene and rendering ownership
 
@@ -19,7 +19,7 @@ The logical viewport is 480×272. Phaser FIT preserves its aspect ratio inside t
 | 4000          | Cosmetic effects and interaction marker        |
 | 5000          | Development geometry and scene/tick readout    |
 
-`createWorldView` consumes the same retained object state used by interaction/collision. Opening chests changes their frame; dropping the box changes its position and solid. Shore and cosmetic action durations consume simulated time and freeze with the core. Forced action previews, including attack/hit, take priority over swim, carry, walk and idle. Those previews do not inflict damage or implement combat.
+`createWorldView` consumes the same retained object state used by interaction/collision. Opening chests changes their frame; dropping the box changes its position and solid. Shore and cosmetic action durations consume simulated time and freeze with the core. Forced action previews, including attack/hit, take priority over swim, carry, walk and idle. The action selector remains cosmetic; real practice actions are resolved by the core combat system.
 
 ## Motion and interaction
 

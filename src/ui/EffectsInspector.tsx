@@ -1,18 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
-import { bombExplosion } from '../assets/effects';
+import { bombExplosion, effectDurationMs, effectFrameAt } from '../assets/effects';
+const durationMs = effectDurationMs(bombExplosion);
 export function EffectsInspector() {
   const [frame, setFrame] = useState(0),
     [playing, setPlaying] = useState(false),
+    startedAt = useRef<number | null>(null),
     canvas = useRef<HTMLCanvasElement>(null);
   const selected = bombExplosion.frames[frame];
   useEffect(() => {
-    if (!playing || !selected) return;
-    const timer = window.setTimeout(() => {
-      if (frame + 1 === bombExplosion.frames.length) setPlaying(false);
-      else setFrame((f) => f + 1);
-    }, selected.durationMs);
-    return () => window.clearTimeout(timer);
-  }, [playing, frame, selected]);
+    if (!playing) return;
+    let request = 0;
+    const advance = (now: number) => {
+      if (startedAt.current === null) return;
+      const elapsedMs = Math.max(0, now - startedAt.current);
+      const selectedFrame = effectFrameAt(bombExplosion, elapsedMs);
+      setFrame(
+        selectedFrame
+          ? bombExplosion.frames.indexOf(selectedFrame)
+          : bombExplosion.frames.length - 1,
+      );
+      if (elapsedMs >= durationMs) {
+        startedAt.current = null;
+        setPlaying(false);
+      } else request = requestAnimationFrame(advance);
+    };
+    request = requestAnimationFrame(advance);
+    return () => cancelAnimationFrame(request);
+  }, [playing]);
   useEffect(() => {
     const ctx = canvas.current?.getContext('2d');
     if (!ctx) return;
@@ -33,6 +47,7 @@ export function EffectsInspector() {
       <button
         className="button button-subtle"
         onClick={() => {
+          startedAt.current = performance.now();
           setFrame(0);
           setPlaying(true);
         }}
@@ -42,7 +57,10 @@ export function EffectsInspector() {
       <button
         className="button button-subtle"
         disabled={!playing}
-        onClick={() => setPlaying(false)}
+        onClick={() => {
+          startedAt.current = null;
+          setPlaying(false);
+        }}
       >
         Stop explosion
       </button>
@@ -55,6 +73,7 @@ export function EffectsInspector() {
           max={5}
           value={frame}
           onChange={(e) => {
+            startedAt.current = null;
             setFrame(Number(e.target.value));
             setPlaying(false);
           }}

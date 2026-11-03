@@ -16,6 +16,7 @@ import {
 import type { HeroAction } from '../assets/hero-animations';
 import { moveFoot, cardinal, footRect } from '../core/motion';
 import { presentationAction } from './presentation-priority';
+import { createBattleView } from './battle-view';
 import { createWorldView, DEPTH } from './world-view';
 
 /** A mount owns its controller, device listeners, background observer and single Phaser game. */
@@ -92,6 +93,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
     class WorldScene extends Phaser.Scene {
       private actor: PhaserTypes.GameObjects.Sprite | undefined;
       private scenery: ReturnType<typeof createWorldView> | undefined;
+      private battle: ReturnType<typeof createBattleView> | undefined;
+      private shakenTick = -1;
       private explosion: PhaserTypes.GameObjects.Graphics | undefined;
       private overlay: PhaserTypes.GameObjects.Graphics | undefined;
       private debugText: PhaserTypes.GameObjects.Text | undefined;
@@ -119,6 +122,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
             state = controller.session.actor;
           this.cameras.main.setBackgroundColor(region.style === 'cottage' ? '#292e3f' : '#63ab3f');
           this.scenery = createWorldView(this, manifest, controller.session);
+          this.battle = createBattleView(this, manifest, controller.session, Phaser.TintModes.FILL);
           const first = lookup({
             texture: `hero-${controller.session.snapshot.hero}-idle`,
             x: 0,
@@ -166,7 +170,16 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           });
           this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
             input.reset();
-            for (const key of ['x', 'y', 'region', 'cameraX', 'cameraY', 'animation', 'tick'])
+            for (const key of [
+              'x',
+              'y',
+              'region',
+              'cameraX',
+              'cameraY',
+              'animation',
+              'tick',
+              'battle',
+            ])
               delete host.dataset[key];
           });
           controller.ready();
@@ -196,24 +209,53 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         if (disposed || !this.actor || this.pendingRestart) return;
         if (this.restartIfNeeded()) return;
         const intent = input.poll(controller.session.snapshot.paused);
+        const combat = controller.session.snapshot.combat;
+        if (
+          controller.session.battleActive &&
+          !controller.session.snapshot.paused &&
+          intent.guard !== combat?.guard
+        )
+          bridge.send({ type: 'combat.guard', active: intent.guard });
         if (intent.pressed.includes('pause'))
           bridge.send({ type: 'pause.set', reason: 'menu', active: true });
-        else if (intent.pressed.includes('interact'))
-          bridge.send({ type: 'world.interact', target: null });
-        else if (intent.pressed.includes('attack'))
+        else if (intent.pressed.includes('interact')) {
+          if (combat?.active && combat.drop)
+            bridge.send({ type: 'combat.collect', dropId: combat.drop });
+          else bridge.send({ type: 'world.interact', target: null });
+        } else if (controller.session.battleActive) {
+          const action = intent.pressed.includes('attack')
+            ? 'sword'
+            : intent.pressed.includes('roll')
+              ? 'roll'
+              : intent.pressed.includes('bow')
+                ? 'bow'
+                : null;
+          if (action)
+            bridge.send({
+              type: 'combat.action',
+              action,
+              facing: cardinal(intent.x, intent.y, controller.session.actor.facing),
+            });
+        } else if (intent.pressed.includes('attack'))
           bridge.send({ type: 'animation.preview', action: 'sword' });
         if (this.restartIfNeeded()) return;
         const snapshot = controller.session.snapshot,
           actor = this.actor;
         this.drawDebug(deltaMs);
         this.scenery?.sync();
+        this.battle?.render();
         if (snapshot.paused) {
+          this.cameras.main.shakeEffect.reset();
           actor.anims.pause();
           return;
         }
         actor.anims.resume();
+        if (controller.session.battleActive) {
+          this.preview = null;
+          this.remainingMs = 0;
+        }
         const request = bridge.snapshot.animationRequest;
-        if (request && request.sequence !== this.seenRequest) {
+        if (!controller.session.battleActive && request && request.sequence !== this.seenRequest) {
           this.seenRequest = request.sequence;
           this.preview = request.action;
           this.elapsedMs = 0;
@@ -257,6 +299,20 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           .setDepth(DEPTH.feet + state.position.y);
         this.scenery?.advance(frame.simulatedMs);
         this.scenery?.sync();
+        this.battle?.render();
+        if (this.battle?.hero(actor, moving)) {
+          const battle = controller.session.battlePresentation;
+          if (
+            battle &&
+            bridge.snapshot.screenShake &&
+            battle.lastDamageTick > this.shakenTick &&
+            controller.session.tick < battle.hurtUntil
+          ) {
+            this.shakenTick = battle.lastDamageTick;
+            this.cameras.main.shake(100, 0.002);
+          }
+          return;
+        }
         if (forced && this.preview) {
           if (this.elapsedMs === 0 || this.hero !== snapshot.hero) this.play(this.preview);
           if (this.preview === 'death') actor.setAlpha(deathPreviewAlpha(this.elapsedMs));
@@ -329,6 +385,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           cameraX: String(Math.round(this.cameras.main.scrollX)),
           cameraY: String(Math.round(this.cameras.main.scrollY)),
           animation: this.actor?.anims.currentAnim?.key ?? '',
+          battle: JSON.stringify(controller.session.battlePresentation),
           tick: String(controller.session.tick),
         });
       }

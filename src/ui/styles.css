@@ -888,3 +888,91 @@ footer span span {
     flex-direction: column;
   }
 }
+
+.combat-panel {
+  margin: 1.25rem 0 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #ecf0e3;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 1fr);
+  gap: 1.25rem;
+}
+.combat-panel h2 {
+  margin: 0 0 0.5rem;
+}
+.trial-controls {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.trial-controls label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+}
+.trial-controls select {
+  max-width: 100%;
+}
+.combat-hud {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+.combat-pools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.combat-pools label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+}
+.combat-pools span {
+  float: right;
+}
+.combat-pools progress {
+  width: 100%;
+  height: 0.7rem;
+  accent-color: #a95f50;
+}
+.combat-pools label + label progress {
+  accent-color: #538889;
+}
+.combat-readout,
+.combat-bindings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.9rem;
+  font-size: 0.8rem;
+  align-items: center;
+}
+.combat-bindings > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.combat-feedback {
+  min-height: 1.5em;
+  font-weight: 600;
+  color: #704b3e;
+}
+.shake-setting {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+@media (max-width: 760px) {
+  .combat-panel {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  .combat-pools {
+    gap: 0.75rem;
+  }
+}

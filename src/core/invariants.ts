@@ -1,3 +1,4 @@
+import { assertCombatInvariants } from './combat-invariants';
 import type { ContentRegistry } from '../content/schemas';
 import type { ItemInstance, SaveState } from './model';
 
@@ -35,7 +36,12 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
     ),
     ...state.world.dungeons.map((d) => d.geometry),
   ];
-  const entityIds = [player.actor.id, ...geometries.flatMap((g) => g.objects.map((o) => o.id))];
+  const entityIds = [
+    player.actor.id,
+    ...geometries.flatMap((g) => g.objects.map((o) => o.id)),
+    ...(state.combat?.enemies.map((e) => e.id) ?? []),
+  ];
+  assertCombatInvariants(state);
   unique(entityIds, 'entity ID');
   const knownEntities = new Set(entityIds);
   for (const g of geometries)

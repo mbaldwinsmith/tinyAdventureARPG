@@ -1,6 +1,6 @@
 # Tiny Adventure — First Full Release Plan
 
-**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M04 complete: application/assets, core state/time, world rendering, collision and input. M05 cardinal combat is next.
+**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M05 complete: application/assets, state/time, world/input and practice combat/enemy behaviours. M06 persistent surfaces and anchor dungeons are next.
 
 This is the implementation backlog. `[x]` means delivered and verified, not merely designed. Completed M00 items record the documentation baseline. M01 now delivers the application foundation; the authored clearing is an integration preview, not completion of later combat, world or campaign milestones.
 
@@ -186,25 +186,33 @@ Normalised diagonals/cardinal facing with vertical ties remain reversible previe
 
 ## M05 — Cardinal combat and enemy behaviour
 
-- [ ] **M05-001** Define cardinal attack arcs, windup/active/recovery frames and movement commitment.
-- [ ] **M05-002** Implement sword attacks with explicit hitboxes and one-hit-per-swing tracking.
-- [ ] **M05-003** Implement damage, knockback, hurt response and bounded invulnerability windows.
-- [ ] **M05-004** Implement directional shield blocking with clear success/failure feedback.
-- [ ] **M05-005** Implement dodge rolls, collision behaviour, cooldown and defined invulnerability timing.
-- [ ] **M05-006** Implement health/energy regeneration and cooldown presentation independently of frame rate.
-- [ ] **M05-007** Implement faction/owner-aware projectiles, collision, lifetime and cleanup.
-- [ ] **M05-008** Add enemy state machines with visible detection, pursuit, windup, attack, recovery and disengagement.
-- [ ] **M05-009** Implement basic melee skeleton and slow-pressure zombie behaviours.
-- [ ] **M05-010** Implement goblin archer spacing, aim telegraph and projectile release.
-- [ ] **M05-011** Implement bat/rat/slime movement patterns using available direction coverage deliberately.
-- [ ] **M05-012** Implement enemy death, drops and encounter completion without duplicate reward events.
-- [ ] **M05-013** Implement path requests/steering for room obstacles without frame-by-frame full-world pathfinding.
-- [ ] **M05-014** Implement player death entry and a single authoritative loss/respawn transition.
-- [ ] **M05-015** Add readable targeting, impact feedback and adjustable screen-shake settings.
-- [ ] **M05-016** Verify cardinal hit boundaries, blocking, repeated overlaps, pause behaviour and death-event idempotency.
-- [ ] **M05-017** Playtest small mixed encounters for readable behaviour and fair recovery opportunities.
+- [x] **M05-001** Define cardinal attack arcs, windup/active/recovery frames and movement commitment.
+- [x] **M05-002** Implement sword attacks with explicit hitboxes and one-hit-per-swing tracking.
+- [x] **M05-003** Implement damage, knockback, hurt response and bounded invulnerability windows.
+- [x] **M05-004** Implement directional shield blocking with clear success/failure feedback.
+- [x] **M05-005** Implement dodge rolls, collision behaviour, cooldown and defined invulnerability timing.
+- [x] **M05-006** Implement health/energy regeneration and cooldown presentation independently of frame rate.
+- [x] **M05-007** Implement faction/owner-aware projectiles, collision, lifetime and cleanup.
+- [x] **M05-008** Add enemy state machines with visible detection, pursuit, windup, attack, recovery and disengagement.
+- [x] **M05-009** Implement basic melee skeleton and slow-pressure zombie behaviours.
+- [x] **M05-010** Implement goblin archer spacing, aim telegraph and projectile release.
+- [x] **M05-011** Implement bat/rat/slime movement patterns using available direction coverage deliberately.
+- [x] **M05-012** Implement enemy death, drops and encounter completion without duplicate reward events.
+- [x] **M05-013** Implement path requests/steering for room obstacles without frame-by-frame full-world pathfinding.
+- [x] **M05-014** Implement player death entry and a single authoritative loss/respawn transition.
+- [x] **M05-015** Add readable targeting, impact feedback and adjustable screen-shake settings.
+- [x] **M05-016** Verify cardinal hit boundaries, blocking, repeated overlaps, pause behaviour and death-event idempotency.
+- [x] **M05-017** Playtest small mixed encounters for readable behaviour and fair recovery opportunities.
 
 **Acceptance:** combat is playable and predictable. Damage timing is explicit; held overlap does not repeatedly apply a single hit. Enemy recolours do not masquerade as distinct behaviour implementations.
+
+### M05 delivery evidence
+
+All 17 combat tasks are complete in the separate authored practice field. Core-owned cardinal sword/shield/roll/bow actions use explicit fixed-step timing, swept collision, accepted-contact tracking, directional blocks, bounded invulnerability, regeneration and cooldowns. Owner/faction-aware arrows, six distinct enemy behaviours with detection/aim/recovery/disengagement, bounded room-path requests, one-time drops/completion and focused HUD feedback are integrated with the existing clock and pauses. Defeat creates one persisted identity; a guarded loss/respawn command restores the practice entrance once, retaining dead enemies and unclaimed coins. Shield/roll/bow bindings and optional screen shake extend the existing focus/neutral handling.
+
+Seventy-eight unit tests, twenty browser flows, asset/catalogue/notice checks and the production build pass. Production WebGL/screenshots at 1440px and 800px verify hits, blocks, coins, nested pause/settings, defeat/respawn, safe exit, no overflow, one canvas and no page/console errors. Keyboard play checks cleared melee and archer trials; swarm combat and defeat recovery were exercised, and a full six-kind mixed encounter cleared with 9/10 health remaining. Controller tests emulate the browser Gamepad API; physical hardware remains untested. See `docs/combat.md` and `CHANGELOG.md`.
+
+Practice provides a borrowed combat kit, refills on an explicit new trial and retains possessions on defeat. The validated loss resolver is tested with injected owned randomness/configuration, but campaign eligibility/equipment/stack/money choices remain M00 decisions; durable loss/respawn saving is M07 work. No permanent tools, inventory/equipment UI, boss/anchor encounter or generated dungeon is implied. M06 generation, M07 storage, M08 transactions and later tool/campaign integration remain open. Current art totals: 316 sources, 187 runtime / 129 inspection-only, 3,985 padded frames on one atlas. Purchased archive bytes and LICENSE remain unchanged.
 
 ## M06 — Persistent surfaces and anchor dungeons
 
