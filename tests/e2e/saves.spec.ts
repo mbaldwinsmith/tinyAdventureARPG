@@ -21,8 +21,14 @@ async function importState(page: Page, state: SaveState) {
     mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify(state)),
   });
-  await expect(page.getByRole('dialog', { name: 'Saved adventures' })).toHaveCount(0);
+  // Import includes file reading, schema/hash work and an IndexedDB commit.
+  // Await its durable active-slot postcondition before checking modal teardown.
+  await expect(page.locator('.save-panel > div strong')).toHaveText(
+    'Imported adventure (imported)',
+    { timeout: 30000 },
+  );
   await settled(page);
+  await expect(page.getByRole('dialog', { name: 'Saved adventures' })).toHaveCount(0);
 }
 function chestFixture() {
   const state = createPreviewSave('browser-saves');
