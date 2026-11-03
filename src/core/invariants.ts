@@ -1,3 +1,4 @@
+import { validateGeneratedGeometry } from './generation';
 import { assertCombatInvariants } from './combat-invariants';
 import type { ContentRegistry } from '../content/schemas';
 import type { ItemInstance, SaveState } from './model';
@@ -39,11 +40,14 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
   const entityIds = [
     player.actor.id,
     ...geometries.flatMap((g) => g.objects.map((o) => o.id)),
-    ...(state.combat?.enemies.map((e) => e.id) ?? []),
+    ...[...state.world.savedCombats, ...(state.combat ? [state.combat] : [])].flatMap((c) =>
+      c.enemies.map((e) => e.id),
+    ),
   ];
   assertCombatInvariants(state);
   unique(entityIds, 'entity ID');
   const knownEntities = new Set(entityIds);
+  for (const g of geometries) if (g.generated) validateGeneratedGeometry(g);
   for (const g of geometries)
     for (const object of g.objects)
       if (
@@ -55,6 +59,31 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
         throw new Error('Object outside geometry');
   for (const d of state.world.dungeons)
     if (!knownEntities.has(d.anchor.bossId)) throw new Error('Missing anchor entity');
+  for (const dungeon of state.world.dungeons)
+    if (dungeon.geometry.generated) {
+      const layout = dungeon.geometry.generated,
+        combat = [...state.world.savedCombats, ...(state.combat ? [state.combat] : [])].find(
+          (c) => c.instanceId === dungeon.id && c.regionId === dungeon.regionId,
+        );
+      const anchor = combat?.enemies.find((e) => e.id === `${dungeon.anchor.bossId}-actor`),
+        reward = layout.placements.find((p) => p.kind === 'reward');
+      if (
+        !anchor ||
+        !reward ||
+        layout.generation !== dungeon.generation ||
+        !layout.placements.some((p) => p.kind === 'anchor' && p.id === dungeon.anchor.bossId)
+      )
+        throw new Error('Broken generated anchor reference');
+      if ((dungeon.anchor.phase === 'living') !== anchor.health > 0)
+        throw new Error('Anchor phase contradicts encounter');
+      const claimed = dungeon.changes.claimedRewards.includes(reward.id);
+      if (
+        (claimed && dungeon.anchor.phase === 'living') ||
+        (['pending-regeneration', 'retired'].includes(dungeon.anchor.phase) && !claimed)
+      )
+        throw new Error('Anchor reward boundary is inconsistent');
+    }
+
   unique(permanent.tools, 'permanent tool');
   unique(permanent.unlocks, 'unlock');
   unique(permanent.discoveredRegions, 'discovery');
@@ -90,6 +119,7 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
       throw new Error('Living anchor cannot be removed');
     const ids = new Set(d.geometry.objects.map((o) => o.id));
     for (const id of [
+      ...d.changes.discoveredMarkers,
       ...d.changes.removedObjects,
       ...d.changes.openedPassages,
       ...d.changes.claimedRewards,
@@ -104,6 +134,8 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
     ),
   ];
   for (const changes of changeSets) {
+    unique(changes.exploredRooms.map(String), 'explored room');
+    unique(changes.discoveredMarkers, 'discovered marker');
     unique(changes.removedObjects, 'removed object');
     unique(changes.openedPassages, 'opened passage');
     unique(changes.claimedRewards, 'claimed reward');
@@ -125,6 +157,7 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
       );
       const ids = new Set(r.geometry.objects.map((o) => o.id));
       for (const id of [
+        ...r.changes.discoveredMarkers,
         ...r.changes.removedObjects,
         ...r.changes.openedPassages,
         ...r.changes.claimedRewards,

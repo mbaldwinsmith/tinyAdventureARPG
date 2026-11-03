@@ -4,6 +4,7 @@ import { GameBridge } from '../bridge/game-bridge';
 import { useAssetManifest, packedSpriteStyle, usePanelSkin } from './atlas-ui';
 import { ActionPrompt } from './ActionPrompt';
 import { ControlsDialog } from './ControlsDialog';
+import { ExpeditionPanel } from './ExpeditionPanel';
 import { CombatPanel, DefeatDialog } from './CombatPanel';
 import { InteractionDialog } from './InteractionDialog';
 import { HERO_IDS } from '../core/model';
@@ -156,7 +157,11 @@ export function App() {
               <span className="location-dot" aria-hidden="true" />
               <h2 id="clearing-title">{snapshot.region.name}</h2>
               <span className="location-type">
-                {snapshot.combat?.active ? 'COMBAT PRACTICE' : 'FOREST PREVIEW'}
+                {snapshot.expedition
+                  ? 'PERSISTENT EXPEDITION'
+                  : snapshot.combat?.active
+                    ? 'COMBAT PRACTICE'
+                    : 'FOREST PREVIEW'}
               </span>
             </div>
             <span className="engine-status" role="status">
@@ -238,7 +243,9 @@ export function App() {
               ? 'Carrying a small box'
               : snapshot.swimming
                 ? 'Swimming in the pond'
-                : 'Explore the clearing, cottage and woodland path'}
+                : snapshot.expedition
+                  ? 'Follow the trail markers and face an object to interact'
+                  : 'Explore the clearing, cottage and woodland path'}
           </span>
           {snapshot.nearby && (
             <button
@@ -257,6 +264,7 @@ export function App() {
             </button>
           )}
         </div>
+        <ExpeditionPanel bridge={bridge} snapshot={snapshot} />
         <CombatPanel bridge={bridge} snapshot={snapshot} assets={assets} />
         <section className="below-world" aria-label="Preview options and development status">
           <div className="appearance-panel">
@@ -297,7 +305,7 @@ export function App() {
               <p className="eyebrow">A SEED, NOT THE WHOLE GARDEN</p>
               <h2>Something worth growing</h2>
               <p>
-                The first combat trials are ready. Learn the rhythm, try a different encounter, and
+                The forest and anchored crypt are ready. Find a route, bring discoveries home, and
                 return to the clearing. Storage, farming and the wider Kingdom are still ahead.
               </p>
               <a
@@ -315,7 +323,7 @@ export function App() {
             <p className="eyebrow">TRY A NEW MOVE</p>
             <h2>Bring the artwork to life</h2>
             <p>
-              Cosmetic action previews outside practice. Enter the practice field above for real
+              Cosmetic action previews outside combat. Enter the practice field above for real
               combat.
             </p>
           </div>

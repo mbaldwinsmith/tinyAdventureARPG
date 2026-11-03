@@ -1,3 +1,5 @@
+import { retainedArea, areaDefinition, enterArea } from './expeditions';
+import { roomAt } from './generation';
 import { z } from 'zod';
 import { trialSchema } from './combat-model';
 import type { CombatEvent } from './combat-model';
@@ -15,9 +17,9 @@ import { copyData, freezeData } from './data';
 import { saveSchema, heroSchema, directionSchema, positionSchema } from './model';
 import type { HeroId, Position, SaveState } from './model';
 import { allocatedId } from './ids';
-import { entityIdSchema } from './ids';
+import { entityIdSchema, toolIdSchema } from './ids';
 import type { WorldRegistry, Interaction } from './world';
-import { targetInReach } from './world';
+import { targetInReach, solidEntriesFor } from './world';
 import { footRect, freeFoot, overlaps, segmentBlocked } from './motion';
 import type { Region } from './model';
 import type { EntityId, InstanceId, ItemInstanceId } from './ids';
@@ -86,6 +88,7 @@ interface CoreSnapshot {
   readonly carrying: boolean;
   readonly swimming: boolean;
   readonly transitionSequence: number;
+  readonly expedition: ReturnType<GameSession['expeditionView']>;
   readonly combat: ReturnType<typeof combatView> | null;
 }
 /** The sole owner of serializable state, random streams and gameplay time. */
@@ -109,16 +112,19 @@ export class GameSession {
     assertWorldInvariants(this.state, content);
     this.random = new RandomStreams(this.state.world.seed, this.state.random);
     if (this.state.combat?.death?.phase === 'pending') this.pauses.set('death', true);
-    if (this.state.combat) {
-      if (!world) throw new Error('Combat checkpoints require authored collision geometry');
-      const definition = world.region(this.state.combat.regionId);
-      const retained = this.state.world.regions.find((r) => r.id === definition.id);
-      if (!retained) throw new Error('Missing combat region');
-      const solids = world.solids(definition.id, retained);
-      for (const enemy of this.state.combat.enemies)
+    for (const combat of [
+      ...this.state.world.savedCombats,
+      ...(this.state.combat ? [this.state.combat] : []),
+    ]) {
+      if (!world) throw new Error('Combat checkpoints require collision geometry');
+      const definition = areaDefinition(this.state, world, combat.regionId, combat.instanceId);
+      const area = retainedArea(this.state, combat.regionId, combat.instanceId);
+      // Opened gates can close neither around actors nor at checkpoint continuation.
+      const solids = solidEntriesFor(definition, area).map((s) => s.rect);
+      for (const enemy of combat.enemies)
         if (
-          ![enemy.position, enemy.home].every((position) =>
-            freeFoot(position, definition.width, definition.height, solids),
+          ![enemy.position, enemy.home].every((p) =>
+            freeFoot(p, definition.width, definition.height, solids),
           )
         )
           throw new Error('Combat actor spawned inside a solid');
@@ -138,6 +144,7 @@ export class GameSession {
     const calendar = calendarView(this.state.calendar, this.state.timeRules),
       reasons = this.pauses.snapshot();
     const target = this.nearestTarget();
+    const expedition = this.expeditionView();
     const combat = this.state.combat
       ? combatView(
           this.state.combat,
@@ -149,11 +156,13 @@ export class GameSession {
       : null;
     if (
       !this.cached ||
+      JSON.stringify(this.cached.expedition) !== JSON.stringify(expedition) ||
       this.cached.hero !== this.state.player.hero ||
       this.cached.pauseReasons.join(',') !== reasons.join(',') ||
       this.cached.calendar.day !== calendar.day ||
       this.cached.calendar.minuteOfDay !== calendar.minuteOfDay ||
       this.cached.region.id !== this.state.player.regionId ||
+      this.cached.transitionSequence !== this.transitionSequence ||
       this.cached.nearby?.id !== target?.id ||
       this.cached.nearby?.label !== target?.label ||
       this.cached.message !== this.message ||
@@ -168,7 +177,7 @@ export class GameSession {
         calendar,
         region: {
           id: this.state.player.regionId,
-          name: this.world?.region(this.state.player.regionId).name ?? 'Wayfarer’s clearing',
+          name: this.world ? this.regionDefinition.name : 'Wayfarer’s clearing',
         },
         nearby: target ? { id: target.id, label: target.label, kind: target.kind } : null,
         message: this.message,
@@ -176,6 +185,7 @@ export class GameSession {
         swimming: this.swimming,
         transitionSequence: this.transitionSequence,
         combat,
+        expedition,
       });
     return this.cached;
   }
@@ -232,7 +242,7 @@ export class GameSession {
       return this.interact(command.target);
     } else if (command.type === 'calendar.sleep') {
       if (this.battleActive)
-        return { ok: false, code: 'unavailable', message: 'Leave practice before resting.' };
+        return { ok: false, code: 'unavailable', message: 'Return to the village before resting.' };
       if (this.pauses.paused)
         return { ok: false, code: 'paused', message: 'Resume the clearing before resting.' };
       if (command.expectedDay !== this.state.calendar.day)
@@ -314,6 +324,7 @@ export class GameSession {
         // Movement is committed once. Core never integrates an adapter's velocity again.
         actor.position = movement.position;
         actor.facing = movement.facing;
+        this.discover();
         this.state.clock.tick++;
         actor.cooldowns = actor.cooldowns
           .map((c) => ({ ...c, remainingTicks: c.remainingTicks - 1 }))
@@ -349,7 +360,11 @@ export class GameSession {
     };
   }
   get battleActive() {
-    return !!this.state.combat && this.state.combat.regionId === this.state.player.regionId;
+    return (
+      !!this.state.combat &&
+      this.state.combat.regionId === this.state.player.regionId &&
+      this.state.combat.instanceId === this.state.player.instanceId
+    );
   }
   get battlePresentation() {
     return this.battleActive ? freezeData(copyData(this.state.combat)) : null;
@@ -364,7 +379,19 @@ export class GameSession {
       width: this.regionDefinition.width,
       height: this.regionDefinition.height,
       solids: this.solids,
-      emit: (event: CombatEvent) => this.emit(event),
+      emit: (event: CombatEvent) => {
+        if (event.type === 'combat.enemy-defeated') {
+          const dungeon = this.state.world.dungeons.find(
+            (d) => d.id === this.state.player.instanceId,
+          );
+          if (
+            dungeon?.anchor.phase === 'living' &&
+            event.subject === `${dungeon.anchor.bossId}-actor`
+          )
+            dungeon.anchor.phase = 'defeated';
+        }
+        this.emit(event);
+      },
     };
   }
   private combatCommand(command: CoreCommand): CoreResult {
@@ -380,6 +407,32 @@ export class GameSession {
         return unavailable('That defeat was already resolved.');
       if (this.pauses.snapshot().some((r) => r !== 'death'))
         return unavailable('Close other menus before returning.');
+      if (s.regionId !== 'region:practice' && this.world) {
+        const draft = copyData(this.state),
+          battle = draft.combat;
+        if (!battle?.death) return unavailable('Missing defeat checkpoint.');
+        battle.death.phase = 'resolved';
+        draft.player.actor.resources.health.current = draft.player.actor.resources.health.maximum;
+        draft.player.actor.resources.energy.current = draft.player.actor.resources.energy.maximum;
+        enterArea(draft, this.world, 'region:clearing', 'start');
+        assertWorldInvariants(draft, this.content);
+        this.state = draft;
+        this.transitionSequence++;
+        this.pauses.set('death', false);
+        this.emit({ type: 'world.region-entered', regionId: 'region:clearing' });
+        this.emit({
+          type: 'combat.player-respawned',
+          subject: String(command.deathId),
+          message:
+            'Returned to the village with possessions retained. The dungeon instance remains anchored.',
+        });
+        this.emit({
+          type: 'pause.changed',
+          paused: this.pauses.paused,
+          reasons: this.pauses.snapshot(),
+        });
+        return { ok: true };
+      }
       const spawn = this.world?.spawn(s.regionId, 'entry');
       if (!spawn) return unavailable('The practice entrance is unavailable.');
       if (
@@ -437,6 +490,8 @@ export class GameSession {
     if (this.pauses.paused)
       return { ok: false, code: 'paused', message: 'Close the current menu first.' };
     if (command.type === 'combat.start') {
+      if (this.state.player.instanceId || this.activeArea().geometry.generated)
+        return unavailable('Return to the village before starting practice.');
       if (!this.world || this.state.player.carrying)
         return unavailable('Set down the box before entering practice.');
       const destination = this.state.world.regions.find((r) => r.id === 'region:practice');
@@ -445,8 +500,16 @@ export class GameSession {
       const spawn = this.world.spawn(destination.id, 'entry');
       const definition = this.world.region(destination.id);
       const solids = this.world.solids(destination.id, destination);
-      const next = createBattle(command.trial, (s?.generation ?? 0) + 1, this.tick);
-      next.nextSequence = s?.nextSequence ?? 1;
+      const battles = [...this.state.world.savedCombats, ...(s ? [s] : [])];
+      const next = createBattle(
+        command.trial,
+        Math.max(
+          0,
+          ...battles.filter((c) => c.regionId === 'region:practice').map((c) => c.generation),
+        ) + 1,
+        this.tick,
+      );
+      next.nextSequence = Math.max(1, ...battles.map((c) => c.nextSequence));
       if (
         !freeFoot(spawn.position, definition.width, definition.height, solids) ||
         next.enemies.some(
@@ -463,6 +526,9 @@ export class GameSession {
         this.state.player.permanent.discoveredRegions.push(destination.id);
       actor.resources.health.current = actor.resources.health.maximum;
       actor.resources.energy.current = actor.resources.energy.maximum;
+      this.state.world.savedCombats = this.state.world.savedCombats.filter(
+        (c) => c.regionId !== 'region:practice',
+      );
       this.state.combat = next;
       this.state.clock.remainderMs = 0;
       this.transitionSequence++;
@@ -501,7 +567,7 @@ export class GameSession {
   }
   get regionDefinition() {
     if (!this.world) throw new Error('No authored world attached');
-    return this.world.region(this.state.player.regionId);
+    return areaDefinition(this.state, this.world);
   }
   get regionState(): Region {
     const state = this.state.world.regions.find((r) => r.id === this.state.player.regionId);
@@ -514,9 +580,15 @@ export class GameSession {
       throw new Error('Missing authored surface');
     return region;
   }
+  private activeArea() {
+    return retainedArea(this.state);
+  }
+  private solidEntries() {
+    return solidEntriesFor(this.regionDefinition, this.activeArea());
+  }
   get solids() {
     if (!this.world) return [];
-    const solids = this.world.solids(this.state.player.regionId, this.activeRegion());
+    const solids = this.solidEntries().map((s) => s.rect);
     return this.state.player.carrying ? [...solids, ...this.regionDefinition.water] : solids;
   }
   get swimming(): boolean {
@@ -527,9 +599,14 @@ export class GameSession {
       )
     );
   }
+  get geometry() {
+    return freezeData(copyData(this.activeArea().geometry));
+  }
   get worldPresentation() {
-    const region = this.activeRegion();
+    const region = this.activeArea();
     return freezeData({
+      passages: [...region.changes.openedPassages],
+      claimed: [...region.changes.claimedRewards],
       objects: copyData(region.geometry.objects),
       removed: [...region.changes.removedObjects],
       opened: [...region.changes.openedObjects],
@@ -538,7 +615,7 @@ export class GameSession {
   }
   private targetPosition(target: Interaction) {
     return (
-      this.activeRegion().geometry.objects.find((o) => o.id === target.id)?.position ??
+      this.activeArea().geometry.objects.find((o) => o.id === target.id)?.position ??
       target.position
     );
   }
@@ -551,17 +628,14 @@ export class GameSession {
       return target ? { ...target, label: 'Set down small box' } : null;
     }
     const actor = this.state.player.actor,
-      region = this.activeRegion();
+      region = this.activeArea();
     const targets = this.regionDefinition.interactions.filter(
       (t) =>
         !region.changes.removedObjects.includes(t.id) &&
         targetInReach(actor.position, actor.facing, this.targetPosition(t)) &&
-        !this.world
-          ?.solidEntries(this.state.player.regionId, region)
-          .some(
-            (s) =>
-              s.owner !== t.id && segmentBlocked(actor.position, this.targetPosition(t), s.rect),
-          ),
+        !this.solidEntries().some(
+          (s) => s.owner !== t.id && segmentBlocked(actor.position, this.targetPosition(t), s.rect),
+        ),
     );
     targets.sort(
       (a, b) =>
@@ -587,7 +661,7 @@ export class GameSession {
     const target = this.nearestTarget();
     if (!target || (requested !== null && target.id !== requested))
       return { ok: false, code: 'unavailable', message: 'Move closer and face the object.' };
-    const region = this.activeRegion(),
+    const region = this.activeArea(),
       actor = this.state.player.actor;
     if (this.state.player.carrying) {
       const dx = actor.facing === 'right' ? 18 : actor.facing === 'left' ? -18 : 0,
@@ -627,39 +701,28 @@ export class GameSession {
         };
       region.changes.removedObjects.push(target.id);
       this.state.player.carrying = target.id;
-    } else if (target.kind === 'door' && target.destination && this.world) {
-      const destination = this.state.world.regions.find(
-        (r) => r.id === target.destination?.regionId,
-      );
-      if (!destination || destination.kind !== 'surface' || destination.phase === 'unvisited')
-        return { ok: false, code: 'unavailable', message: 'The destination is unavailable.' };
-      const definition = this.world.region(destination.id),
-        spawn = this.world.spawn(destination.id, target.destination.spawn);
-      if (
-        !freeFoot(
-          spawn.position,
-          definition.width,
-          definition.height,
-          this.world.solids(destination.id, destination),
-        )
-      )
-        return { ok: false, code: 'unavailable', message: 'The destination doorway is blocked.' };
-      if (this.state.combat) {
-        this.state.combat.guard = false;
-        this.state.combat.action = null;
-        this.state.combat.projectiles = [];
+    } else if (
+      (target.kind === 'door' || target.kind === 'portal') &&
+      target.destination &&
+      this.world
+    ) {
+      const draft = copyData(this.state);
+      try {
+        enterArea(draft, this.world, target.destination.regionId, target.destination.spawn);
+        assertWorldInvariants(draft, this.content);
+      } catch (error) {
+        return {
+          ok: false,
+          code: 'unavailable',
+          message: error instanceof Error ? error.message : 'Travel failed.',
+        };
       }
-      region.phase = 'dormant';
-      destination.phase = 'active';
-      this.state.player.regionId = destination.id;
-      this.state.player.instanceId = null;
-      actor.position = { ...spawn.position };
-      actor.facing = spawn.facing;
-      if (!this.state.player.permanent.discoveredRegions.includes(destination.id))
-        this.state.player.permanent.discoveredRegions.push(destination.id);
-      this.state.clock.remainderMs = 0;
+      this.state = draft;
+      this.discover();
       this.transitionSequence++;
-      this.emit({ type: 'world.region-entered', regionId: destination.id });
+      this.emit({ type: 'world.region-entered', regionId: this.state.player.regionId });
+    } else if (target.kind === 'generated') {
+      return this.interactGenerated(target);
     } else {
       if (target.kind === 'chest' && !region.changes.openedObjects.includes(target.id))
         region.changes.openedObjects.push(target.id);
@@ -667,6 +730,127 @@ export class GameSession {
       this.pauses.set('interaction', true);
       this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
     }
+    this.emit({ type: 'interaction.changed' });
+    return { ok: true };
+  }
+  private discover() {
+    const area = this.activeArea(),
+      layout = area.geometry.generated;
+    if (!layout) return;
+    const room = roomAt(layout, this.state.player.actor.position);
+    if (room !== null && !area.changes.exploredRooms.includes(room))
+      area.changes.exploredRooms.push(room);
+    for (const p of layout.placements)
+      if (
+        p.room === room &&
+        ['portal', 'shortcut', 'landmark', 'secret'].includes(p.kind) &&
+        !area.changes.discoveredMarkers.includes(p.id)
+      )
+        area.changes.discoveredMarkers.push(p.id);
+  }
+  expeditionView() {
+    if (!this.world) return null;
+    const area = this.activeArea(),
+      layout = area.geometry.generated;
+    if (!layout) return null;
+    const instance = this.state.world.dungeons.find((d) => d.id === this.state.player.instanceId);
+    return {
+      seed: this.state.world.seed,
+      regionalSeed: layout.seed,
+      region: this.state.player.regionId,
+      instance: instance?.id ?? null,
+      generation: layout.generation,
+      attempt: layout.attempt,
+      fallback: layout.fallback,
+      anchor: instance?.anchor.phase ?? null,
+      tools: [...this.state.player.permanent.tools],
+      rooms: layout.rooms.map((r) => ({
+        id: r.id,
+        column: r.column,
+        row: r.row,
+        explored: area.changes.exploredRooms.includes(r.id),
+        tag: area.changes.exploredRooms.includes(r.id) ? r.tag : 'unknown',
+      })),
+      edges: layout.edges.filter(
+        (e) =>
+          area.changes.exploredRooms.includes(e.from) && area.changes.exploredRooms.includes(e.to),
+      ),
+      markers: layout.placements
+        .filter((p) => area.changes.discoveredMarkers.includes(p.id))
+        .map((p) => ({
+          id: p.id,
+          kind: p.kind,
+          room: p.room,
+          opened: area.changes.openedPassages.includes(p.id),
+        })),
+    };
+  }
+  private interactGenerated(target: Interaction): CoreResult {
+    const area = this.activeArea(),
+      layout = area.geometry.generated,
+      p = layout?.placements.find((p) => p.id === target.id);
+    const fail = (message: string): CoreResult => ({ ok: false, code: 'unavailable', message });
+    if (!layout || !p) return fail('Missing exploration object.');
+    const has = (kind: string) =>
+      layout.placements.some((p) => p.kind === kind && area.changes.openedObjects.includes(p.id));
+    let text: string;
+    if (p.kind.startsWith('gate-') || p.kind === 'shortcut') {
+      if (area.changes.openedPassages.includes(p.id)) return fail('This passage is already open.');
+      const required = p.kind === 'gate-key' ? 'key' : p.kind === 'gate-switch' ? 'switch' : 'axe';
+      if (
+        required === 'axe'
+          ? !this.state.player.permanent.tools.includes(toolIdSchema.parse('tool:axe'))
+          : !has(required)
+      )
+        return fail(`Find the ${required} before opening this passage.`);
+      area.changes.openedPassages.push(p.id);
+      text =
+        p.kind === 'shortcut'
+          ? 'A hidden trail now joins the clearings. This shortcut will stay open.'
+          : 'Passage opened. It will remain open when you return.';
+    } else if (['key', 'switch', 'axe', 'resource'].includes(p.kind)) {
+      if (area.changes.openedObjects.includes(p.id)) return fail('Already collected or activated.');
+      if (p.kind === 'resource' && this.state.player.carried.money === Number.MAX_SAFE_INTEGER)
+        return fail('Coin capacity reached.');
+      area.changes.openedObjects.push(p.id);
+      if (p.kind === 'axe') {
+        const tool = this.content.tool(toolIdSchema.parse('tool:axe'));
+        if (!tool) throw new Error('Missing route tool');
+        if (!this.state.player.permanent.tools.includes(tool.id))
+          this.state.player.permanent.tools.push(tool.id);
+        text =
+          'Trail axe acquired permanently. Fallen timber can now be cleared on every expedition.';
+      } else if (p.kind === 'resource') {
+        this.state.player.carried.money++;
+        text =
+          'Gathered supplies worth one coin. Wild supplies renew offscreen on the first visit of a later day.';
+      } else
+        text =
+          p.kind === 'key'
+            ? 'Brass key found. It opens this region’s brass gate without being consumed.'
+            : 'Sun switch activated. The sun gate can now be opened.';
+    } else if (p.kind === 'reward' || p.kind === 'secret') {
+      if (area.changes.claimedRewards.includes(p.id))
+        return fail('This reward has already been collected.');
+      if (
+        p.kind === 'reward' &&
+        this.state.combat?.enemies.some((e) => e.kind === 'skeleton' && e.health > 0)
+      )
+        return fail('Defeat the anchor warden before claiming its reward.');
+      if (this.state.player.carried.money > Number.MAX_SAFE_INTEGER - 5)
+        return fail('Coin capacity reached.');
+      area.changes.claimedRewards.push(p.id);
+      this.state.player.carried.money += 5;
+      text =
+        p.kind === 'reward'
+          ? this.state.player.instanceId
+            ? 'Anchor reward collected: five coins. The occupied dungeon remains intact. After you exit, its successor can appear on your next entry.'
+            : 'Warden reward collected: five coins. This surface reward stays claimed; its geography and warden remain unchanged.'
+          : 'Hidden cache: five coins. This one-time discovery remains claimed.';
+    } else text = target.text;
+    this.message = freezeData({ title: target.label, body: text });
+    this.pauses.set('interaction', true);
+    this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
     this.emit({ type: 'interaction.changed' });
     return { ok: true };
   }

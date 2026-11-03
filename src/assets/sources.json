@@ -1418,13 +1418,13 @@
     "id": "terrain-new-desert",
     "archive": "Tiny Biomes Vol.1.zip",
     "path": "Tiny Biomes Vol.1/Tilesets/New Style/Desert_16x16.png",
-    "inspectionOnly": true
+    "inspectionOnly": false
   },
   {
     "id": "terrain-new-snow",
     "archive": "Tiny Biomes Vol.1.zip",
     "path": "Tiny Biomes Vol.1/Tilesets/New Style/Snow_16x16.png",
-    "inspectionOnly": true
+    "inspectionOnly": false
   },
   {
     "id": "terrain-old-original",
@@ -1490,7 +1490,7 @@
     "id": "scenery-palms",
     "archive": "Tiny Coast Pack_v2.zip",
     "path": "Tiny Coast Pack/Other/Palmtree_n_fruits.png",
-    "inspectionOnly": true
+    "inspectionOnly": false
   },
   {
     "id": "scenery-house-plaster-1-blue",

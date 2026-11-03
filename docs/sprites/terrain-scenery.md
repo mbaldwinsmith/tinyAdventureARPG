@@ -29,7 +29,7 @@ The selected source is `Shore_TS_Animated_noBG_16x16_updated.png`, **192×96**. 
 - Each phase has nine 16px source rectangles. The workbench plays either 3×3 composition without scaling individual source pixels unevenly.
 - The clearing uses the water-patch family for its rectangular pond. Shore phase advances only while the preview session is unpaused, without closed-window catch-up.
 
-The current blue water is supplied artwork. Seasons, water hazards, arbitrary coastline generation and collision are later systems.
+The current blue water is supplied artwork. Seasonal terrain changes and water hazards remain later work. M06 uses coastal islands/trails with shoreline art and independent explicit foot collision.
 
 ## Trees and buildings
 
@@ -68,8 +68,8 @@ The fittings sheet is **63×80**. Three full 16px columns contain anchors, chest
 
 ## Production boundary and validation
 
-The curated manifest now contains **316 source records from 16 unchanged archives**. It packs **187 runtime sources into a padded atlas** and keeps **129 inspection-only records** behind the catalogue. The full source art, raw ZIPs and development inspectors remain excluded from production. Original single-tree and grass source records become inspection alternatives when their layered/tiled replacements are used.
+The curated manifest now contains **316 source records from 16 unchanged archives**. It packs **190 runtime sources into a padded atlas** and keeps **126 inspection-only records** behind the catalogue. The full source art, raw ZIPs and development inspectors remain excluded from production. Original single-tree and grass source records become inspection alternatives when their layered/tiled replacements are used.
 
 `assets:check` validates terrain coverage/dimensions, the updated shore layout, all scenery source rectangles, composition extents, unique IDs and attachment points, alongside prior hero/enemy checks. Presentation feet, layer cuts and boat offsets are authored reference choices, never transparent-image collision bounds.
 
-The [GUI/atlas/effects contract](gui-atlases-effects.md) completes M02 with UI mappings, padded textures, authored effects and credits. M04 adds a separate authored collision/interaction layer; see [world/input](../world-input.md). Campaign generation remains later work.
+The [GUI/atlas/effects contract](gui-atlases-effects.md) completes M02 with UI mappings, padded textures, authored effects and credits. M04 adds a separate authored collision/interaction layer; see [world/input](../world-input.md). M06 adds persistent generated biomes and an anchored crypt; see [generation](../generation.md).

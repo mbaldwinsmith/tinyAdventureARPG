@@ -1,3 +1,4 @@
+import { EXPEDITIONS } from './expeditions';
 import { ContentRegistry } from './schemas';
 import { saveSchema } from '../core/model';
 import { RandomStreams } from '../core/random';
@@ -94,36 +95,48 @@ export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
       seed,
       generatorVersions: { terrain: 1, dungeon: 1, loot: 1 },
       nextId: 1,
-      regions: PREVIEW_WORLD.regions.map((region) => ({
-        id: region.id,
-        kind: 'surface',
-        phase: region.id === 'region:clearing' ? 'active' : 'dormant',
-        generatorVersion: 1,
-        geometry: {
-          version: 1,
-          width: region.width / 16,
-          height: region.height / 16,
-          tilePixels: 16,
-          tiles: Array.from({ length: (region.width / 16) * (region.height / 16) }, (_, i) => {
-            const x = i % (region.width / 16),
-              y = Math.floor(i / (region.width / 16));
-            return region.style === 'clearing'
-              ? clearingPathAt(x, y)
-                ? 1
-                : 0
-              : region.style === 'woodland'
-                ? woodlandPathAt(x, y)
+      regions: [
+        ...PREVIEW_WORLD.regions.map((region) => ({
+          id: region.id,
+          kind: 'surface',
+          phase: region.id === 'region:clearing' ? 'active' : 'dormant',
+          generatorVersion: 1,
+          geometry: {
+            version: 1,
+            width: region.width / 16,
+            height: region.height / 16,
+            tilePixels: 16,
+            tiles: Array.from({ length: (region.width / 16) * (region.height / 16) }, (_, i) => {
+              const x = i % (region.width / 16),
+                y = Math.floor(i / (region.width / 16));
+              return region.style === 'clearing'
+                ? clearingPathAt(x, y)
                   ? 1
                   : 0
-                : 0;
-          }),
-          objects: region.objects.map((object) => ({
-            id: object.id,
-            position: { ...object.position },
-          })),
-        },
-        changes: { removedObjects: [], openedPassages: [], claimedRewards: [], openedObjects: [] },
-      })),
+                : region.style === 'woodland'
+                  ? woodlandPathAt(x, y)
+                    ? 1
+                    : 0
+                  : 0;
+            }),
+            objects: region.objects.map((object) => ({
+              id: object.id,
+              position: { ...object.position },
+            })),
+          },
+          changes: {
+            removedObjects: [],
+            openedPassages: [],
+            claimedRewards: [],
+            openedObjects: [],
+          },
+        })),
+        ...EXPEDITIONS.map((e) =>
+          e.biome === 'crypt'
+            ? { id: e.id, kind: 'dungeon', currentInstance: null }
+            : { id: e.id, kind: 'surface', phase: 'unvisited' },
+        ),
+      ],
       dungeons: [],
     },
     player: {

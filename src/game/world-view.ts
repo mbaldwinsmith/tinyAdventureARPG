@@ -1,3 +1,5 @@
+import { createGeneratedWorldView } from './generated-world-view';
+import { EXPEDITION_PORTAL } from '../core/generated-world';
 import type Phaser from 'phaser';
 import type { AssetManifest } from '../assets/definitions';
 import { createAtlasLookup, sourceFrameRect } from '../assets/atlas';
@@ -30,6 +32,7 @@ export function createWorldView(
   manifest: AssetManifest,
   session: GameSession,
 ) {
+  if (session.geometry.generated) return createGeneratedWorldView(scene, manifest, session);
   const lookup = createAtlasLookup(manifest),
     region = session.regionDefinition;
   const image = (x: number, y: number, rect: SourceRect, depth: number) => {
@@ -75,6 +78,24 @@ export function createWorldView(
   let box: Phaser.GameObjects.Image | undefined;
   const chests = new Map<string, Phaser.GameObjects.Image>();
   if (region.style === 'clearing') {
+    const p = EXPEDITION_PORTAL.position;
+    scene.add
+      .graphics()
+      .setDepth(20)
+      .fillStyle(0x538889)
+      .fillEllipse(p.x, p.y, 24, 10)
+      .lineStyle(1, 0xffcf70)
+      .strokeEllipse(p.x, p.y, 24, 10);
+    scene.add
+      .text(p.x, p.y - 12, 'FOREST', {
+        fontFamily: 'monospace',
+        fontSize: '9px',
+        color: '#fff3c6',
+        backgroundColor: '#305a3d',
+        padding: { x: 2, y: 2 },
+      })
+      .setOrigin(0.5, 1)
+      .setDepth(4000);
     for (let i = 0; i < 34; i++) {
       const x = (i * 83 + 41) % 464,
         y = (i * 47 + 52) % 256,

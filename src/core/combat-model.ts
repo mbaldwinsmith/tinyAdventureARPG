@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { entityIdSchema, regionIdSchema, itemInstanceIdSchema } from './ids';
+import { entityIdSchema, regionIdSchema, instanceIdSchema, itemInstanceIdSchema } from './ids';
 const ticks = z.number().int().nonnegative().safe();
 const point = z.strictObject({ x: z.number().finite(), y: z.number().finite() });
 const facing = z.enum(['up', 'down', 'left', 'right']);
@@ -31,9 +31,10 @@ export type CombatEnemy = z.infer<typeof enemySchema>;
 export const combatStateSchema = z.strictObject({
   version: z.literal(1),
   regionId: regionIdSchema,
+  instanceId: instanceIdSchema.nullable().default(null),
   trial: trialSchema,
   generation: ticks,
-  nextSequence: ticks,
+  nextSequence: z.number().int().positive().safe(),
   action: z
     .strictObject({
       kind: z.enum(['sword', 'roll', 'bow']),
@@ -79,7 +80,7 @@ export const combatStateSchema = z.strictObject({
   completed: z.boolean(),
   death: z
     .strictObject({
-      id: ticks,
+      id: z.number().int().positive().safe(),
       phase: z.enum(['pending', 'resolved']),
       lostItems: z.array(itemInstanceIdSchema),
       lostMoney: ticks,

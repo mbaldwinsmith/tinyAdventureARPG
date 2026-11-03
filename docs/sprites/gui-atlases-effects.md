@@ -12,7 +12,7 @@ Device prompt IDs describe **physical controls**, separate from input action bin
 
 ## Atlas contract
 
-`npm run assets:build` validates 316 source records from 16 unchanged selected archives, then packs **3,985 explicit runtime frames from 187 sources into one 2048×2048 atlas**. The remaining 129 source records are inspection-only; their pixels stay outside the game build.
+`npm run assets:build` validates 316 source records from 16 unchanged selected archives, then packs **4,271 explicit runtime frames from 190 sources into one 2048×2048 atlas**. The remaining 126 source records are inspection-only; their pixels stay outside the game build.
 
 The Node-only `pngjs` build tool reads/writes RGBA losslessly. Frames sort by dimensions and stable rectangle ID before deterministic shelf placement. Each has **2px of extruded edge pixels on every side and corner**, no rotation and no trimming. Pages are bounded to 2048px per side and eight pages; oversized/missing/duplicate inputs fail. Only sources explicitly declaring a uniform grid receive grid extraction. Irregular scenery and GUI use reviewed source rectangles.
 

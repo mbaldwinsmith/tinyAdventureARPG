@@ -289,7 +289,7 @@ describe('retained regions and guarded dungeon anchor lifecycle', () => {
     expect(setSurfaceActivity(setSurfaceActivity(surface, false), true)).toEqual(surface);
     const dungeon = dungeonSchema.parse({
       id: 'instance:crypt-1',
-      regionId: 'region:crypt',
+      regionId: 'region:fixture-crypt',
       generation: 1,
       generatorVersion: 1,
       geometry: {
@@ -309,7 +309,11 @@ describe('retained regions and guarded dungeon anchor lifecycle', () => {
     expect(retireInstance(pending, false).anchor.phase).toBe('retired');
     const state = createPreviewSave();
     state.world.regions.push(
-      regionSchema.parse({ id: 'region:crypt', kind: 'dungeon', currentInstance: dungeon.id }),
+      regionSchema.parse({
+        id: 'region:fixture-crypt',
+        kind: 'dungeon',
+        currentInstance: dungeon.id,
+      }),
     );
     state.world.dungeons.push(dungeon);
     const invalid = copyData(state);

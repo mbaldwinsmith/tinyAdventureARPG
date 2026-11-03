@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const pauseReasonSchema = z.enum([
   'menu',
+  'map',
   'background',
   'workbench',
   'settings',

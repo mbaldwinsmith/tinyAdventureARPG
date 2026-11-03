@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "lib": ["ES2022", "DOM"], "types": ["node"], "jsx": "react-jsx" },
-  "include": ["scripts", "tests", "vite.config.ts", "playwright.config.ts"]
+  "include": [
+    "scripts",
+    "tests",
+    "vite.config.ts",
+    "playwright.config.ts",
+    "playwright.production.config.ts"
+  ]
 }

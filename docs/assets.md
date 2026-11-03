@@ -4,9 +4,9 @@ Artwork is by [Vryell](https://vryell.itch.io/). The project owner owns the Tiny
 
 ## Current runtime selection
 
-The importer validates **316 curated source records from 16 unchanged archives**. It packs **3,985 padded runtime frames from 187 sources into one 2048×2048 atlas** for the clearing's hero animation previews, tiled ground, animated shore and layered scenery.
+The importer validates **316 curated source records from 16 unchanged archives**. It packs **4,271 padded runtime frames from 190 sources into one 2048×2048 atlas** for the clearing's hero animation previews, tiled ground, animated shore and layered scenery.
 
-The other **129 records are inspection-only**: enemy/King, detached tool and alternate terrain/scenery sources. Their metadata is validated and available in the workbench, while their pixels are not copied into production. Promote them deliberately when gameplay uses them.
+The other **126 records are inspection-only**: enemy/King, detached tool and alternate terrain/scenery sources. Their metadata is validated and available in the workbench, while their pixels are not copied into production. Promote them deliberately when gameplay uses them.
 
 The exact case-sensitive member paths are in [`src/assets/sources.json`](../src/assets/sources.json). Each generated entry records its source hash and canonical image ID. Explicit rectangles, direction mappings, timing and reference foot anchors are in `src/assets/hero-animations.json`.
 

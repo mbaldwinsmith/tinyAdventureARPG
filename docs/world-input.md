@@ -1,6 +1,6 @@
 # World rendering and action input
 
-M04 supplies a traversable authored clearing, cottage and larger woodland. M05 adds a separate practice field and [combat rules](combat.md); the M04 evidence below records its original preview scope. These exercise collision, retained world objects, safe entry, camera follow and UI focus. They do not define campaign topology or generate a forest.
+M04 supplies a traversable authored clearing, cottage and larger woodland. M05 adds a separate practice field and [combat rules](combat.md); the M04 evidence below records its original preview scope. These exercise collision, retained world objects, safe entry, camera follow and UI focus. M06 extends them with the confirmed fixed connection graph and generated persistent regions; see [generation](generation.md).
 
 ## Scene and rendering ownership
 

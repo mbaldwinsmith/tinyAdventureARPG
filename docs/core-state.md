@@ -1,6 +1,6 @@
 # Core state, time and ownership
 
-M03 supplies framework-independent rules and serializable data contracts. M04 also routes three authored regions, validated interactions and retained object changes through this owner, alongside active-play time and rest. M05 adds serializable combat actions, enemies, projectiles, drops and defeat transitions in a separate practice region; [combat rules](combat.md) describe their fixed-step integration. World generation, inventory actions, farming and durable browser saving remain later milestones.
+M03 supplies framework-independent rules and serializable data contracts. M04 also routes three authored regions, validated interactions and retained object changes through this owner, alongside active-play time and rest. M05 adds serializable combat actions, enemies, projectiles, drops and defeat transitions in a separate practice region; [combat rules](combat.md) describe their fixed-step integration. M06 adds stored generated surfaces, crypt instances, map discoveries and inactive encounter checkpoints; see [generation](generation.md). Inventory actions, farming and durable browser saving remain later milestones.
 
 ## One authoritative owner
 
@@ -53,7 +53,7 @@ Commands validate at the bridge and core boundaries. Ready-state restrictions be
 
 For an accepted command, the owner mutates state, allocates monotonically ordered event sequence numbers and builds its immutable display snapshot. The bridge installs that committed snapshot **before** delivering ordered domain events, then sends `snapshot.changed`. Reentrant commands during delivery are rejected, preventing interleaved batches. Events are drained, not retained as an unbounded UI history or replayed on load. Event sequence state is saved; transient animation requests are not.
 
-Snapshots retain their object identity until status, appearance, pause, preview request, region/nearby target, interaction message, carrying/swimming, quantised combat HUD, input preferences/device, debug visibility, failure notice or displayed calendar values change. They exclude positions and simulation ticks. With the current day length, calendar publication is roughly 2.4 changes/second rather than 50 updates/second; explicit commands publish immediately. When future HUD fields arrive, their subscriptions should remain similarly focused/bounded.
+Snapshots retain their object identity until status, appearance, pause, preview request, region/nearby target, interaction message, carrying/swimming, quantised combat HUD, discrete discoveries/anchor state, input preferences/device, debug visibility, failure notice or displayed calendar values change. They exclude positions and simulation ticks. With the current day length, calendar publication is roughly 2.4 changes/second rather than 50 updates/second; explicit commands publish immediately. When future HUD fields arrive, their subscriptions should remain similarly focused/bounded.
 
 ## Region and anchor lifecycle
 
@@ -61,7 +61,7 @@ Surface regions distinguish unvisited from active/dormant retained geometry. Act
 
 M04 door commands validate destinations and incoming spawns against current retained solids, switch source/destination activity without changing geography, record discoveries, clear fractional time and emit a region-entered event. Interaction targeting validates range, facing and line of sight. Opening a chest records one stable ID. Pickup/drop moves a single world object and its solid without duplicating inventory. The active carried object must belong to the current surface and be absent from the ground.
 
-Pure lifecycle functions permit defeat without replacing geometry, reject regeneration of a living or occupied instance, and require an unoccupied pending instance before retirement. The schema rejects occupying pending/retired instances. Travel, death, rest and checkpoints do not reset an anchor or erase permanent progress. M00/M06 still choose the exact safe reset trigger, successor encounter policy and generation process; this milestone does not silently trigger regeneration on exit.
+Pure lifecycle functions permit defeat without replacing geometry, reject regeneration of a living or occupied instance, and require an unoccupied pending instance before retirement. The schema rejects occupying pending/retired instances. Travel, death, rest and checkpoints do not reset an anchor or erase permanent progress. M06 applies the confirmed reward-plus-exit/next-entry boundary: the occupied defeated map survives, exit marks pending only after reward collection, and a validated successor is created on the next entry. Permanent progress remains outside the generation. The current repeatable warden is integration content; campaign successors remain open.
 
 ## Verification
 
