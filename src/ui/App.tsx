@@ -2,7 +2,9 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { GameBridge } from '../bridge/game-bridge';
 import { useAssetManifest, packedSpriteStyle, usePanelSkin } from './atlas-ui';
-import { KeyPrompt } from './KeyPrompt';
+import { ActionPrompt } from './ActionPrompt';
+import { ControlsDialog } from './ControlsDialog';
+import { InteractionDialog } from './InteractionDialog';
 import { HERO_IDS } from '../core/model';
 import { GameCanvas } from './GameCanvas';
 import { createUiStore } from './ui-store';
@@ -19,19 +21,87 @@ export function App() {
   const [mounted, setMounted] = useState(true);
   const [workbenchOpen, setWorkbenchOpen] = useState(false);
   const [previewAction, setPreviewAction] = useState<HeroAction>('sword');
+  const [controlsOpen, setControlsOpen] = useState(false);
   const [commandError, setCommandError] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const resumeButton = useRef<HTMLButtonElement>(null);
+  const menuControlsButton = useRef<HTMLButtonElement>(null);
   const menuOpen = snapshot.pauseReasons.includes('menu');
 
   useEffect(() => bridge.subscribe((next) => store.setState({ snapshot: next })), [bridge, store]);
   useEffect(() => {
-    if (menuOpen && !dialog.current?.open) dialog.current?.showModal();
+    if (menuOpen && !dialog.current?.open) {
+      dialog.current?.showModal();
+      resumeButton.current?.focus();
+    }
     if (!menuOpen && dialog.current?.open) dialog.current.close();
   }, [menuOpen]);
 
+  const focusWorld = () =>
+    requestAnimationFrame(() => document.querySelector<HTMLElement>('.game-canvas')?.focus());
+  const openControls = () => {
+    bridge.send({ type: 'pause.set', reason: 'settings', active: true });
+    setControlsOpen(true);
+  };
+  const closeControls = () => {
+    setControlsOpen(false);
+    bridge.send({ type: 'pause.set', reason: 'settings', active: false });
+    if (menuOpen) requestAnimationFrame(() => menuControlsButton.current?.focus());
+    else focusWorld();
+  };
+  const closeInteraction = () => {
+    bridge.send({ type: 'interaction.dismiss' });
+    focusWorld();
+  };
+  useEffect(
+    () =>
+      bridge.onEvent((event) => {
+        if (event.type !== 'input.navigate') return;
+        const dialogs = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog[open]')),
+          top =
+            document.activeElement?.closest<HTMLDialogElement>('dialog[open]') ?? dialogs.at(-1);
+        if (!top) return;
+        if (event.action === 'cancel') {
+          top.dispatchEvent(new Event('cancel', { cancelable: true }));
+          return;
+        }
+        const controls = Array.from(
+          top.querySelectorAll<HTMLElement>(
+            'button:not([disabled]),select:not([disabled]),input:not([disabled])',
+          ),
+        ).filter((element) => element.getClientRects().length > 0);
+        const current = document.activeElement;
+        if (event.action === 'confirm') {
+          if (current instanceof HTMLButtonElement) current.click();
+          return;
+        }
+        if (
+          (event.action === 'left' || event.action === 'right') &&
+          current instanceof HTMLSelectElement
+        ) {
+          const direction = event.action === 'left' ? -1 : 1;
+          let optionIndex = current.selectedIndex + direction;
+          while (
+            optionIndex >= 0 &&
+            optionIndex < current.options.length &&
+            current.options[optionIndex]?.disabled
+          )
+            optionIndex += direction;
+          if (optionIndex < 0 || optionIndex >= current.options.length) return;
+          current.selectedIndex = optionIndex;
+          current.dispatchEvent(new Event('change', { bubbles: true }));
+          return;
+        }
+        const index = controls.findIndex((element) => element === current),
+          direction = event.action === 'up' || event.action === 'left' ? -1 : 1;
+        controls[(index + direction + controls.length) % controls.length]?.focus();
+      }),
+    [bridge],
+  );
   const pause = (active: boolean) => {
     const result = bridge.send({ type: 'pause.set', reason: 'menu', active });
     setCommandError(result.ok ? null : result.message);
+    if (!active) focusWorld();
   };
 
   return (
@@ -46,13 +116,20 @@ export function App() {
           </span>
         </a>
         <div className="header-actions">
+          <button
+            className="button button-subtle"
+            disabled={snapshot.status !== 'ready' || !mounted}
+            onClick={openControls}
+          >
+            Controls
+          </button>
           <span className="build-badge">FIRST STEPS · 0.0.0</span>
           <button
             className="button button-subtle"
             disabled={snapshot.status !== 'ready' || !mounted}
             onClick={() => pause(true)}
           >
-            Pause <KeyPrompt manifest={assets} control="Escape" label="Esc" />
+            Pause <ActionPrompt manifest={assets} input={snapshot.input} action="pause" />
           </button>
         </div>
       </header>
@@ -76,7 +153,7 @@ export function App() {
           <div className="location-bar">
             <div>
               <span className="location-dot" aria-hidden="true" />
-              <h2 id="clearing-title">Wayfarer’s clearing</h2>
+              <h2 id="clearing-title">{snapshot.region.name}</h2>
               <span className="location-type">FOREST PREVIEW</span>
             </div>
             <span className="engine-status" role="status">
@@ -93,15 +170,7 @@ export function App() {
                         : 'The path is open'}
             </span>
           </div>
-          <div
-            className="world-stage"
-            onKeyDown={(event) => {
-              if (event.key === 'Escape' && snapshot.status === 'ready') {
-                event.preventDefault();
-                pause(true);
-              }
-            }}
-          >
+          <div className="world-stage">
             {mounted && <GameCanvas bridge={bridge} />}
             {snapshot.status === 'loading' && (
               <div className="scene-overlay">
@@ -133,17 +202,56 @@ export function App() {
           <div className="controls-bar">
             <p>
               <span className="key-group">
-                <KeyPrompt manifest={assets} control="KeyW" label="W" />
-                <KeyPrompt manifest={assets} control="KeyA" label="A" />
-                <KeyPrompt manifest={assets} control="KeyS" label="S" />
-                <KeyPrompt manifest={assets} control="KeyD" label="D" />
+                {snapshot.input.device === 'keyboard' ? (
+                  <>
+                    <ActionPrompt manifest={assets} input={snapshot.input} action="up" />
+                    <ActionPrompt manifest={assets} input={snapshot.input} action="left" />
+                    <ActionPrompt manifest={assets} input={snapshot.input} action="down" />
+                    <ActionPrompt manifest={assets} input={snapshot.input} action="right" />
+                  </>
+                ) : (
+                  <kbd>Left stick / D-pad</kbd>
+                )}
               </span>{' '}
-              or arrow keys to wander <span className="control-divider">/</span> Click the clearing
-              to focus
+              {snapshot.input.device === 'keyboard' ? 'or arrows to wander' : 'to wander'}{' '}
+              <span className="control-divider">/</span>{' '}
+              <ActionPrompt manifest={assets} input={snapshot.input} action="interact" /> interact{' '}
+              <span className="control-divider">/</span>{' '}
+              <ActionPrompt manifest={assets} input={snapshot.input} action="attack" /> swing
+              preview
             </p>
-            <span className="preview-label">Movement & interface preview</span>
+            <span className="preview-label">
+              {snapshot.input.connected
+                ? `${snapshot.input.device === 'keyboard' ? 'Keyboard' : snapshot.input.device} · controller connected`
+                : 'Keyboard · click to focus'}
+            </span>
           </div>
         </section>
+        <div className="interaction-prompt" aria-label="Nearby interaction">
+          <span>
+            {snapshot.carrying
+              ? 'Carrying a small box'
+              : snapshot.swimming
+                ? 'Swimming in the pond'
+                : 'Explore the clearing, cottage and woodland path'}
+          </span>
+          {snapshot.nearby && (
+            <button
+              className="button button-subtle"
+              disabled={snapshot.paused || snapshot.status !== 'ready' || !mounted}
+              onClick={() => {
+                const result = bridge.send({
+                  type: 'world.interact',
+                  target: snapshot.nearby?.id ?? null,
+                });
+                setCommandError(result.ok ? null : result.message);
+                focusWorld();
+              }}
+            >
+              {snapshot.nearby.label}
+            </button>
+          )}
+        </div>
         <section className="below-world" aria-label="Preview options and development status">
           <div className="appearance-panel">
             <p className="eyebrow">A FACE FOR THE JOURNEY</p>
@@ -255,9 +363,9 @@ export function App() {
             Rest until tomorrow
           </button>
         </section>
-        {commandError && (
+        {(commandError || snapshot.notice) && (
           <p role="alert" className="command-error">
-            {commandError}
+            {commandError ?? snapshot.notice}
           </p>
         )}
         {import.meta.env.DEV && (
@@ -276,6 +384,17 @@ export function App() {
             >
               Open sprite workbench
             </button>
+            <label>
+              <input
+                type="checkbox"
+                aria-label="World collision overlay"
+                checked={snapshot.debug}
+                onChange={(event) =>
+                  bridge.send({ type: 'debug.set', enabled: event.target.checked })
+                }
+              />{' '}
+              World collision overlay
+            </label>
             <p>
               Lifecycle check: exactly one canvas should exist after remounting. This is a
               development-only control.
@@ -299,6 +418,10 @@ export function App() {
           Artwork by Vryell <span aria-hidden="true">·</span> Created by Mark Baldwin-Smith
         </span>
       </footer>
+      {controlsOpen && <ControlsDialog bridge={bridge} snapshot={snapshot} close={closeControls} />}
+      {snapshot.message && (
+        <InteractionDialog message={snapshot.message} close={closeInteraction} />
+      )}
       <dialog
         ref={dialog}
         className={`pause-dialog ${panelSkin ? 'pixel-panel' : ''}`}
@@ -311,7 +434,10 @@ export function App() {
         <p className="eyebrow">THERE’S NO HURRY</p>
         <h2>Take a breather.</h2>
         <p>The clearing is paused. Your wanderer will be right where you left them.</p>
-        <button className="button" autoFocus onClick={() => pause(false)}>
+        <button ref={menuControlsButton} className="button button-subtle" onClick={openControls}>
+          Controls
+        </button>
+        <button ref={resumeButton} className="button" onClick={() => pause(false)}>
           Back to the clearing <span aria-hidden="true">→</span>
         </button>
       </dialog>

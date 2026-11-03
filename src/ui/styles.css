@@ -803,6 +803,85 @@ footer span span {
   color: #778571;
   font-size: 12px;
 }
+
+.interaction-prompt {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  color: #61765e;
+  font-size: 12px;
+}
+.controls-dialog,
+.interaction-dialog {
+  max-width: min(620px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow: auto;
+  border: 2px solid #627a62;
+  border-radius: 8px;
+  background: #f6f4ec;
+  color: #283b32;
+  padding: 28px;
+}
+.controls-dialog::backdrop,
+.interaction-dialog::backdrop {
+  background: #19362388;
+  backdrop-filter: blur(3px);
+}
+.controls-dialog h2,
+.interaction-dialog h2 {
+  font-family: Georgia, serif;
+  font-size: 30px;
+  margin: 8px 0 18px;
+}
+.controls-dialog p,
+.interaction-dialog p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.binding-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.binding-grid label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+}
+.binding-grid select {
+  padding: 8px;
+  background: #fffdf3;
+  color: #283b32;
+  border: 1px solid #a9b8a2;
+  border-radius: 3px;
+}
+.controls-dialog fieldset {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid #cbd4c4;
+}
+.controls-dialog legend {
+  font-size: 13px;
+  font-weight: bold;
+}
+.pause-dialog > .button {
+  margin: 4px;
+}
+@media (max-width: 700px) {
+  .binding-grid {
+    grid-template-columns: 1fr;
+  }
+  .interaction-prompt {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+}
 @media (max-width: 700px) {
   .calendar-panel {
     align-items: flex-start;

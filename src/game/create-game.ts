@@ -1,9 +1,8 @@
 import type PhaserTypes from 'phaser';
 import type { GameBridge } from '../bridge/game-bridge';
 import { assetSources } from '../assets/definitions';
-import { createClearingScenery, ACTOR_DEPTH_BASE } from './clearing-scenery';
-import { CLEARING } from '../content/clearing';
 import { loadAssetManifest } from '../platform/asset-loader';
+import { ActionInput } from '../platform/action-input';
 import { PreviewController } from './preview-controller';
 import { observeBackgroundPause } from '../platform/browser-pause';
 import { heroAnimations, validateHeroAnimations } from '../assets/hero-animations';
@@ -15,61 +14,52 @@ import {
   deathPreviewAlpha,
 } from '../assets/effects';
 import type { HeroAction } from '../assets/hero-animations';
+import { moveFoot, cardinal, footRect } from '../core/motion';
+import { presentationAction } from './presentation-priority';
+import { createWorldView, DEPTH } from './world-view';
 
-type Direction = 'down' | 'left' | 'up' | 'right';
-
-/** Cancel before async startup finishes; each mount owns its game, listeners and handler. */
+/** A mount owns its controller, device listeners, background observer and single Phaser game. */
 export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
   const controller = new PreviewController(bridge);
-  let disposed = false;
-  let game: PhaserTypes.Game | undefined;
-  let stopBackground = () => {};
-
+  const input = new ActionInput(
+    host,
+    () => controller.inputChanged(),
+    (action) => bridge.navigate(action),
+  );
+  controller.attachInput(input);
+  let disposed = false,
+    game: PhaserTypes.Game | undefined;
+  const stopBackground = observeBackgroundPause((background) => {
+    input.reset();
+    bridge.send({ type: 'pause.set', reason: 'background', active: background });
+  });
   const start = async () => {
     const manifest = await loadAssetManifest();
-    for (const source of assetSources) {
+    for (const source of assetSources)
       if (!manifest.assets.some((asset) => asset.id === source.id))
         throw new Error(`Missing required asset: ${source.id}`);
-    }
     validateHeroAnimations(heroAnimations, manifest.assets);
     const lookup = createAtlasLookup(manifest);
     for (const animation of heroAnimations)
-      for (const frame of animation.frames)
-        lookup({
-          texture: animation.texture,
-          x: frame.x,
-          y: frame.y,
-          width: frame.width,
-          height: frame.height,
-        });
+      for (const frame of animation.frames) lookup({ texture: animation.texture, ...frame });
     const { default: Phaser } = await import('phaser');
     if (disposed) return;
-
-    class ClearingScene extends Phaser.Scene {
-      private scenery: ReturnType<typeof createClearingScenery> | undefined;
-      private actor: PhaserTypes.GameObjects.Sprite | undefined;
-      private keys:
-        | Record<
-            'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd',
-            PhaserTypes.Input.Keyboard.Key
-          >
-        | undefined;
-      private direction: Direction = 'down';
-      private currentHero = 1;
-      private seenAnimationRequest = 0;
-      private previewAction: HeroAction | null = null;
-      private previewRemainingMilliseconds = 0;
-      private previewElapsedMilliseconds = 0;
-      private explosion: PhaserTypes.GameObjects.Graphics | undefined;
-
+    class BootScene extends Phaser.Scene {
       constructor() {
-        super('clearing-preview');
+        super('boot');
       }
-
+      create() {
+        this.scene.start('assets');
+      }
+    }
+    class AssetScene extends Phaser.Scene {
+      constructor() {
+        super('assets');
+      }
       preload() {
         this.load.on('loaderror', (file: PhaserTypes.Loader.File) => {
           if (!disposed)
-            controller.fail(`Could not load texture “${file.key}”. Rebuild assets and reload.`);
+            controller.fail(`Could not load texture “${file.key}”. Retry to reload the assets.`);
         });
         for (const page of manifest.pages)
           this.load.atlas(
@@ -78,213 +68,292 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
             `${import.meta.env.BASE_URL}generated/${page.data}`,
           );
       }
-
       create() {
-        try {
-          this.createPresentation();
-        } catch (error: unknown) {
-          controller.fail(
-            error instanceof Error ? error.message : 'The clearing presentation could not start.',
-          );
-        }
-      }
-      private createPresentation() {
         if (disposed || bridge.snapshot.status === 'failed') return;
-        this.cameras.main.setBackgroundColor('#63ab3f');
-        this.scenery = createClearingScenery(this, manifest);
-
         for (const definition of heroAnimations) {
           const baseDurationMs = Math.min(...definition.frames.map((frame) => frame.durationMs));
           this.anims.create({
             key: definition.id,
-            frames: definition.frames.map((frame) => ({
-              key: lookup({
-                texture: definition.texture,
-                x: frame.x,
-                y: frame.y,
-                width: frame.width,
-                height: frame.height,
-              }).page,
-              frame: lookup({
-                texture: definition.texture,
-                x: frame.x,
-                y: frame.y,
-                width: frame.width,
-                height: frame.height,
-              }).id,
-              duration: frame.durationMs - baseDurationMs,
-            })),
+            frames: definition.frames.map((frame) => {
+              const packed = lookup({ texture: definition.texture, ...frame });
+              return {
+                key: packed.page,
+                frame: packed.id,
+                duration: frame.durationMs - baseDurationMs,
+              };
+            }),
             frameRate: 1000 / baseDurationMs,
             repeat: definition.loop ? -1 : 0,
           });
         }
-        this.actor = this.add
-          .sprite(
-            CLEARING.spawn.x,
-            CLEARING.spawn.y,
-            lookup({ texture: 'hero-1-idle', x: 0, y: 0, width: 16, height: 16 }).page,
-            lookup({ texture: 'hero-1-idle', x: 0, y: 0, width: 16, height: 16 }).id,
-          )
-          .setOrigin(0.5, 0.875)
-          .setDepth(ACTOR_DEPTH_BASE + CLEARING.spawn.y);
-        this.explosion = this.add.graphics().setDepth(1000);
-        const keyboard = this.input.keyboard;
-        if (!keyboard) throw new Error('Keyboard input is unavailable.');
-        this.keys = {
-          up: keyboard.addKey('UP', false),
-          down: keyboard.addKey('DOWN', false),
-          left: keyboard.addKey('LEFT', false),
-          right: keyboard.addKey('RIGHT', false),
-          w: keyboard.addKey('W', false),
-          a: keyboard.addKey('A', false),
-          s: keyboard.addKey('S', false),
-          d: keyboard.addKey('D', false),
-        };
-        stopBackground = observeBackgroundPause((background) => {
-          keyboard.resetKeys();
-          bridge.send({ type: 'pause.set', reason: 'background', active: background });
-        });
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => stopBackground());
-        controller.ready();
+        this.scene.start('world');
       }
-
-      update(_time: number, deltaMilliseconds: number) {
+    }
+    class WorldScene extends Phaser.Scene {
+      private actor: PhaserTypes.GameObjects.Sprite | undefined;
+      private scenery: ReturnType<typeof createWorldView> | undefined;
+      private explosion: PhaserTypes.GameObjects.Graphics | undefined;
+      private overlay: PhaserTypes.GameObjects.Graphics | undefined;
+      private debugText: PhaserTypes.GameObjects.Text | undefined;
+      private regionId = '';
+      private pendingRestart = false;
+      private seenRequest = 0;
+      private preview: HeroAction | null = null;
+      private remainingMs = 0;
+      private elapsedMs = 0;
+      private hero = 1;
+      private debugElapsedMs = 0;
+      constructor() {
+        super('world');
+      }
+      create() {
         try {
-          this.advancePresentation(deltaMilliseconds);
+          input.reset();
+          this.pendingRestart = false;
+          this.preview = null;
+          this.remainingMs = 0;
+          this.elapsedMs = 0;
+          this.regionId = controller.session.snapshot.region.id;
+          this.seenRequest = bridge.snapshot.animationRequest?.sequence ?? 0;
+          const region = controller.session.regionDefinition,
+            state = controller.session.actor;
+          this.cameras.main.setBackgroundColor(region.style === 'cottage' ? '#292e3f' : '#63ab3f');
+          this.scenery = createWorldView(this, manifest, controller.session);
+          const first = lookup({
+            texture: `hero-${controller.session.snapshot.hero}-idle`,
+            x: 0,
+            y: 0,
+            width: 16,
+            height: 16,
+          });
+          this.actor = this.add
+            .sprite(state.position.x, state.position.y, first.page, first.id)
+            .setOrigin(0.5, 0.875)
+            .setDepth(DEPTH.feet + state.position.y);
+          this.explosion = this.add.graphics().setDepth(DEPTH.effects);
+          this.overlay = this.add.graphics().setDepth(DEPTH.debug);
+          this.debugText = this.add
+            .text(6, 6, '', {
+              fontSize: '10px',
+              fontFamily: 'monospace',
+              color: '#ffffff',
+              backgroundColor: '#172821',
+            })
+            .setScrollFactor(0)
+            .setDepth(DEPTH.debug + 1);
+          this.cameras.main
+            .setBounds(
+              Math.min(0, (region.width - 480) / 2),
+              Math.min(0, (region.height - 272) / 2),
+              Math.max(480, region.width),
+              Math.max(272, region.height),
+              true,
+            )
+            .startFollow(this.actor, true, 0.15, 0.15)
+            .centerOn(state.position.x, state.position.y);
+          this.cameras.main.roundPixels = true;
+          this.cameras.main.fadeIn(120, 0, 0, 0);
+          this.input.on('pointerdown', (pointer: PhaserTypes.Input.Pointer) => {
+            if (controller.session.snapshot.paused) return;
+            const target = controller.session.snapshot.nearby;
+            if (!target) return;
+            const position = controller.session.worldPresentation.objects.find(
+              (o) => o.id === target.id,
+            )?.position;
+            const point = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+            if (position && Math.hypot(point.x - position.x, point.y - position.y) < 18)
+              bridge.send({ type: 'world.interact', target: target.id });
+          });
+          this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            input.reset();
+            for (const key of ['x', 'y', 'region', 'cameraX', 'cameraY', 'animation', 'tick'])
+              delete host.dataset[key];
+          });
+          controller.ready();
+          this.scenery.sync();
         } catch (error: unknown) {
-          controller.fail(error instanceof Error ? error.message : 'The gameplay step failed.');
+          controller.fail(error instanceof Error ? error.message : 'The region could not open.');
         }
       }
-      private advancePresentation(deltaMilliseconds: number) {
-        if (disposed || !this.actor || !this.keys) return;
-        const actor = this.actor;
-        const snapshot = controller.session.snapshot;
+      update(_time: number, deltaMs: number) {
+        try {
+          this.advancePresentation(deltaMs);
+        } catch (error: unknown) {
+          controller.fail(error instanceof Error ? error.message : 'The world update failed.');
+        }
+      }
+      private restartIfNeeded() {
+        if (this.regionId === controller.session.snapshot.region.id) return false;
+        if (!this.pendingRestart) {
+          this.pendingRestart = true;
+          input.reset();
+          controller.loading();
+          this.scene.restart();
+        }
+        return true;
+      }
+      private advancePresentation(deltaMs: number) {
+        if (disposed || !this.actor || this.pendingRestart) return;
+        if (this.restartIfNeeded()) return;
+        const intent = input.poll(controller.session.snapshot.paused);
+        if (intent.pressed.includes('pause'))
+          bridge.send({ type: 'pause.set', reason: 'menu', active: true });
+        else if (intent.pressed.includes('interact'))
+          bridge.send({ type: 'world.interact', target: null });
+        else if (intent.pressed.includes('attack'))
+          bridge.send({ type: 'animation.preview', action: 'sword' });
+        if (this.restartIfNeeded()) return;
+        const snapshot = controller.session.snapshot,
+          actor = this.actor;
+        this.drawDebug(deltaMs);
+        this.scenery?.sync();
         if (snapshot.paused) {
-          this.input.keyboard?.resetKeys();
           actor.anims.pause();
           return;
         }
         actor.anims.resume();
         const request = bridge.snapshot.animationRequest;
-        if (request && request.sequence !== this.seenAnimationRequest) {
-          this.seenAnimationRequest = request.sequence;
-          this.previewAction = request.action;
-          this.previewElapsedMilliseconds = 0;
+        if (request && request.sequence !== this.seenRequest) {
+          this.seenRequest = request.sequence;
+          this.preview = request.action;
+          this.elapsedMs = 0;
           this.explosion?.clear();
           actor.setAlpha(1);
           actor.anims.stop();
           const definition = heroAnimations.find(
-            (animation) => animation.id === `${snapshot.hero}-${request.action}-${this.direction}`,
+            (a) => a.id === `${snapshot.hero}-${request.action}-${controller.session.actor.facing}`,
           );
-          this.previewRemainingMilliseconds = definition?.loop
+          this.remainingMs = definition?.loop
             ? 1200
-            : (definition?.frames.reduce((total, frame) => total + frame.durationMs, 0) ?? 500);
-          if (request.action === 'bomb')
-            this.previewRemainingMilliseconds += effectDurationMs(bombExplosion);
+            : (definition?.frames.reduce((sum, f) => sum + f.durationMs, 0) ?? 500);
+          if (request.action === 'bomb') this.remainingMs += effectDurationMs(bombExplosion);
         }
-        const focused = document.activeElement === host || host.contains(document.activeElement);
-        const x = focused
-          ? Number(this.keys.right.isDown || this.keys.d.isDown) -
-            Number(this.keys.left.isDown || this.keys.a.isDown)
-          : 0;
-        const y = focused
-          ? Number(this.keys.down.isDown || this.keys.s.isDown) -
-            Number(this.keys.up.isDown || this.keys.w.isDown)
-          : 0;
-        const previewing = this.previewAction !== null && this.previewRemainingMilliseconds > 0;
-        const moving = !previewing && (x !== 0 || y !== 0);
-        const frame = controller.advance(deltaMilliseconds, (context) => {
-          if (!moving) return { position: { ...context.position }, facing: context.facing };
-          const facing = y !== 0 ? (y > 0 ? 'down' : 'up') : x > 0 ? 'right' : 'left';
-          const distance = (context.movementSpeedPixelsPerSecond * context.stepMs) / 1000;
-          const length = Math.hypot(x, y);
-          // Phaser resolves movement/bounds once per requested core step. M04 adds collision here.
+        const forced = this.preview !== null && this.remainingMs > 0;
+        const moving = !forced && Math.hypot(intent.x, intent.y) > 0;
+        const frame = controller.advance(deltaMs, (context) => {
+          const direction = cardinal(intent.x, intent.y, context.facing);
+          if (!moving)
+            return {
+              position: { ...context.position },
+              facing: forced ? context.facing : direction,
+            };
+          const region = controller.session.regionDefinition,
+            distance = (context.movementSpeedPixelsPerSecond * context.stepMs) / 1000;
           return {
-            position: {
-              x: Phaser.Math.Clamp(
-                context.position.x + (x / length) * distance,
-                12,
-                CLEARING.widthPixels - 12,
-              ),
-              y: Phaser.Math.Clamp(
-                context.position.y + (y / length) * distance,
-                20,
-                CLEARING.heightPixels - 8,
-              ),
-            },
-            facing,
+            position: moveFoot(
+              context.position,
+              intent.x * distance,
+              intent.y * distance,
+              region.width,
+              region.height,
+              controller.session.solids,
+            ),
+            facing: direction,
           };
         });
-        const resolved = controller.session.actor;
+        const state = controller.session.actor;
         actor
-          .setPosition(resolved.position.x, resolved.position.y)
-          .setDepth(ACTOR_DEPTH_BASE + resolved.position.y);
-        this.direction = resolved.facing;
+          .setPosition(state.position.x, state.position.y)
+          .setDepth(DEPTH.feet + state.position.y);
         this.scenery?.advance(frame.simulatedMs);
-        if (this.previewAction && this.previewRemainingMilliseconds > 0) {
-          // Start once and hold non-looping endpoints while attached effects finish.
-          if (this.previewElapsedMilliseconds === 0 || this.currentHero !== snapshot.hero) {
-            this.currentHero = snapshot.hero;
-            this.playAction(this.previewAction);
-          }
-          if (this.previewAction === 'death')
-            actor.setAlpha(deathPreviewAlpha(this.previewElapsedMilliseconds));
-          if (this.previewAction === 'bomb') {
-            const frame = effectFrameAt(bombExplosion, this.previewElapsedMilliseconds - 360);
+        this.scenery?.sync();
+        if (forced && this.preview) {
+          if (this.elapsedMs === 0 || this.hero !== snapshot.hero) this.play(this.preview);
+          if (this.preview === 'death') actor.setAlpha(deathPreviewAlpha(this.elapsedMs));
+          if (this.preview === 'bomb') {
+            const effect = effectFrameAt(bombExplosion, this.elapsedMs - 360),
+              region = controller.session.regionDefinition;
+            const dx = state.facing === 'right' ? 32 : state.facing === 'left' ? -32 : 0,
+              dy = state.facing === 'down' ? 32 : state.facing === 'up' ? -32 : 0;
+            const x = Phaser.Math.Clamp(actor.x + dx, 32, region.width - 32) - 32,
+              y = Phaser.Math.Clamp(actor.y + dy, 32, region.height - 32) - 32;
             this.explosion?.clear();
-            const dx = this.direction === 'right' ? 32 : this.direction === 'left' ? -32 : 0,
-              dy = this.direction === 'down' ? 32 : this.direction === 'up' ? -32 : 0;
-            const x = Phaser.Math.Clamp(actor.x + dx, 32, CLEARING.widthPixels - 32) - 32,
-              y = Phaser.Math.Clamp(actor.y + dy, 32, CLEARING.heightPixels - 32) - 32;
-            for (const cell of frame?.cells ?? [])
+            for (const cell of effect?.cells ?? [])
               this.explosion
                 ?.fillStyle(cell.colour, cell.alpha)
                 .fillRect(x + cell.x, y + cell.y, cell.width, cell.height);
           }
-          this.previewElapsedMilliseconds += frame.simulatedMs;
-          this.previewRemainingMilliseconds -= frame.simulatedMs;
-          return;
+          this.elapsedMs += frame.simulatedMs;
+          this.remainingMs -= frame.simulatedMs;
+        } else {
+          this.preview = null;
+          actor.setAlpha(1);
+          this.explosion?.clear();
+          this.play(
+            presentationAction({
+              forced: null,
+              swimming: controller.session.swimming,
+              carrying: controller.session.snapshot.carrying,
+              moving,
+            }),
+          );
         }
-        this.previewAction = null;
-        actor.setAlpha(1);
-        this.explosion?.clear();
-        this.currentHero = snapshot.hero;
-        this.playAction(moving ? 'walk' : 'idle');
-        actor.setDepth(ACTOR_DEPTH_BASE + actor.y);
       }
-      private playAction(action: HeroAction) {
+      private play(action: HeroAction) {
         if (!this.actor) return;
+        this.hero = controller.session.snapshot.hero;
         const definition = heroAnimations.find(
-          (animation) => animation.id === `${this.currentHero}-${action}-${this.direction}`,
-        );
-        const frame = definition?.frames[0];
+            (a) => a.id === `${this.hero}-${action}-${controller.session.actor.facing}`,
+          ),
+          frame = definition?.frames[0];
         if (!definition || !frame) return;
-        this.actor.setOrigin(definition.foot.x / frame.width, definition.foot.y / frame.height);
-        this.actor.play(definition.id, true);
+        this.actor
+          .setOrigin(definition.foot.x / frame.width, definition.foot.y / frame.height)
+          .play(definition.id, true);
+      }
+      private drawDebug(deltaMs: number) {
+        const enabled = import.meta.env.DEV && bridge.snapshot.debug;
+        this.overlay?.clear();
+        this.debugText?.setVisible(enabled);
+        if (!enabled) return;
+        const state = controller.session.actor,
+          body = footRect(state.position);
+        this.overlay?.lineStyle(1, 0xff6b6b, 0.8);
+        for (const solid of controller.session.solids)
+          this.overlay?.strokeRect(solid.x, solid.y, solid.width, solid.height);
+        this.overlay
+          ?.lineStyle(1, 0xffffff)
+          .strokeRect(body.x, body.y, body.width, body.height)
+          .lineStyle(1, 0xffcf70, 0.6)
+          .strokeCircle(state.position.x, state.position.y, 26);
+        this.debugText?.setText(
+          `${this.regionId} · world\nfeet ${state.position.x.toFixed(1)}, ${state.position.y.toFixed(1)} · ${state.facing}\ntick ${controller.session.tick}`,
+        );
+        this.debugElapsedMs += deltaMs;
+        if (this.debugElapsedMs < 100) return;
+        this.debugElapsedMs = 0;
+        Object.assign(host.dataset, {
+          x: String(state.position.x),
+          y: String(state.position.y),
+          region: this.regionId,
+          cameraX: String(Math.round(this.cameras.main.scrollX)),
+          cameraY: String(Math.round(this.cameras.main.scrollY)),
+          animation: this.actor?.anims.currentAnim?.key ?? '',
+          tick: String(controller.session.tick),
+        });
       }
     }
-
     game = new Phaser.Game({
       type: Phaser.WEBGL,
       parent: host,
-      width: CLEARING.widthPixels,
-      height: CLEARING.heightPixels,
-      backgroundColor: '#78a957',
+      width: 480,
+      height: 272,
+      backgroundColor: '#63ab3f',
       pixelArt: true,
       roundPixels: true,
       scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-      scene: [ClearingScene],
+      scene: [BootScene, AssetScene, WorldScene],
       audio: { noAudio: true },
     });
   };
   void start().catch((error: unknown) => {
     if (!disposed)
-      controller.fail(error instanceof Error ? error.message : 'The clearing could not start.');
+      controller.fail(error instanceof Error ? error.message : 'The world could not start.');
   });
-
   return () => {
     disposed = true;
     stopBackground();
+    input.dispose();
     controller.dispose();
     game?.destroy(true);
   };

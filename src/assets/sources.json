@@ -2008,25 +2008,32 @@
   {
     "id": "gui-prompts-xbox",
     "archive": "Controllers and Keyboard.zip",
-    "path": "Controllers and Keyboard/controller_xbox.png",
-    "inspectionOnly": true
+    "path": "Controllers and Keyboard/controller_xbox.png"
   },
   {
     "id": "gui-prompts-playstation",
     "archive": "Controllers and Keyboard.zip",
-    "path": "Controllers and Keyboard/controller_ps.png",
-    "inspectionOnly": true
+    "path": "Controllers and Keyboard/controller_ps.png"
   },
   {
     "id": "gui-prompts-switch",
     "archive": "Controllers and Keyboard.zip",
-    "path": "Controllers and Keyboard/controller_switch.png",
-    "inspectionOnly": true
+    "path": "Controllers and Keyboard/controller_switch.png"
   },
   {
     "id": "gui-prompts-mouse",
     "archive": "Controllers and Keyboard.zip",
     "path": "Controllers and Keyboard/mouse.png",
     "inspectionOnly": true
+  },
+  {
+    "id": "world-cottage-floor",
+    "archive": "Tiny Village Pack.zip",
+    "path": "Tiny Village Pack/Indoors/Other/Floor.png"
+  },
+  {
+    "id": "world-small-box",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Box_heavy.png"
   }
 ]

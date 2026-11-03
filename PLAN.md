@@ -1,6 +1,6 @@
 # Tiny Adventure — First Full Release Plan
 
-**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M03 complete: application/assets plus core state and time; M04 movement/input is next.
+**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M04 complete: application/assets, core state/time, world rendering, collision and input. M05 cardinal combat is next.
 
 This is the implementation backlog. `[x]` means delivered and verified, not merely designed. Completed M00 items record the documentation baseline. M01 now delivers the application foundation; the authored clearing is an integration preview, not completion of later combat, world or campaign milestones.
 
@@ -128,7 +128,7 @@ The importer has since completed M02 below. No M00 design decisions are silently
 
 All 19 asset tasks are complete. Coverage includes 720 hero sequences (30 families), 1,736 additional presentation sequences, 35 terrain profiles and 279 layered scenery compositions/source views. New Style has all 47 adjacency cases; Old Style retains its explicit patch limitations. GUI definitions include nine-slice panels, 14 bitmap fonts, status symbols and physical device prompts. Death/fall reuse and a finite authored explosion fill the identified presentation gaps without adding gameplay rules.
 
-The 314-source manifest packs 3,763 runtime frames from 167 sources into one padded 2048px atlas; 147 inspection-only sources retain metadata without production pixels. Source crops and every padding border are verified, archive hashes are unchanged, and credit/software notices ship with the build. Checks, production WebGL and source-pixel/browser flows pass; see `CHANGELOG.md` and `docs/sprites/gui-atlases-effects.md`. This completes the import/presentation acceptance gate, not final combat timing, collision, controller support or campaign gameplay. M03 core state/time is next.
+The 314-source manifest packs 3,763 runtime frames from 167 sources into one padded 2048px atlas; 147 inspection-only sources retain metadata without production pixels. Source crops and every padding border are verified, archive hashes are unchanged, and credit/software notices ship with the build. Checks, production WebGL and source-pixel/browser flows pass; see `CHANGELOG.md` and `docs/sprites/gui-atlases-effects.md`. This completed the M02 import/presentation gate. M03 core state/time and M04 collision/input are now delivered below; campaign gameplay and final combat timing remain later work.
 
 ## M03 — Core data, time and state ownership
 
@@ -158,23 +158,31 @@ Forty-one unit tests run without a browser; eleven browser flows and production 
 
 ## M04 — Movement, world rendering and input
 
-- [ ] **M04-001** Implement boot/loading/world scene flow with recoverable loading errors.
-- [ ] **M04-002** Render base terrain, ground details, items, props, actors, canopies and effects in explicit depth order.
-- [ ] **M04-003** Configure nearest-neighbour sampling, pixel-safe camera behaviour and an initial desktop scale strategy.
-- [ ] **M04-004** Implement smooth movement and the agreed facing/diagonal policy using action-based input.
-- [ ] **M04-005** Implement actor foot collision bodies and solid-world collision separate from artwork bounds.
-- [ ] **M04-006** Add camera follow, bounds and smooth region-entry placement without trapping the player.
-- [ ] **M04-007** Resolve movement, idle, carrying, swimming, attack and hit animation priority consistently.
-- [ ] **M04-008** Add keyboard bindings, pointer targeting where agreed and remappable action definitions.
-- [ ] **M04-009** Add controller navigation, stick dead zones, connect/disconnect handling and prompt switching.
-- [ ] **M04-010** Clear held input on blur, pause, modal transitions and controller disconnect.
-- [ ] **M04-011** Route menu focus to React and prevent combat/interactions from leaking through UI overlays.
-- [ ] **M04-012** Implement interaction targeting and prompts for doors, signs, NPCs, chests and farm plots.
-- [ ] **M04-013** Implement region transitions with validated destinations and explicit incoming spawn locations.
-- [ ] **M04-014** Add development overlays for feet, collision, interaction reach and active scene state.
-- [ ] **M04-015** Verify movement/collision at different render rates and play representative tree/door/narrow-path layouts.
+- [x] **M04-001** Implement boot/loading/world scene flow with recoverable loading errors.
+- [x] **M04-002** Render base terrain, ground details, items, props, actors, canopies and effects in explicit depth order.
+- [x] **M04-003** Configure nearest-neighbour sampling, pixel-safe camera behaviour and an initial desktop scale strategy.
+- [x] **M04-004** Implement smooth movement and the agreed facing/diagonal policy using action-based input.
+- [x] **M04-005** Implement actor foot collision bodies and solid-world collision separate from artwork bounds.
+- [x] **M04-006** Add camera follow, bounds and smooth region-entry placement without trapping the player.
+- [x] **M04-007** Resolve movement, idle, carrying, swimming, attack and hit animation priority consistently.
+- [x] **M04-008** Add keyboard bindings, pointer targeting where agreed and remappable action definitions.
+- [x] **M04-009** Add controller navigation, stick dead zones, connect/disconnect handling and prompt switching.
+- [x] **M04-010** Clear held input on blur, pause, modal transitions and controller disconnect.
+- [x] **M04-011** Route menu focus to React and prevent combat/interactions from leaking through UI overlays.
+- [x] **M04-012** Implement interaction targeting and prompts for doors, signs, NPCs, chests and farm plots.
+- [x] **M04-013** Implement region transitions with validated destinations and explicit incoming spawn locations.
+- [x] **M04-014** Add development overlays for feet, collision, interaction reach and active scene state.
+- [x] **M04-015** Verify movement/collision at different render rates and play representative tree/door/narrow-path layouts.
 
 **Acceptance:** a player can traverse a small layered scene, interact and pause with keyboard/controller. UI focus cannot accidentally trigger world actions.
+
+### M04 delivery evidence
+
+All 15 world/input tasks are complete in the authored preview. Boot/loading/world scenes provide visible retryable failures. Explicit terrain/detail/item/feet/canopy/effect bands, nearest sampling, rounded bounded follow and centred interiors use a 480×272 responsive FIT viewport. Swept 8×6 foot collision runs at the existing single 20ms commit boundary. Action input supports remappable keys/buttons, nearby pointer interaction, standard controllers, radial dead zones, device prompts, neutral rearming and focused React dialogs. Validated doors connect clearing, cottage and larger woodland while retaining geometry and object changes. Signs/NPCs/chests/farm plots are inspectable; a single retained box and pond contact exercise carry/swim animation priorities. Development overlays expose geometry/reach/scene/tick without a gameplay mutation API.
+
+Fifty-three pure tests and fifteen real-browser flows pass, including 30/60/144Hz wall collision, reachable authored targets, safe travel, input remapping, pointer/controller interaction, nested menus, held-input clearing, camera bounds and loading retry. Production WebGL/layout checks pass at 1440px and 800px. Controller tests emulate the standard browser Gamepad API; physical hardware playtesting remains outstanding. See `docs/world-input.md` and `CHANGELOG.md`.
+
+Normalised diagonals/cardinal facing with vertical ties remain reversible preview defaults, leaving M00 decisions open. Three fixed authored regions do not approve campaign topology. Chests are empty inspections, NPCs are not recruited, plots do not grow crops, the box is not inventory and swimming grants no permanent tool. Combat/damage, inventory transactions, durable saves, generation and farming remain later milestones. Runtime art now includes the supplied floor/box and controller prompts: 316 sources, 172 runtime / 144 inspection-only, 3,849 packed frames; raw archive bytes and LICENSE are unchanged.
 
 ## M05 — Cardinal combat and enemy behaviour
 

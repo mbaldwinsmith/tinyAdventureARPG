@@ -2,6 +2,7 @@ import { ContentRegistry } from './schemas';
 import { saveSchema } from '../core/model';
 import { RandomStreams } from '../core/random';
 import { CLEARING, clearingPathAt, PREVIEW_SPEED_PIXELS_PER_SECOND } from './clearing';
+import { PREVIEW_WORLD, woodlandPathAt } from './world';
 
 /** Editable contract examples, not an approved release content budget or balance sheet. */
 export const PREVIEW_CONTENT = new ContentRegistry({
@@ -93,28 +94,36 @@ export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
       seed,
       generatorVersions: { terrain: 1, dungeon: 1, loot: 1 },
       nextId: 1,
-      regions: [
-        {
-          id: 'region:clearing',
-          kind: 'surface',
-          phase: 'active',
-          generatorVersion: 1,
-          geometry: {
-            version: 1,
-            width: 30,
-            height: 17,
-            tilePixels: 16,
-            tiles: Array.from({ length: 510 }, (_, i) =>
-              clearingPathAt(i % 30, Math.floor(i / 30)) ? 1 : 0,
-            ),
-            objects: [
-              { id: 'entity:clearing-chest', position: { x: 211, y: 155 } },
-              { id: 'entity:clearing-sign', position: { x: 277, y: 151 } },
-            ],
-          },
-          changes: { removedObjects: [], openedPassages: [], claimedRewards: [] },
+      regions: PREVIEW_WORLD.regions.map((region) => ({
+        id: region.id,
+        kind: 'surface',
+        phase: region.id === 'region:clearing' ? 'active' : 'dormant',
+        generatorVersion: 1,
+        geometry: {
+          version: 1,
+          width: region.width / 16,
+          height: region.height / 16,
+          tilePixels: 16,
+          tiles: Array.from({ length: (region.width / 16) * (region.height / 16) }, (_, i) => {
+            const x = i % (region.width / 16),
+              y = Math.floor(i / (region.width / 16));
+            return region.style === 'clearing'
+              ? clearingPathAt(x, y)
+                ? 1
+                : 0
+              : region.style === 'woodland'
+                ? woodlandPathAt(x, y)
+                  ? 1
+                  : 0
+                : 0;
+          }),
+          objects: region.objects.map((object) => ({
+            id: object.id,
+            position: { ...object.position },
+          })),
         },
-      ],
+        changes: { removedObjects: [], openedPassages: [], claimedRewards: [], openedObjects: [] },
+      })),
       dungeons: [],
     },
     player: {

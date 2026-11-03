@@ -8,11 +8,11 @@ The same module defines square/rectangle normal/pressed buttons, heart/drop/star
 
 `font-glyphs.json` records two inspected alpha-cropped glyph templates, with seven supplied colour variants each. Every font maps 88 characters: A–Z, a–z, digits and supplied punctuation/symbols. Small/big line heights are 9/13 pixels. Space has its own advance; newlines advance by line height. Unsupported Unicode is reported and rendered as `?`; samples are bounded. These raster fonts are available for inspection and future decorative uses, while DOM text remains the readable/accessibility default.
 
-Device prompt IDs describe **physical controls**, separate from future input action bindings. Keyboard light/dark variants map letters, digits, function/navigation/modifier keys and a two-cell-tall Enter key. Controller face positions retain Xbox Y/X/A/B, PlayStation Triangle/Square/Cross/Circle and Switch X/Y/B/A for north/west/south/east. Mouse left/right/middle prompts are descriptive. The clearing displays only its actual WASD/Escape keyboard bindings; controller support has not been implemented.
+Device prompt IDs describe **physical controls**, separate from input action bindings. Keyboard light/dark variants map letters, digits, function/navigation/modifier keys and a two-cell-tall Enter key. Controller face positions retain Xbox Y/X/A/B, PlayStation Triangle/Square/Cross/Circle and Switch X/Y/B/A for north/west/south/east. Mouse left/right/middle prompts are descriptive. The preview maps current remapped action bindings to keyboard or Xbox/PlayStation/Switch prompts, with text for generic/shoulder/Start controls. Controller face sheets are now runtime art.
 
 ## Atlas contract
 
-`npm run assets:build` validates 314 source records from 16 unchanged selected archives, then packs **3,763 explicit runtime frames from 167 sources into one 2048×2048 atlas**. The remaining 147 source records are inspection-only; their pixels stay outside the game build.
+`npm run assets:build` validates 316 source records from 16 unchanged selected archives, then packs **3,849 explicit runtime frames from 172 sources into one 2048×2048 atlas**. The remaining 144 source records are inspection-only; their pixels stay outside the game build.
 
 The Node-only `pngjs` build tool reads/writes RGBA losslessly. Frames sort by dimensions and stable rectangle ID before deterministic shelf placement. Each has **2px of extruded edge pixels on every side and corner**, no rotation and no trimming. Pages are bounded to 2048px per side and eight pages; oversized/missing/duplicate inputs fail. Only sources explicitly declaring a uniform grid receive grid extraction. Irregular scenery and GUI use reviewed source rectangles.
 

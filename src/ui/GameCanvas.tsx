@@ -8,6 +8,14 @@ export function GameCanvas({ bridge }: { bridge: GameBridge }) {
     if (!host.current) return;
     return mountGame(host.current, bridge);
   }, [bridge]);
+  useEffect(
+    () =>
+      bridge.onEvent((event) => {
+        if (event.type === 'domain.event' && event.event.type === 'world.region-entered')
+          requestAnimationFrame(() => host.current?.focus());
+      }),
+    [bridge],
+  );
   return (
     <div
       ref={host}

@@ -1,0 +1,60 @@
+# World rendering and action input
+
+M04 supplies a traversable authored clearing, cottage and larger woodland. These exercise collision, retained world objects, safe entry, camera follow and UI focus. They do not define campaign topology or generate a forest.
+
+## Scene and rendering ownership
+
+One mount owns one Phaser game: `boot` starts `assets`, then `world`. The asset scene loads the validated packed atlas and installs shared animations. A visible loading failure offers a full reload/retry; cleanup removes listeners and the old canvas. Region travel restarts only the world scene, keeping the same authoritative session.
+
+The logical viewport is 480×272. Phaser FIT preserves its aspect ratio inside the responsive desktop frame, including fractional CSS scaling; sampling remains nearest-neighbour (`pixelArt`) and camera coordinates are rounded. This is the initial desktop strategy, not an integer-only window-size constraint. Camera bounds follow each region, the player is placed at a validated entry before follow begins, and a 120ms fade softens entry. Small interiors are centred; the 960×544 woodland exercises scrolling.
+
+| Depth band    | Content                                        |
+| ------------- | ---------------------------------------------- |
+| 0             | Base grass/interior floor                      |
+| 10            | Paths, shore, flowers and inspected soil       |
+| 20            | Ground shadows                                 |
+| 30            | Loose world item                               |
+| 100 + feet Y  | Actor, trunks, facades, props and carried item |
+| 2000 + feet Y | Canopies and roofs                             |
+| 4000          | Cosmetic effects and interaction marker        |
+| 5000          | Development geometry and scene/tick readout    |
+
+`createWorldView` consumes the same retained object state used by interaction/collision. Opening chests changes their frame; dropping the box changes its position and solid. Shore and cosmetic action durations consume simulated time and freeze with the core. Forced action previews, including attack/hit, take priority over swim, carry, walk and idle. Those previews do not inflict damage or implement combat.
+
+## Motion and interaction
+
+The actor's 8×6 foot body ends at its reference foot point, independently of variable sprite/frame bounds. Each core 20ms step resolves swept X then Y movement against explicit rectangles and region edges. This clips thin walls without tunnelling and slides along obstacles. There is no second physics clock. The core validates the resulting position before committing it.
+
+The existing preview policy is smooth 60px/second movement, normalised diagonals and cardinal facing, with vertical direction winning an equal-axis tie. Analogue stick magnitude survives radial dead-zone remapping. These remain reversible defaults while M00 movement/balance choices stay open.
+
+A nearby target must be within 26px, in the facing half-plane (4px tolerance), and have clear line of sight excluding its own solid. The nearest valid stable ID wins. E, the bound controller action, the nearby button or clicking the highlighted target sends the same validated command. Pointer input focuses the canvas and targets nearby interactions; it does not aim attacks.
+
+- Doors validate region/spawn identities and current destination foot clearance, preserve both regions' geometry/deltas, update activity/discovery, clear held input and place the actor explicitly before rendering.
+- Signs and NPCs open information dialogs. NPCs are not recruited.
+- Chests retain an opened ID and visible open frame. They are empty; there are no deposit/withdrawal operations.
+- Farm plots open an inspection dialog; no planting or growth runs.
+- The small box is a single retained world object. Pickup hides its ground solid; drop checks full-box clearance, bounds and water, then restores it at the new position. Carrying takes interaction priority, so set it down before travel. Heavy-box pickup while swimming is rejected. This is not inventory/tool ownership.
+- Pond contact selects swimming animation, without a permanent campaign swim unlock.
+
+## Controls and focus
+
+| Action                  | Keyboard default         | Standard controller default                        |
+| ----------------------- | ------------------------ | -------------------------------------------------- |
+| Move                    | WASD or reserved arrows  | Left stick or D-pad                                |
+| Interact / menu confirm | E / native UI activation | South face button (0)                              |
+| Cosmetic sword preview  | Space                    | West face button (2)                               |
+| Pause                   | Escape                   | Start (9)                                          |
+| Menu cancel             | Escape                   | East face button (1), or bound pause               |
+| Menu navigation         | Native Tab/arrows        | D-pad/stick; left/right changes a focused selector |
+
+Controls offers unique session-only key and action-button assignments. Arrows and east-button cancel remain reserved; unsupported and duplicate bindings fail explicitly. Prompts reflect the last active keyboard or standard-mapped Xbox, PlayStation, Switch or generic controller. Nonstandard browser mappings are ignored. The radial stick dead zone is 0.2; menu navigation uses edges instead of frame-dependent repeat timers.
+
+Connecting, replacement/disconnect, focus changes, pause changes, modals and region transitions clear held input. A controller must return its left stick and all buttons to neutral before rearming. This prevents a held confirm or movement from leaking into the world. React native dialogs own focus while open; layered settings/menu pauses compose, and closing settings cannot resume an underlying menu. The pause dialog explicitly starts on its resume button.
+
+Bindings are not durable saves. Standard controller behaviour is tested with an emulated browser Gamepad API; no physical controller was available for this milestone. Physical device/browser compatibility still needs hardware playtesting.
+
+## Development verification
+
+The development-only collision overlay shows foot bodies, solids, interaction reach, active region/scene and tick. Its read-only DOM observations are enabled only with the overlay; positions/ticks are not streamed into React snapshots or exposed as a mutation API. Production rejects enabling debug overlays and excludes the workbench.
+
+Pure tests compare actual wall collision at 30/60/144Hz, swept clipping/sliding, valid spawns, routes to every authored interaction, door retention, chest idempotence, object serialization, animation priority and controller neutral/dead-zone/edge handling. Browser flows traverse doors and narrow paths, test camera bounds/return placement, inspect/carry/swim, remap input, navigate nested controller menus, disconnect and retry failed loading. Existing source-pixel, pause, lifecycle, calendar and effect flows remain required. See CHANGELOG for the exact checks run.
