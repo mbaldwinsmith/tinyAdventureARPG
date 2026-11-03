@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { entityIdSchema, regionIdSchema, instanceIdSchema, itemInstanceIdSchema } from './ids';
+import {
+  entityIdSchema,
+  regionIdSchema,
+  instanceIdSchema,
+  itemInstanceIdSchema,
+  itemIdSchema,
+} from './ids';
 const ticks = z.number().int().nonnegative().safe();
 const point = z.strictObject({ x: z.number().finite(), y: z.number().finite() });
 const facing = z.enum(['up', 'down', 'left', 'right']);
@@ -84,6 +90,15 @@ export const combatStateSchema = z.strictObject({
       phase: z.enum(['pending', 'resolved']),
       lostItems: z.array(itemInstanceIdSchema),
       lostMoney: ticks,
+      losses: z
+        .array(
+          z.strictObject({
+            id: itemInstanceIdSchema,
+            templateId: itemIdSchema,
+            quantity: z.number().int().positive(),
+          }),
+        )
+        .default([]),
     })
     .nullable(),
 });

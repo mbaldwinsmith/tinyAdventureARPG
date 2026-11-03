@@ -54,9 +54,10 @@ export function ExpeditionPanel({
           <p className="small-copy">
             Surfaces keep their geography. Wild supplies and claimed ordinary enemies refresh
             offscreen on a later day. A living crypt never resets. After its warden falls, collect
-            the reward and exit; the next entry creates its successor. Preview defeat returns you to
-            the village without loss. Reloading this preview starts a fresh session. Saved game
-            slots are coming next.
+            the reward and exit; the next entry creates its successor. Defeat returns you to the
+            village. Carried materials face individual loss rolls and 10% of carried money is lost;
+            equipment, deposits and permanent progress stay protected. Browser checkpoints retain
+            this adventure. Export backups for safekeeping.
           </p>
         </>
       )}

@@ -1,6 +1,6 @@
 # Tiny Adventure — First Full Release Plan
 
-**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M06 complete: application/assets, state/time, world/input, combat and persistent expeditions. M07 durable saves and recovery are next.
+**Target:** 1.0.0 desktop browser release. **Current stage:** M01–M07 complete: application/assets, state/time, world/input, combat, persistent expeditions and durable saves/recovery. M08 inventory and equipment are next.
 
 This is the implementation backlog. `[x]` means delivered and verified, not merely designed. Completed M00 items record the documentation baseline. M01 now delivers the application foundation; the authored clearing is an integration preview, not completion of later combat, world or campaign milestones.
 
@@ -62,9 +62,9 @@ Confirm or adjust these budgets under M00 before expanding content production. T
 - [ ] **M00-008** Define exact dungeon reset timing, successor anchor encounters and behaviour after a player exits a defeated instance. Reset timing is confirmed in M00-008a; campaign successor encounter variety remains open.
 - [x] **M00-008a** Retain a defeated occupied dungeon until its reward is collected and the player exits; generate the successor only on the next entry.
 - [ ] **M00-009** Define post-King play and restoration state, preserving victory when repeatable dungeons regenerate.
-- [ ] **M00-010** Define carried-item loss eligibility, equipped-item treatment, probabilities, stack losses and money handling.
+- [x] **M00-010** Confirm materials-only loss: independent 25% chance per carried material unit, partial stacks allowed; all equipment protected. Lose 10% carried money rounded down; deposits/permanent progress protected.
 - [ ] **M00-011** Define permanent tool ownership separately from losable enchanted equipment and temporary effects.
-- [ ] **M00-012** Decide storage accessibility: local chests, shared storage, money deposits and withdrawal rules.
+- [x] **M00-012** Confirm separate local chest inventories and money, with deposits/withdrawals only while nearby.
 - [ ] **M00-013** Choose smooth movement/facing rules, diagonal movement policy, collision footprint and cardinal attack direction selection.
 - [ ] **M00-014** Set initial day length, season length, sleep/late-night rules and behaviour when the application loses focus.
 - [ ] **M00-015** Choose inventory capacity/stack rules, equipment slots and ability/relic limits.
@@ -250,27 +250,35 @@ Checkpoint persistence is not durable browser storage. M07 save slots/migrations
 
 ## M07 — Saving, storage and death consistency
 
-- [ ] **M07-001** Define a versioned save envelope, content/generator versions and validation failure reporting.
-- [ ] **M07-002** Implement a save repository interface and Dexie/IndexedDB browser adapter.
-- [ ] **M07-003** Persist player, inventories, deposits, farm, village, quests and region/instance records consistently.
-- [ ] **M07-004** Save generated region geometry as well as seeds and changed-object records.
-- [ ] **M07-005** Add new-game, save-slot listing, continue and explicit save/load flows.
-- [ ] **M07-006** Add safe autosave checkpoints at transitions, deposits, sleep, significant unlocks and boss outcomes.
-- [ ] **M07-007** Implement atomic chest transfers so moved possessions cannot be duplicated or lost between owners.
-- [ ] **M07-008** Implement atomic money deposits/withdrawals and validate insufficient funds/capacity conditions.
-- [ ] **M07-009** Resolve death-loss eligibility using the agreed permanent-versus-carried rules.
-- [ ] **M07-010** Apply random item/stack/money losses once and persist the outcome with the respawn state.
-- [ ] **M07-011** Display retained/lost possessions accurately and preserve deposits, permanent tools and discoveries.
-- [ ] **M07-012** Persist anchor defeat, rewards and pending regeneration without repeat claims after reload.
-- [ ] **M07-013** Restore active dungeon instances, open gates and collected one-time rewards correctly.
-- [ ] **M07-014** Implement explicit schema migration infrastructure and test the first supported migration fixture.
-- [ ] **M07-015** Add save export/import with schema validation, duplicate-slot policy and readable errors.
-- [ ] **M07-016** Handle unavailable storage, quota errors and write failures visibly while retaining recoverable session state.
-- [ ] **M07-017** Recover from interrupted transitions using a documented transaction/checkpoint strategy.
-- [ ] **M07-018** Verify round-trip saves and failure/reload scenarios around deposits, death, sleep and boss defeat.
-- [ ] **M07-019** Document browser storage limitations, export backups and how future desktop save adapters will differ.
+- [x] **M07-001** Define a versioned save envelope, content/generator versions and validation failure reporting.
+- [x] **M07-002** Implement a save repository interface and Dexie/IndexedDB browser adapter.
+- [x] **M07-003** Persist player, inventories, deposits, farm, village, quests and region/instance records consistently.
+- [x] **M07-004** Save generated region geometry as well as seeds and changed-object records.
+- [x] **M07-005** Add new-game, save-slot listing, continue and explicit save/load flows.
+- [x] **M07-006** Add safe autosave checkpoints at transitions, deposits, sleep, significant unlocks and boss outcomes.
+- [x] **M07-007** Implement atomic chest transfers so moved possessions cannot be duplicated or lost between owners.
+- [x] **M07-008** Implement atomic money deposits/withdrawals and validate insufficient funds/capacity conditions.
+- [x] **M07-009** Resolve death-loss eligibility using the agreed permanent-versus-carried rules.
+- [x] **M07-010** Apply random item/stack/money losses once and persist the outcome with the respawn state.
+- [x] **M07-011** Display retained/lost possessions accurately and preserve deposits, permanent tools and discoveries.
+- [x] **M07-012** Persist anchor defeat, rewards and pending regeneration without repeat claims after reload.
+- [x] **M07-013** Restore active dungeon instances, open gates and collected one-time rewards correctly.
+- [x] **M07-014** Implement explicit schema migration infrastructure and test the first supported migration fixture.
+- [x] **M07-015** Add save export/import with schema validation, duplicate-slot policy and readable errors.
+- [x] **M07-016** Handle unavailable storage, quota errors and write failures visibly while retaining recoverable session state.
+- [x] **M07-017** Recover from interrupted transitions using a documented transaction/checkpoint strategy.
+- [x] **M07-018** Verify round-trip saves and failure/reload scenarios around deposits, death, sleep and boss defeat.
+- [x] **M07-019** Document browser storage limitations, export backups and how future desktop save adapters will differ.
 
 **Acceptance:** browser reload preserves the active adventure. Banking/death/boss transitions cannot duplicate possessions or erase protected progress. Failed saves are never falsely reported as successful.
+
+### M07 delivery evidence
+
+All 19 M07 tasks are complete. Versioned, integrity-checked whole checkpoints use a replaceable repository and Dexie/IndexedDB adapter. Save slots, new/continue, explicit save, autosaves, export/import copies and previous-checkpoint recovery retain full geometry and random continuation. Compare-and-swap revisions reject stale tabs; failed durable commands retain detached candidates for retry/export without changing live ownership. Exact retries recognize a committed checkpoint after an acknowledgement failure. Recovery always preserves damaged originals.
+
+Local chests keep separate items/money and require proximity. Atomic stack transfers preflight identities/properties/capacity; money transfers reject underflow/overflow. M00-010/M00-012 confirm per-unit 25% material loss, protected equipment/deposits/permanent progress, 10% carried-money loss rounded down and local banking. Loss/random/respawn persist as one checkpoint, with a retained/lost report. Practice stays loss-free. Crypt defeat, reward claims, pending regeneration and successors survive reload.
+
+Validation covers 110 unit tests, 28 browser integration flows across relevant runs, a production WebGL smoke flow at 1440px/800px, real IndexedDB adapter abort/concurrency tests through fake-indexeddb, browser reload/banking/death/sleep/backup/recovery flows and the full keyboard crypt route with reloads before reward, after claim and after exit. Browser quota injection leaves a transfer pending and retry applies it once. Explicit v1 migration preserves the synthetic fixture's geometry, discoveries, money and RNG. Farm/resident/quest records round-trip as data contracts; their gameplay remains M11/M12/M14 work. Full inventory/equipment remains M08. See [save architecture](docs/saves.md) for active-play checkpoints, interrupted writes, browser-origin limits, backups and future desktop adapters.
 
 ## M08 — Inventory, equipment and chest UI
 

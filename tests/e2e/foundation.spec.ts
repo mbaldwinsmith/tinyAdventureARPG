@@ -275,8 +275,11 @@ test('uses source pixels for all 47 terrain cases and inspects layered boats and
 
 test('pauses and resumes the rendered shoreline with the shared menu pause', async ({ page }) => {
   test.setTimeout(60000); // Several software-WebGL captures can exceed the default on CI.
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
+  await page.clock.runFor(150);
   const sample = async () => {
     // Compare the world buffer without the modal's blurred backdrop or overlaid text.
     const pixels = await page.locator('.game-canvas canvas').screenshot({
@@ -299,17 +302,21 @@ test('pauses and resumes the rendered shoreline with the shared menu pause', asy
     }, pixels.toString('base64'));
   };
   const moving = await sample();
-  await expect.poll(sample).not.toBe(moving);
+  // A shoreline frame lasts 180ms; 200ms cannot alias its 720ms loop.
+  await page.clock.runFor(200);
+  expect(await sample()).not.toBe(moving);
   await page.getByRole('button', { name: 'Pause Esc' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await page.waitForTimeout(250);
+  await page.clock.runFor(250);
   const frozen = await sample();
-  await page.waitForTimeout(450);
+  await page.clock.runFor(450);
   expect(await sample()).toBe(frozen);
   await page.getByRole('button', { name: 'Back to the clearing' }).click();
   await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect(page.getByRole('status')).toHaveText('The path is open');
   const resumed = await sample();
-  await expect.poll(sample).not.toBe(resumed);
+  await page.clock.runFor(200);
+  expect(await sample()).not.toBe(resumed);
 });
 
 test('renders GUI panel corners from supplied pixels at different sizes and handles unsupported font text', async ({
@@ -331,6 +338,36 @@ test('renders GUI panel corners from supplied pixels at different sizes and hand
   await wb.getByLabel('Search sprites').fill('TalkBox_Green_16x16');
   await wb.getByRole('button', { name: /TalkBox_Green_16x16.*48×48px/ }).click();
   const sample = wb.getByLabel('Rendered GUI sample');
+  // Load/decode the independent source once, outside the short paint predicate.
+  // The predicate must measure the rendered pixels, not repeated network I/O.
+  const expectedCorners = await page.evaluate(async () => {
+    const catalogue = (await (await fetch('/__catalogue/index.json')).json()) as {
+      assets: { id: string; sources: { path: string }[] }[];
+    };
+    const source = catalogue.assets.find((a) =>
+      a.sources.some((s) => s.path.endsWith('/TalkBox_Green_16x16.png')),
+    );
+    if (!source) throw new Error('Missing panel source');
+    const image = new Image();
+    image.src = `/__catalogue/${source.id}.png`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = 96;
+    canvas.height = 96;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('No reference canvas');
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(image, 0, 0, 96, 96);
+    return [
+      [0, 0],
+      [88, 0],
+      [0, 88],
+      [88, 88],
+    ].map(([x, y]) => {
+      if (x === undefined || y === undefined) throw new Error('Missing corner');
+      return Array.from(ctx.getImageData(x, y, 8, 8).data);
+    });
+  });
   for (const [width, height] of [
     [64, 32],
     [360, 180],
@@ -341,42 +378,34 @@ test('renders GUI panel corners from supplied pixels at different sizes and hand
     await expect(sample).toHaveAttribute('width', String(width));
     await expect(sample).toHaveAttribute('height', String(height));
     await expect
-      .poll(async () =>
-        sample.evaluate(async (node) => {
-          const catalogue = (await (await fetch('/__catalogue/index.json')).json()) as {
-            assets: { id: string; sources: { path: string }[] }[];
-          };
-          const source = catalogue.assets.find((a) =>
-            a.sources.some((s) => s.path.endsWith('/TalkBox_Green_16x16.png')),
-          );
-          if (!source) throw new Error('Missing panel source');
-          const image = new Image();
-          image.src = `/__catalogue/${source.id}.png`;
-          await image.decode();
-          const canvas = document.createElement('canvas');
-          canvas.width = 96;
-          canvas.height = 96;
-          const ctx = canvas.getContext('2d'),
-            actual = (node as HTMLCanvasElement).getContext('2d');
-          if (!ctx || !actual) throw new Error('No panel comparison canvas');
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(image, 0, 0, 96, 96);
-          for (const [sx, sy, dx, dy] of [
-            [0, 0, 0, 0],
-            [88, 0, (node as HTMLCanvasElement).width - 8, 0],
-            [0, 88, 0, (node as HTMLCanvasElement).height - 8],
-            [88, 88, (node as HTMLCanvasElement).width - 8, (node as HTMLCanvasElement).height - 8],
-          ]) {
-            if (sx === undefined || sy === undefined || dx === undefined || dy === undefined)
+      .poll(() =>
+        sample.evaluate((node, reference) => {
+          const canvas = node as HTMLCanvasElement,
+            actual = canvas.getContext('2d');
+          if (!actual) throw new Error('No rendered comparison canvas');
+          const corners = [
+            [0, 0],
+            [canvas.width - 8, 0],
+            [0, canvas.height - 8],
+            [canvas.width - 8, canvas.height - 8],
+          ];
+          for (const [index, point] of corners.entries()) {
+            const [x, y] = point,
+              expected = reference[index];
+            if (x === undefined || y === undefined || !expected)
               throw new Error('Missing corner fixture');
-            if (
-              Array.from(ctx.getImageData(sx, sy, 8, 8).data).join(',') !==
-              Array.from(actual.getImageData(dx, dy, 8, 8).data).join(',')
-            )
-              return false;
+            const observed = Array.from(actual.getImageData(x, y, 8, 8).data);
+            if (expected.join(',') !== observed.join(','))
+              return JSON.stringify({
+                corner: index,
+                dimensions: [canvas.width, canvas.height],
+                differences: expected
+                  .flatMap((value, i) => (value === observed[i] ? [] : [[i, value, observed[i]]]))
+                  .slice(0, 12),
+              });
           }
           return true;
-        }),
+        }, expectedCorners),
       )
       .toBe(true);
   }

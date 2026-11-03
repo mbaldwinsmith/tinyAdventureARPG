@@ -47,6 +47,41 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
   assertCombatInvariants(state);
   unique(entityIds, 'entity ID');
   const knownEntities = new Set(entityIds);
+  unique(
+    state.domains.farm.plots.map((p) => p.id),
+    'farm plot',
+  );
+  unique(
+    state.domains.village.residents.map((r) => r.id),
+    'resident',
+  );
+  unique(
+    state.domains.quests.map((q) => q.id),
+    'quest',
+  );
+  for (const p of state.domains.farm.plots)
+    if (
+      !knownEntities.has(p.id) ||
+      !state.world.regions.some(
+        (r) =>
+          r.id === p.regionId &&
+          r.kind === 'surface' &&
+          r.phase !== 'unvisited' &&
+          r.geometry.objects.some((o) => o.id === p.id),
+      ) ||
+      (p.wateredDay !== null && p.wateredDay > state.calendar.day)
+    )
+      throw new Error('Invalid persisted farm record');
+  for (const r of state.domains.village.residents)
+    if (!knownEntities.has(r.id)) throw new Error('Invalid persisted resident');
+  for (const q of state.domains.quests)
+    if (q.rewardClaimed && q.phase !== 'completed')
+      throw new Error('Quest reward requires completion');
+  if (state.lastDeath)
+    for (const l of [...state.lastDeath.losses, ...state.lastDeath.retained])
+      if (l.quantity > content.item(l.templateId).maxStack)
+        throw new Error('Invalid death possession summary');
+
   for (const g of geometries) if (g.generated) validateGeneratedGeometry(g);
   for (const g of geometries)
     for (const object of g.objects)

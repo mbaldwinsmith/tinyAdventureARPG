@@ -1,6 +1,6 @@
 # Core state, time and ownership
 
-M03 supplies framework-independent rules and serializable data contracts. M04 also routes three authored regions, validated interactions and retained object changes through this owner, alongside active-play time and rest. M05 adds serializable combat actions, enemies, projectiles, drops and defeat transitions in a separate practice region; [combat rules](combat.md) describe their fixed-step integration. M06 adds stored generated surfaces, crypt instances, map discoveries and inactive encounter checkpoints; see [generation](generation.md). Inventory actions, farming and durable browser saving remain later milestones.
+M03 supplies framework-independent rules and serializable data contracts. M04 also routes three authored regions, validated interactions and retained object changes through this owner, alongside active-play time and rest. M05 adds serializable combat actions, enemies, projectiles, drops and defeat transitions in a separate practice region; [combat rules](combat.md) describe their fixed-step integration. M06 adds stored generated surfaces, crypt instances, map discoveries and inactive encounter checkpoints; see [generation](generation.md). M07 adds durable browser saves, atomic local storage and recovery; see [save architecture](saves.md). Full inventory/equipment and farming remain later milestones.
 
 ## One authoritative owner
 
@@ -37,7 +37,7 @@ Menu, settings, interaction, background, workbench, loading, failure and death p
 
 Calendar state is an absolute one-based day plus elapsed gameplay ticks. A derived view supplies season/day-of-season/year and displayed minute. Natural rollover starts the next day. `calendar.sleep` checks the expected current day, advances once and resets the day/fractional remainder; replaying a stale command fails. The transition and its event are synchronous, so a checkpoint cannot contain half of a sleep change.
 
-Rest changes the calendar only at this stage. It does not simulate overnight combat, heal the player, grow nonexistent crops or write a durable save. Existing cooldown/status durations remain measured in subsequent active-play ticks. M07/M12 will connect persistence, recovery and crop rules to the day transition.
+Rest changes the calendar in a durable checkpoint. It does not simulate overnight combat, heal the player or grow nonexistent crops. Existing cooldown/status durations remain measured in subsequent active-play ticks. M12 will connect crop rules to the day transition.
 
 The editable **preview defaults** in `content/preview.ts` are a ten-minute day, 28 days per season, four seasons and a 06:00 day start. The actor retains the existing 60px/second preview speed. Sample pools, slots, a 20-stack carried capacity and example item/enchantment definitions exercise contracts; the player starts without equipment or granted tools. These do not approve the first-release budgets, late-night policy, recovery rules, equipment/loss/storage rules or other open M00 decisions. Rules are stored in the envelope so later default changes do not silently rewrite a loaded calendar.
 
@@ -45,7 +45,7 @@ The editable **preview defaults** in `content/preview.ts` are a ten-minute day, 
 
 `RandomStreams` wraps the pinned `seedrandom` 3.0.5 ARC4 generator in independent `terrain`, `loot`, `encounters` and `death` streams. Each explicit string seed includes the stream name and version. Drawing terrain/encounters/death values does not consume loot state. Full PRNG permutations/cursors and terrain/dungeon/loot generator versions are included in checkpoints. Cosmetic presentation never consumes those streams.
 
-`GameSession.export()` returns detached validated JSON-shaped data; `serialize()` encodes it. Constructing a new session from that data resumes positions, active-time remainder, calendar, random outcomes, ID counters and permanent/possession data. Pause reasons and framework subscriptions are transient, and no timestamps/offline-delta fields are saved. Unsupported schemas/generator/PRNG versions and corrupt permutations fail rather than being silently reinterpreted. Browser storage, save slots, import/export UI, recovery and migrations are M07 work.
+`GameSession.export()` returns detached validated JSON-shaped data; `serialize()` encodes it. Constructing a new session from that data resumes positions, active-time remainder, calendar, random outcomes, ID counters and permanent/possession data. Pause reasons and framework subscriptions are transient, and no timestamps/offline-delta fields are saved. Unsupported schemas/generator/PRNG versions and corrupt permutations fail rather than being silently reinterpreted. M07 wraps this boundary with versioned envelopes, explicit v1-to-v2 migration, browser slots, backups and recovery. Core snapshots have no wall-clock time; envelope timestamps are metadata only.
 
 ## Commands, events and snapshots
 

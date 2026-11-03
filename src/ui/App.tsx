@@ -5,6 +5,8 @@ import { useAssetManifest, packedSpriteStyle, usePanelSkin } from './atlas-ui';
 import { ActionPrompt } from './ActionPrompt';
 import { ControlsDialog } from './ControlsDialog';
 import { ExpeditionPanel } from './ExpeditionPanel';
+import { SavePanel } from './SavePanel';
+import { StoragePanel, DeathReport } from './StoragePanel';
 import { CombatPanel, DefeatDialog } from './CombatPanel';
 import { InteractionDialog } from './InteractionDialog';
 import { HERO_IDS } from '../core/model';
@@ -69,12 +71,16 @@ export function App() {
         }
         const controls = Array.from(
           top.querySelectorAll<HTMLElement>(
-            'button:not([disabled]),select:not([disabled]),input:not([disabled])',
+            'button:not([disabled]),select:not([disabled]),input:not([disabled]),summary',
           ),
         ).filter((element) => element.getClientRects().length > 0);
         const current = document.activeElement;
         if (event.action === 'confirm') {
-          if (current instanceof HTMLButtonElement) current.click();
+          if (
+            current instanceof HTMLButtonElement ||
+            (current instanceof HTMLElement && current.tagName === 'SUMMARY')
+          )
+            current.click();
           return;
         }
         if (
@@ -265,6 +271,9 @@ export function App() {
           )}
         </div>
         <ExpeditionPanel bridge={bridge} snapshot={snapshot} />
+        <StoragePanel key={snapshot.transitionSequence} bridge={bridge} snapshot={snapshot} />
+        <DeathReport snapshot={snapshot} />
+        <SavePanel bridge={bridge} snapshot={snapshot} />
         <CombatPanel bridge={bridge} snapshot={snapshot} assets={assets} />
         <section className="below-world" aria-label="Preview options and development status">
           <div className="appearance-panel">
@@ -306,7 +315,8 @@ export function App() {
               <h2>Something worth growing</h2>
               <p>
                 The forest and anchored crypt are ready. Find a route, bring discoveries home, and
-                return to the clearing. Storage, farming and the wider Kingdom are still ahead.
+                return to the clearing. Bank your finds in local chests and export a backup for
+                safekeeping. Farming and the wider Kingdom are still ahead.
               </p>
               <a
                 href="https://github.com/mbaldwinsmith/tinyAdventureARPG/blob/main/PLAN.md"
@@ -445,7 +455,7 @@ export function App() {
           Artwork by Vryell <span aria-hidden="true">·</span> Created by Mark Baldwin-Smith
         </span>
       </footer>
-      {snapshot.combat?.death?.phase === 'pending' && (
+      {snapshot.status === 'ready' && snapshot.combat?.death?.phase === 'pending' && (
         <DefeatDialog bridge={bridge} snapshot={snapshot} />
       )}
       {controlsOpen && <ControlsDialog bridge={bridge} snapshot={snapshot} close={closeControls} />}

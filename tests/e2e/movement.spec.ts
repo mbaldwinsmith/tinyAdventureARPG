@@ -44,6 +44,8 @@ async function move(page: Page, key: string, ms: number) {
 }
 async function interact(page: Page) {
   await page.keyboard.press('e');
+  await page.clock.runFor(100);
+  await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
   await page.clock.runFor(200);
 }
 async function setPad(page: Page, axes = [0, 0], buttons: number[] = [], connected = true) {
