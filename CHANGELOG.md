@@ -17,6 +17,22 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Added — pack, equipment and selected tools
+
+- **M08-001, M08-002, M08-003:** Add typed detached split/merge/reorder/equip/unequip commands, capacity/property/slot/tool preflights, unique enchanted identities and shared stale-command tokens. Derive equipment additions and stacked status multipliers from saved base stats; apply effective attack/defence/speed to real combat/motion without accumulating on reload.
+- **M08-004, M08-005:** Add a responsive React pack with native modal focus, carried selection, slot views, base/effective stats and descriptions of stored enchantments, properties, ownership and current effects. Keyboard, pointer and emulated standard controllers use the same commands; numeric quantities, selects and acknowledgement checkboxes support controller navigation. Review screenshots and correct discard contrast and the inherited desktop dialog width limit.
+- **M08-006, M08-007:** Enrich paired carried/local-chest views with item properties and ownership/risk descriptions; retain atomic partial-stack transfers, separate money controls/totals and equipped-item deposit protection. Unique equipment retains its ID and rolled magnitude through deposit, withdrawal and reload.
+- **M08-008:** Add a nearby, one-time whole starter kit and committed pickup feedback. Generated renewable supply points award two wood plus their existing coin. Full packs leave the complete reward/claim, capability grant, coins and allocation counter unchanged; deposit/merge/discard can make room before retrying. The kit and item balances are preview content, not campaign acquisition decisions.
+- **M08-009:** Persist sword/shield/roll/bow selection and provide I/View pack access, X/RT selected use, held selected-shield guarding, remaps, device prompts and bounded cooldown/energy feedback. Keep dedicated combat bindings and the borrowed encounter kit, without ammunition stacks or M09's additional tool actions.
+- **M08-010, M08-011:** Require explicit discard acknowledgement, initially focus Keep item, label valuable unique items and reject equipped/stale/unconfirmed removal. Never discard permanent route ownership. Show the confirmed per-unit 25% material risk, protected carried equipment/local deposits and exact retained/lost death reports; the existing rounded-down 10% money rule is unchanged.
+- **M08-012:** Stage every pack mutation/selection through durable-first saving, preserving live ownership/stats on failed writes and recognizing exact retries after acknowledgement failure. Add schema 3 pack state with explicit v1 → v2 → v3 migration and a synthetic equipped-enchantment v2 fixture; envelope stays version 2. Verify UI chest/equipment/reload/death transitions, failed equip and discard, one-time supply claims, actual attack/defence/movement/status effects and permanent ownership retention.
+
+### Inventory validation and scope
+
+- `npm run check` passes: 120 unit tests, type/lint/format and unchanged catalogue/archive/atlas validation. `npm run build` passes with no new dependencies or art changes.
+- All 32 integration browser flows pass, including four new inventory journeys. Two production WebGL flows pass at 1440px/800px with real keyboard travel to the kit, equip/reload, map/save flows, no overflow/development controls and no page/console errors. Keyboard and emulated standard-controller tests cover item focus, split quantity, selection, acknowledgement, selected X/RT use and held guarding. Review pack/detail/confirmation screenshots; physical controller hardware is untested.
+- The starter kit contains 12 wood, a plain iron sword, shield and distinct Keen +2 iron sword; it permanently grants sword/shield ownership once. Equipment slots/capacity/stat balances remain configurable preview defaults. Procedural item generation, relic/ability content, wider tool/environment interactions, farming and campaign progression remain later milestones. Browser-origin storage limits and backup guidance remain in force. Raw purchased archives and LICENSE are unchanged.
+
 ### Added — durable saves, local banking and recovery
 
 - **M00-010, M00-012:** Confirm local, separate chest inventories/money with nearby deposit/withdrawal; independent 25% loss per carried material unit, partial stacks allowed, all equipment protected and 10% carried-money loss rounded down. Deposits, permanent tools and discoveries stay protected; practice remains loss-free.

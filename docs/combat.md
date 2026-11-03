@@ -66,3 +66,5 @@ Unit tests cover cardinal boundaries, active timing, repeated overlap, direction
 ## M06 expedition integration
 
 Generated regions reuse this exact clock, collision, kit and enemy implementation. Inactive encounters are retained by region/instance. A six-health skeleton warden anchors each crypt; actual defeat updates its lifecycle and opens one reward. Expedition defeat resolves once to the village without loss while preserving its instance and enemy health. This explicit preview policy does not decide campaign death losses or add equipment. See [persistent generation](generation.md) for refresh and successor boundaries.
+
+M08 derives equipped template/enchantment additions and stacked status multipliers from the saved base stats. The sword uses effective attack, physical damage uses effective defence, and movement uses effective speed. Bow projectiles retain fixed balance damage. Equipping/unequipping during an active action or hurt recovery is rejected. Pack menus pause combat; the selected-tool X/RT path invokes these same actions and held shielding. See [inventory](inventory.md).

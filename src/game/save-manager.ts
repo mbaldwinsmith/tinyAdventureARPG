@@ -1,3 +1,4 @@
+import { inventoryCommandSchemas } from '../core/inventory-model';
 import { z } from 'zod';
 import { copyData, freezeData } from '../core/data';
 import type { GameSession, CoreCommand, CoreResult, DomainEvent } from '../core/session';
@@ -42,6 +43,7 @@ export const DURABLE_COMMANDS = new Set([
   'combat.respawn',
   'storage.item',
   'storage.money',
+  ...inventoryCommandSchemas.map((s) => s.shape.type.value),
 ]);
 export class SaveManager {
   private state: Omit<SaveView, 'pending'> = {
@@ -392,6 +394,7 @@ export class SaveManager {
     this.state.recovery = null;
     this.session.dispatch({ type: 'pause.set', reason: 'saves', active: false });
     this.session.dispatch({ type: 'pause.set', reason: 'storage', active: false });
+    this.session.dispatch({ type: 'pause.set', reason: 'inventory', active: false });
     this.session.dispatch({ type: 'interaction.dismiss' });
   }
   load(id: string, expectedRevision: number): CoreResult {

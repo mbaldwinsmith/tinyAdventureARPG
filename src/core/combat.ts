@@ -16,6 +16,7 @@ type Actor = SaveState['player']['actor'];
 export interface BattleContext {
   state: CombatState;
   actor: Actor;
+  stats?: Actor['stats'];
   tick: number;
   width: number;
   height: number;
@@ -183,7 +184,7 @@ export function damagePlayer(
     return 'blocked';
   }
   const resistance = a.resistances.find((r) => r.type === 'physical')?.multiplier ?? 1;
-  const amount = Math.max(0, Math.max(1, damage - a.stats.defence) * resistance);
+  const amount = Math.max(0, Math.max(1, damage - (c.stats ?? a.stats).defence) * resistance);
   if (amount === 0) return 'immune';
   a.resources.health.current = Math.max(0, a.resources.health.current - amount);
   a.position = knock(c, a.position, source, 12);
@@ -526,7 +527,7 @@ export function stepBattle(c: BattleContext) {
         if (
           overlaps(attackBox(a.position, action.facing), footRect(e.position)) &&
           visible(c, a.position, e.position) &&
-          damageEnemy(c, e, R.swordDamage + a.stats.attack - 1, a.position)
+          damageEnemy(c, e, R.swordDamage + (c.stats ?? a.stats).attack - 1, a.position)
         )
           action.hitIds.push(e.id);
       }

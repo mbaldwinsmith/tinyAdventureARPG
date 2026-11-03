@@ -26,9 +26,18 @@ export function ActionPrompt({
       : control === 'Escape'
         ? 'Esc'
         : control
-    : ({ 0: 'South', 1: 'East', 2: 'West', 3: 'North', 4: 'LB', 5: 'RB', 8: 'View', 9: 'Start' }[
-        button
-      ] ?? 'Button');
+    : ({
+        0: 'South',
+        1: 'East',
+        2: 'West',
+        3: 'North',
+        4: 'LB',
+        5: 'RB',
+        6: 'LT',
+        7: 'RT',
+        8: 'View',
+        9: 'Start',
+      }[button] ?? 'Button');
   const prompt =
     input.device === 'generic'
       ? undefined

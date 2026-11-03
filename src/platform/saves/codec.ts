@@ -65,7 +65,7 @@ export async function decodeSave(text: string, content: ContentRegistry) {
     return {
       state: readSaveState(input, content),
       metadata: null,
-      migrated: header.data.schemaVersion === 1,
+      migrated: header.data.schemaVersion === 1 || header.data.schemaVersion === 2,
     };
   }
   if (header.data.version !== 2)
@@ -74,5 +74,9 @@ export async function decodeSave(text: string, content: ContentRegistry) {
     { sha256, ...body } = value;
   if ((await digest(body)) !== sha256)
     throw new Error('The checkpoint integrity check failed. The original data has been kept.');
-  return { state: readSaveState(value.state, content), metadata: value.metadata, migrated: false };
+  return {
+    state: readSaveState(value.state, content),
+    metadata: value.metadata,
+    migrated: z.object({ schemaVersion: z.number() }).parse(value.state).schemaVersion < 3,
+  };
 }

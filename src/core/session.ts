@@ -1,3 +1,11 @@
+import { COMBAT_RULES } from '../content/combat';
+import {
+  inventoryCommandSchemas,
+  inventoryCommandSchema,
+  selectedUseSchema,
+} from './inventory-model';
+import { inventoryTransaction, receiveItem } from './inventory';
+import { effectiveStats, describeItem } from './equipment';
 import { readSaveState } from './save-state';
 import { transferItem, transferMoney } from './transactions';
 import { retainedArea, areaDefinition, enterArea } from './expeditions';
@@ -16,7 +24,13 @@ import {
 import { resolveDeathLoss, PRACTICE_LOSS_POLICY } from './death-loss';
 import type { ContentRegistry } from '../content/schemas';
 import { copyData, freezeData } from './data';
-import { saveSchema, heroSchema, directionSchema, positionSchema } from './model';
+import {
+  saveSchema,
+  heroSchema,
+  directionSchema,
+  positionSchema,
+  itemInstanceSchema,
+} from './model';
 import type { HeroId, Position, SaveState } from './model';
 import { allocatedId } from './ids';
 import { entityIdSchema, toolIdSchema, itemInstanceIdSchema } from './ids';
@@ -61,6 +75,8 @@ export const coreCommandSchema = z.discriminatedUnion('type', [
     amount: z.number().int().positive().safe(),
     expectedTransaction: z.number().int().positive().safe(),
   }),
+  ...inventoryCommandSchemas,
+  selectedUseSchema,
 ]);
 export type CoreCommand = z.infer<typeof coreCommandSchema>;
 export type CoreResult =
@@ -77,7 +93,8 @@ type EventBody =
 type WorldEvent =
   | { type: 'world.region-entered'; regionId: string }
   | { type: 'interaction.changed' }
-  | { type: 'storage.changed'; chestId: string };
+  | { type: 'storage.changed'; chestId: string }
+  | { type: 'inventory.changed'; message: string };
 export type DomainEvent = (EventBody | WorldEvent | CombatEvent) & {
   sequence: number;
   tick: number;
@@ -108,6 +125,7 @@ interface CoreSnapshot {
   readonly swimming: boolean;
   readonly transitionSequence: number;
   readonly storage: GameSession['storageView'];
+  readonly inventory: GameSession['inventoryView'];
   readonly deathReport: GameSession['deathReport'];
   readonly lossPolicy: { materialChance: number; moneyFraction: number };
   readonly expedition: ReturnType<GameSession['expeditionView']>;
@@ -122,6 +140,7 @@ export class GameSession {
   private cached: CoreSnapshot | undefined;
   private busy = false;
   private message: CoreSnapshot['message'] = null;
+  private inventoryFeedback: string | null = null;
   private transitionSequence = 0;
   readonly content: ContentRegistry;
   constructor(
@@ -168,7 +187,8 @@ export class GameSession {
     const target = this.nearestTarget();
     const expedition = this.expeditionView(),
       storage = this.storageView,
-      deathReport = this.deathReport;
+      deathReport = this.deathReport,
+      inventory = this.inventoryView;
     const combat = this.state.combat
       ? combatView(
           this.state.combat,
@@ -181,6 +201,7 @@ export class GameSession {
     if (
       !this.cached ||
       JSON.stringify(this.cached.storage) !== JSON.stringify(storage) ||
+      JSON.stringify(this.cached.inventory) !== JSON.stringify(inventory) ||
       (this.cached.deathReport !== deathReport &&
         JSON.stringify(this.cached.deathReport) !== JSON.stringify(deathReport)) ||
       JSON.stringify(this.cached.expedition) !== JSON.stringify(expedition) ||
@@ -214,6 +235,7 @@ export class GameSession {
         combat,
         expedition,
         storage,
+        inventory,
         deathReport,
         lossPolicy: {
           materialChance: this.state.deathRules.materialChance,
@@ -248,6 +270,20 @@ export class GameSession {
     if (!parsed.success)
       return { ok: false, code: 'invalid-command', message: 'The command has invalid fields.' };
     const command = parsed.data;
+    if (command.type.startsWith('inventory.')) return this.inventoryCommand(command);
+    if (command.type === 'tool.use') {
+      if (this.state.pack.selectedTool === 'shield')
+        return {
+          ok: false,
+          code: 'unavailable',
+          message: 'Hold the shield or selected-tool binding to guard.',
+        };
+      return this.combatCommand({
+        type: 'combat.action',
+        action: this.state.pack.selectedTool,
+        facing: null,
+      });
+    }
     if (command.type === 'storage.item' || command.type === 'storage.money')
       return this.storageCommand(command);
     if (command.type.startsWith('combat.')) return this.combatCommand(command);
@@ -316,7 +352,7 @@ export class GameSession {
           position: { ...actor.position },
           facing: actor.facing,
           movementSpeedPixelsPerSecond:
-            actor.stats.movementSpeedPixelsPerSecond *
+            effectiveStats(this.state.player, this.content).movementSpeedPixelsPerSecond *
             (this.battleActive && this.state.combat?.guard ? 0.35 : 1),
           regionId: this.state.player.regionId,
         });
@@ -410,6 +446,7 @@ export class GameSession {
     return {
       state,
       actor: this.state.player.actor,
+      stats: effectiveStats(this.state.player, this.content),
       tick,
       width: this.regionDefinition.width,
       height: this.regionDefinition.height,
@@ -438,6 +475,8 @@ export class GameSession {
       message,
     });
     if (command.type === 'combat.respawn') {
+      if (!Number.isSafeInteger(this.state.nextTransaction + 1))
+        return unavailable('Transaction limit reached.');
       if (!s || s.death?.phase !== 'pending' || s.death.id !== command.deathId)
         return unavailable('That defeat was already resolved.');
       if (this.pauses.snapshot().some((r) => r !== 'death'))
@@ -446,6 +485,7 @@ export class GameSession {
         const draft = copyData(this.state),
           battle = draft.combat;
         if (!battle?.death) return unavailable('Missing defeat checkpoint.');
+        draft.nextTransaction++;
         const deathRandom = new RandomStreams(this.state.world.seed, this.random.snapshot());
         const loss = resolveDeathLoss(draft.player, this.content, draft.deathRules, () =>
           deathRandom.next('death'),
@@ -514,6 +554,7 @@ export class GameSession {
         this.random.next('death'),
       );
       this.state.player.carried = loss.carried;
+      this.state.nextTransaction++;
       s.death = {
         ...s.death,
         phase: 'resolved',
@@ -637,10 +678,13 @@ export class GameSession {
       const drop = nearestDrop(s, actor.position);
       if (!drop || drop.id !== command.dropId || drop.claimed)
         return unavailable('Move closer to an unclaimed coin.');
+      if (!Number.isSafeInteger(this.state.nextTransaction + 1))
+        return unavailable('Transaction limit reached.');
       if (this.state.player.carried.money > Number.MAX_SAFE_INTEGER - drop.money)
         return unavailable('Coin capacity reached.');
       drop.claimed = true;
       this.state.player.carried.money += drop.money;
+      this.state.nextTransaction++;
       this.emit({ type: 'combat.drop-claimed', subject: drop.id, message: 'Collected one coin.' });
       return { ok: true };
     }
@@ -891,8 +935,33 @@ export class GameSession {
           : 'Passage opened. It will remain open when you return.';
     } else if (['key', 'switch', 'axe', 'resource'].includes(p.kind)) {
       if (area.changes.openedObjects.includes(p.id)) return fail('Already collected or activated.');
-      if (p.kind === 'resource' && this.state.player.carried.money === Number.MAX_SAFE_INTEGER)
-        return fail('Coin capacity reached.');
+      if (p.kind === 'resource') {
+        if (this.state.player.carried.money === Number.MAX_SAFE_INTEGER)
+          return fail('Coin capacity reached.');
+        if (
+          !Number.isSafeInteger(this.state.nextTransaction + 1) ||
+          !Number.isSafeInteger(this.state.world.nextId + 1)
+        )
+          return fail('Transaction or item identity limit reached.');
+        try {
+          const item = itemInstanceSchema.parse({
+            id: allocatedId(this.state.world.id, this.state.world.nextId, 'item-instance'),
+            templateId: 'item:wood',
+            quantity: 2,
+            enchantments: [],
+          });
+          const next = receiveItem(this.state.player.carried, item, this.content);
+          this.state.player.carried = next;
+          this.state.world.nextId++;
+          this.state.nextTransaction++;
+          this.inventoryFeedback = 'Collected 2 Wood and one coin.';
+          this.emit({ type: 'inventory.changed', message: this.inventoryFeedback });
+        } catch (error) {
+          return fail(
+            error instanceof Error ? error.message : 'These supplies could not be collected.',
+          );
+        }
+      }
       area.changes.openedObjects.push(p.id);
       if (p.kind === 'axe') {
         const tool = this.content.tool(toolIdSchema.parse('tool:axe'));
@@ -904,7 +973,7 @@ export class GameSession {
       } else if (p.kind === 'resource') {
         this.state.player.carried.money++;
         text =
-          'Gathered supplies worth one coin. Wild supplies renew offscreen on the first visit of a later day.';
+          'Gathered 2 wood and one coin. Wild supplies renew offscreen on the first visit of a later day.';
       } else
         text =
           p.kind === 'key'
@@ -920,8 +989,11 @@ export class GameSession {
         return fail('Defeat the anchor warden before claiming its reward.');
       if (this.state.player.carried.money > Number.MAX_SAFE_INTEGER - 5)
         return fail('Coin capacity reached.');
+      if (!Number.isSafeInteger(this.state.nextTransaction + 1))
+        return fail('Transaction limit reached.');
       area.changes.claimedRewards.push(p.id);
       this.state.player.carried.money += 5;
+      this.state.nextTransaction++;
       text =
         p.kind === 'reward'
           ? this.state.player.instanceId
@@ -945,22 +1017,124 @@ export class GameSession {
         d.regionId === this.state.player.regionId &&
         d.instanceId === this.state.player.instanceId,
     );
-    const view = (inventory: SaveState['player']['carried']) => ({
+    const view = (inventory: SaveState['player']['carried'], deposited = false) => ({
       capacity: inventory.capacity,
       money: inventory.money,
-      items: inventory.items.map((i) => ({
-        ...copyData(i),
-        name: this.content.item(i.templateId).name,
-        equipped: this.state.player.equipment.some((e) => e.itemId === i.id),
-      })),
+      items: inventory.items.map((i) =>
+        describeItem(
+          i,
+          this.state.player,
+          this.content,
+          this.state.deathRules.materialChance,
+          deposited,
+        ),
+      ),
     });
     return freezeData({
       id: target.id,
       name: target.label,
       expectedTransaction: this.state.nextTransaction,
       carried: view(this.state.player.carried),
-      deposited: view(chest?.inventory ?? { capacity: 20, items: [], money: 0 }),
+      deposited: view(chest?.inventory ?? { capacity: 20, items: [], money: 0 }, true),
     });
+  }
+  get selectedTool() {
+    return this.state.pack.selectedTool;
+  }
+  get inventoryView() {
+    const battle = this.state.combat;
+    const cooldown = (ready: number) => Math.ceil(Math.max(0, ready - this.tick) / 5) / 10;
+    return freezeData({
+      hotbar: [
+        {
+          id: 'sword' as const,
+          name: 'Sword',
+          energyCost: 0,
+          cooldownSeconds: cooldown(battle?.attackReadyTick ?? 0),
+        },
+        {
+          id: 'shield' as const,
+          name: 'Shield',
+          energyCost: COMBAT_RULES.guardEnergy,
+          cooldownSeconds: 0,
+        },
+        {
+          id: 'roll' as const,
+          name: 'Roll',
+          energyCost: COMBAT_RULES.rollEnergy,
+          cooldownSeconds: cooldown(battle?.rollReadyTick ?? 0),
+        },
+        {
+          id: 'bow' as const,
+          name: 'Bow',
+          energyCost: COMBAT_RULES.bowEnergy,
+          cooldownSeconds: cooldown(battle?.bowReadyTick ?? 0),
+        },
+      ],
+      expectedTransaction: this.state.nextTransaction,
+      capacity: this.state.player.carried.capacity,
+      money: this.state.player.carried.money,
+      items: this.state.player.carried.items.map((i) =>
+        describeItem(i, this.state.player, this.content, this.state.deathRules.materialChance),
+      ),
+      slots: this.content.data.slots.map((slot) => ({
+        ...slot,
+        itemId: this.state.player.equipment.find((e) => e.slot === slot.id)?.itemId ?? null,
+      })),
+      stats: effectiveStats(this.state.player, this.content),
+      baseStats: copyData(this.state.player.actor.stats),
+      tools: this.state.player.permanent.tools.map((id) => ({
+        id,
+        name: this.content.tool(id).name,
+      })),
+      selectedTool: this.state.pack.selectedTool,
+      suppliesAvailable:
+        !this.state.pack.starterClaimed && this.storageView?.id === 'entity:clearing-chest',
+      starterClaimed: this.state.pack.starterClaimed,
+      feedback: this.inventoryFeedback,
+      statuses: this.state.player.actor.statuses.map((s) => ({
+        name: this.content.status(s.id).name,
+        stacks: s.stacks,
+      })),
+    });
+  }
+  private inventoryCommand(input: CoreCommand): CoreResult {
+    const fail = (message: string): CoreResult => ({ ok: false, code: 'unavailable', message });
+    const parsed = inventoryCommandSchema.safeParse(input);
+    if (!parsed.success) return fail('Invalid inventory command.');
+    const command = parsed.data;
+    if (this.pauses.snapshot().some((r) => r !== 'inventory' && r !== 'storage'))
+      return fail('Close other menus before changing your pack.');
+    if (command.expectedTransaction !== this.state.nextTransaction)
+      return fail('Your pack changed. Select the item again.');
+    if (!Number.isSafeInteger(this.state.nextTransaction + 1))
+      return fail('Transaction limit reached.');
+    if (
+      command.type === 'inventory.supplies' &&
+      (command.chestId !== 'entity:clearing-chest' || this.storageView?.id !== command.chestId)
+    )
+      return fail('Stand near the travel chest to collect the starter supplies.');
+    if (
+      (command.type === 'inventory.equip' || command.type === 'inventory.unequip') &&
+      this.battleActive &&
+      (this.state.combat?.action || this.tick < (this.state.combat?.hurtUntil ?? 0))
+    )
+      return fail('Finish the action or recover before changing equipment.');
+    try {
+      const next = inventoryTransaction(this.state, this.content, command);
+      this.state.player = next.player;
+      this.state.pack = next.pack;
+      this.state.world.nextId = next.nextId;
+      this.state.nextTransaction++;
+      this.inventoryFeedback = next.message;
+      this.emit({ type: 'inventory.changed', message: next.message });
+      this.cached = undefined;
+      return { ok: true };
+    } catch (error) {
+      return fail(
+        error instanceof Error ? error.message : 'The inventory action could not be applied.',
+      );
+    }
   }
   get deathReport() {
     const report = this.state.lastDeath;
@@ -1046,6 +1220,7 @@ export class GameSession {
     for (const reason of this.pauses.snapshot())
       if (reason !== 'saving') draft.pauses.set(reason, true);
     draft.message = this.message;
+    draft.inventoryFeedback = this.inventoryFeedback;
     draft.transitionSequence = this.transitionSequence;
     const result = draft.dispatch(input);
     return { draft, result };
@@ -1061,6 +1236,7 @@ export class GameSession {
     this.state.clock.eventSequence = Math.max(sequence, data.clock.eventSequence);
     this.random = new RandomStreams(data.world.seed, data.random);
     this.message = draft.message;
+    this.inventoryFeedback = draft.inventoryFeedback;
     for (const reason of ['death', 'interaction'] as const)
       this.pauses.set(reason, draft.pauses.snapshot().includes(reason));
     this.transitionSequence = forceScene

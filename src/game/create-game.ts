@@ -237,18 +237,24 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         if (this.restartIfNeeded()) return;
         const intent = input.poll(controller.session.snapshot.paused);
         const combat = controller.session.snapshot.combat;
+        const guard =
+          intent.guard || (controller.session.selectedTool === 'shield' && intent.useHeld);
         if (
           controller.session.battleActive &&
           !controller.session.snapshot.paused &&
-          intent.guard !== combat?.guard
+          guard !== combat?.guard
         )
-          bridge.send({ type: 'combat.guard', active: intent.guard });
-        if (intent.pressed.includes('pause'))
+          bridge.send({ type: 'combat.guard', active: guard });
+        if (intent.pressed.includes('inventory'))
+          bridge.send({ type: 'pause.set', reason: 'inventory', active: true });
+        else if (intent.pressed.includes('pause'))
           bridge.send({ type: 'pause.set', reason: 'menu', active: true });
         else if (intent.pressed.includes('interact')) {
           if (combat?.active && combat.drop)
             bridge.send({ type: 'combat.collect', dropId: combat.drop });
           else bridge.send({ type: 'world.interact', target: null });
+        } else if (intent.pressed.includes('use') && controller.session.selectedTool !== 'shield') {
+          bridge.send({ type: 'tool.use' });
         } else if (controller.session.battleActive) {
           const action = intent.pressed.includes('attack')
             ? 'sword'

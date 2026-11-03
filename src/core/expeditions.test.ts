@@ -9,6 +9,7 @@ import { freeFoot } from './motion';
 import { assertWorldInvariants } from './invariants';
 import { toolIdSchema } from './ids';
 import type { SaveState } from './model';
+import { itemInstanceSchema } from './model';
 function enter(state: SaveState, region: string) {
   enterArea(state, PREVIEW_WORLD, region, region === 'region:clearing' ? 'start' : 'entry');
   assertWorldInvariants(state, PREVIEW_CONTENT);
@@ -320,4 +321,67 @@ describe('persistent expedition transitions and anchored successor boundaries', 
     expect(game.snapshot.combat?.death?.phase).toBe('pending');
     expect(game.dispatch({ type: 'combat.respawn', deathId: death.id })).toEqual({ ok: true });
   });
+});
+
+it('leaves full-pack supply points and their coin unclaimed, then collects both once after a deliberate discard makes room', () => {
+  const state = fresh(),
+    placement = retainedArea(state).geometry.generated?.placements.find(
+      (p) => p.kind === 'resource',
+    );
+  if (!placement) throw new Error('Missing resource');
+  const probe = new GameSession(state, PREVIEW_CONTENT, PREVIEW_WORLD),
+    definition = probe.regionDefinition;
+  const approaches = [
+    { x: placement.position.x, y: placement.position.y + 20, facing: 'up' as const },
+    { x: placement.position.x + 20, y: placement.position.y, facing: 'left' as const },
+    { x: placement.position.x - 20, y: placement.position.y, facing: 'right' as const },
+    { x: placement.position.x, y: placement.position.y - 20, facing: 'down' as const },
+  ];
+  const approach = approaches.find((p) =>
+    freeFoot(p, definition.width, definition.height, probe.solids),
+  );
+  if (!approach) throw new Error('Missing approach');
+  state.player.actor.position = { x: approach.x, y: approach.y };
+  state.player.actor.facing = approach.facing;
+  state.player.carried = {
+    capacity: 1,
+    money: 7,
+    items: [
+      itemInstanceSchema.parse({
+        id: 'item-instance:full-wood',
+        templateId: 'item:wood',
+        quantity: 99,
+        enchantments: [],
+      }),
+    ],
+  };
+  const game = new GameSession(state, PREVIEW_CONTENT, PREVIEW_WORLD),
+    before = game.serialize(),
+    wood = state.player.carried.items[0];
+  if (!wood) throw new Error('Missing wood');
+  expect(game.dispatch({ type: 'world.interact', target: placement.id })).toMatchObject({
+    ok: false,
+    message: expect.stringContaining('remains unclaimed'),
+  });
+  expect(game.serialize()).toBe(before);
+  expect(
+    game.dispatch({
+      type: 'inventory.discard',
+      itemId: wood.id,
+      quantity: 2,
+      confirmed: true,
+      expectedTransaction: game.inventoryView.expectedTransaction,
+    }),
+  ).toEqual({ ok: true });
+  expect(game.dispatch({ type: 'world.interact', target: placement.id })).toEqual({ ok: true });
+  expect(game.export().player.carried).toMatchObject({
+    money: 8,
+    items: [{ id: wood.id, quantity: 99 }],
+  });
+  expect(retainedArea(game.export()).changes.openedObjects).toContain(placement.id);
+  game.dispatch({ type: 'interaction.dismiss' });
+  expect(game.dispatch({ type: 'world.interact', target: placement.id })).toMatchObject({
+    ok: false,
+  });
+  expect(game.export().player.carried.money).toBe(8);
 });

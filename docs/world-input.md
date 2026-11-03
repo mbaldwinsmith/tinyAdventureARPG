@@ -31,7 +31,7 @@ A nearby target must be within 26px, in the facing half-plane (4px tolerance), a
 
 - Doors validate region/spawn identities and current destination foot clearance, preserve both regions' geometry/deltas, update activity/discovery, clear held input and place the actor explicitly before rendering.
 - Signs and NPCs open information dialogs. NPCs are not recruited.
-- Chests retain an opened ID and visible open frame. They are empty; there are no deposit/withdrawal operations.
+- Chests retain an opened ID and visible open frame. M07 adds nearby local deposits/withdrawals; M08 adds paired descriptions, partial-stack controls and a one-time clearing starter kit. See [inventory](inventory.md).
 - Farm plots open an inspection dialog; no planting or growth runs.
 - The small box is a single retained world object. Pickup hides its ground solid; drop checks full-box clearance, bounds and water, then restores it at the new position. Carrying takes interaction priority, so set it down before travel. Heavy-box pickup while swimming is rejected. This is not inventory/tool ownership.
 - Pond contact selects swimming animation, without a permanent campaign swim unlock.
@@ -58,3 +58,5 @@ Bindings are not durable saves. Standard controller behaviour is tested with an 
 The development-only collision overlay shows foot bodies, solids, interaction reach, active region/scene and tick. Its read-only DOM observations are enabled only with the overlay; positions/ticks are not streamed into React snapshots or exposed as a mutation API. Production rejects enabling debug overlays and excludes the workbench.
 
 Pure tests compare actual wall collision at 30/60/144Hz, swept clipping/sliding, valid spawns, routes to every authored interaction, door retention, chest idempotence, object serialization, animation priority and controller neutral/dead-zone/edge handling. Browser flows traverse doors and narrow paths, test camera bounds/return placement, inspect/carry/swim, remap input, navigate nested controller menus, disconnect and retry failed loading. Existing source-pixel, pause, lifecycle, calendar and effect flows remain required. See CHANGELOG for the exact checks run.
+
+M08 adds **I / View (8)** for the pack and **X / RT (7)** for the selected action, including held shield guarding. Both are remappable through Controls. Pack selection, numeric quantities, selects and discard acknowledgement support native keyboard, pointer and standard controller navigation. All paths send the same typed core commands; menus retain composed pause and neutral-input rearming.

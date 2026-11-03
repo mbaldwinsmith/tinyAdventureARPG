@@ -18,6 +18,14 @@ export const itemTemplateSchema = z
     id: itemIdSchema,
     name,
     kind: z.enum(['material', 'equipment', 'consumable', 'relic']),
+    description: z.string().max(400).default('No additional ability effects.'),
+    statModifiers: z
+      .strictObject({
+        attack: z.number().min(-1000).max(1000).default(0),
+        defence: z.number().min(-1000).max(1000).default(0),
+        movementSpeedPixelsPerSecond: z.number().min(-1000).max(1000).default(0),
+      })
+      .default({ attack: 0, defence: 0, movementSpeedPixelsPerSecond: 0 }),
     maxStack: z.number().int().min(1).max(999),
     tags: z.array(tag).max(32),
     equipmentSlots: z.array(slotIdSchema).max(16),

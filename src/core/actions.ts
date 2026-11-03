@@ -11,6 +11,8 @@ export const ACTIONS = [
   'roll',
   'bow',
   'pause',
+  'inventory',
+  'use',
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 export const actionSchema = z.enum(ACTIONS);
@@ -48,6 +50,8 @@ export const DEFAULT_KEYS: KeyBindings = {
   roll: 'KeyR',
   bow: 'KeyF',
   pause: 'Escape',
+  inventory: 'KeyI',
+  use: 'KeyX',
 };
 export const ARROW_ACTIONS: Readonly<Record<string, Action>> = {
   ArrowUp: 'up',
@@ -66,6 +70,8 @@ export interface InputView {
   guardButton: number;
   rollButton: number;
   bowButton: number;
+  inventoryButton: number;
+  useButton: number;
 }
 export const DEFAULT_INPUT: InputView = {
   device: 'keyboard',
@@ -77,6 +83,8 @@ export const DEFAULT_INPUT: InputView = {
   guardButton: 4,
   rollButton: 3,
   bowButton: 5,
+  inventoryButton: 8,
+  useButton: 7,
 };
 export type Navigation = 'up' | 'down' | 'left' | 'right' | 'confirm' | 'cancel';
 export interface PadSample {
@@ -120,7 +128,14 @@ export class PadReader {
     samples: readonly PadSample[],
     bindings: Pick<
       InputView,
-      'interactButton' | 'attackButton' | 'pauseButton' | 'guardButton' | 'rollButton' | 'bowButton'
+      | 'interactButton'
+      | 'attackButton'
+      | 'pauseButton'
+      | 'guardButton'
+      | 'rollButton'
+      | 'bowButton'
+      | 'inventoryButton'
+      | 'useButton'
     >,
   ) {
     const pad =
@@ -133,6 +148,7 @@ export class PadReader {
         connected: false,
         device: 'keyboard' as InputDevice,
         guard: false,
+        useHeld: false,
         x: 0,
         y: 0,
         pressed: [] as Action[],
@@ -154,6 +170,7 @@ export class PadReader {
         connected: true,
         device: padDevice(pad.id),
         guard: false,
+        useHeld: false,
         x: 0,
         y: 0,
         pressed: [] as Action[],
@@ -169,6 +186,8 @@ export class PadReader {
     if (rising(bindings.pauseButton)) pressed.push('pause');
     if (rising(bindings.rollButton)) pressed.push('roll');
     if (rising(bindings.bowButton)) pressed.push('bow');
+    if (rising(bindings.inventoryButton)) pressed.push('inventory');
+    if (rising(bindings.useButton)) pressed.push('use');
     for (const [button, direction] of [
       [12, 'up'],
       [13, 'down'],
@@ -183,7 +202,8 @@ export class PadReader {
     if (stick.x < -0.5 && previousStick.x >= -0.5) navigation.push('left');
     if (stick.x > 0.5 && previousStick.x <= 0.5) navigation.push('right');
     if (rising(bindings.interactButton)) navigation.push('confirm');
-    if (rising(1) || rising(bindings.pauseButton)) navigation.push('cancel');
+    if (rising(1) || rising(bindings.pauseButton) || rising(bindings.inventoryButton))
+      navigation.push('cancel');
     const digital = normalizedVector(
       Number(!!pad.buttons[15]) - Number(!!pad.buttons[14]),
       Number(!!pad.buttons[13]) - Number(!!pad.buttons[12]),
@@ -197,20 +217,31 @@ export class PadReader {
       device: padDevice(pad.id),
       ...vector,
       guard: !!pad.buttons[bindings.guardButton],
+      useHeld: !!pad.buttons[bindings.useButton],
       pressed,
       navigation,
       active:
         Math.hypot(vector.x, vector.y) > 0 ||
         pressed.length > 0 ||
         navigation.length > 0 ||
-        !!pad.buttons[bindings.guardButton],
+        !!pad.buttons[bindings.guardButton] ||
+        !!pad.buttons[bindings.useButton],
     };
   }
   private previousStickX = 0;
   private previousStickY = 0;
 }
 
-export const BUTTON_ACTIONS = ['interact', 'attack', 'guard', 'roll', 'bow', 'pause'] as const;
+export const BUTTON_ACTIONS = [
+  'interact',
+  'attack',
+  'guard',
+  'roll',
+  'bow',
+  'pause',
+  'inventory',
+  'use',
+] as const;
 export type ButtonAction = (typeof BUTTON_ACTIONS)[number];
 export const BUTTON_PROPERTIES = {
   interact: 'interactButton',
@@ -219,4 +250,6 @@ export const BUTTON_PROPERTIES = {
   roll: 'rollButton',
   bow: 'bowButton',
   pause: 'pauseButton',
+  inventory: 'inventoryButton',
+  use: 'useButton',
 } as const;

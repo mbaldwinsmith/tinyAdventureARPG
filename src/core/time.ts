@@ -5,6 +5,7 @@ export const pauseReasonSchema = z.enum([
   'saving',
   'saves',
   'storage',
+  'inventory',
   'map',
   'background',
   'workbench',

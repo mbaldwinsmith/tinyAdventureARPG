@@ -324,7 +324,7 @@ test('renders GUI panel corners from supplied pixels at different sizes and hand
 }) => {
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
-  await expect(page.locator('.packed-key')).toHaveCount(7);
+  await expect(page.locator('.packed-key')).toHaveCount(9);
   await page.getByRole('button', { name: 'Pause Esc' }).click();
   await expect
     .poll(() =>

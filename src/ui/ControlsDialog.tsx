@@ -12,6 +12,8 @@ const labels = {
   roll: 'Roll',
   bow: 'Bow',
   pause: 'Pause',
+  inventory: 'Open pack',
+  use: 'Use selected tool',
 };
 const buttonChoices = [
   [0, 'South face'],
@@ -19,6 +21,8 @@ const buttonChoices = [
   [3, 'North face'],
   [4, 'Left bumper'],
   [5, 'Right bumper'],
+  [6, 'Left trigger'],
+  [7, 'Right trigger'],
   [8, 'View / Select'],
   [9, 'Start / Menu'],
 ] as const;
