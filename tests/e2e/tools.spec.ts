@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { decodeSave } from '../../src/platform/saves/codec';
 import type { Page } from '@playwright/test';
-import { createPreviewSave } from '../../src/content/preview';
+import { createPreviewSave, PREVIEW_CONTENT } from '../../src/content/preview';
 import { PREVIEW_WORLD } from '../../src/content/world';
 import { enterArea } from '../../src/core/expeditions';
 import { toolIdSchema } from '../../src/core/ids';
@@ -178,10 +180,10 @@ test('walks from the village chest into the authored trail, earns tools, solves 
   await use(page);
   await ticks(page, 1000);
   await expect(await passages(page)).toContainText('Open · Arrow target A');
-  await walk(page, 376, 432);
+  // Continuous keyboard movement can approach slightly off the weight's centre line.
+  await walk(page, 376, 430.4);
   await face(page, 'ArrowRight');
   await select(page, 'Push');
-  expect((await pose(page)).y).toBeCloseTo(432, 0);
   await expect(host(page)).toHaveAttribute('data-facing', 'right');
   for (let i = 0; i < 3; i++) {
     await use(page);
@@ -202,6 +204,19 @@ test('walks from the village chest into the authored trail, earns tools, solves 
   await settled(page);
   await page.getByRole('button', { name: 'Save now', exact: true }).click();
   await settled(page);
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export current backup' }).click();
+  const download = await downloadPromise,
+    backupPath = await download.path();
+  if (!backupPath) throw new Error('Missing puzzle checkpoint backup');
+  const checkpoint = await decodeSave(await readFile(backupPath, 'utf8'), PREVIEW_CONTENT);
+  const trail = checkpoint.state.world.regions.find((r) => r.id === 'region:tool-trail');
+  if (!trail || trail.kind !== 'surface' || trail.phase === 'unvisited')
+    throw new Error('Missing retained trail');
+  expect(trail.geometry.objects.find((o) => o.id === 'entity:trail-weight')?.position).toEqual({
+    x: 448,
+    y: 432,
+  });
   await page.getByRole('button', { name: 'Return to adventure' }).click();
   await page.reload();
   await ready(page);
