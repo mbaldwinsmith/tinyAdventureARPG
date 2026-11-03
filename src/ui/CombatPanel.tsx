@@ -166,8 +166,9 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
     button.current?.focus();
   }, []);
   useEffect(() => {
-    if (!snapshot.saves?.busy && !snapshot.saves?.pending) button.current?.focus();
-  }, [snapshot.saves?.busy, snapshot.saves?.pending]);
+    if (snapshot.status === 'ready' && !snapshot.saves?.busy && !snapshot.saves?.pending)
+      button.current?.focus();
+  }, [snapshot.status, snapshot.saves?.busy, snapshot.saves?.pending]);
   const death = snapshot.combat?.death;
   return (
     <dialog
@@ -186,7 +187,9 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
       <button
         ref={button}
         className="button"
-        disabled={!!snapshot.saves?.busy || !!snapshot.saves?.pending}
+        disabled={
+          snapshot.status !== 'ready' || !!snapshot.saves?.busy || !!snapshot.saves?.pending
+        }
         onClick={() => {
           if (!death) return;
           const result = bridge.send({ type: 'combat.respawn', deathId: death.id });

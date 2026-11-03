@@ -455,7 +455,7 @@ export function App() {
           Artwork by Vryell <span aria-hidden="true">·</span> Created by Mark Baldwin-Smith
         </span>
       </footer>
-      {snapshot.combat?.death?.phase === 'pending' && (
+      {snapshot.status === 'ready' && snapshot.combat?.death?.phase === 'pending' && (
         <DefeatDialog bridge={bridge} snapshot={snapshot} />
       )}
       {controlsOpen && <ControlsDialog bridge={bridge} snapshot={snapshot} close={closeControls} />}

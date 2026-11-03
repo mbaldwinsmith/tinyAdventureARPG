@@ -133,14 +133,37 @@ test('reloads a pending expedition defeat and its single resolved loss report', 
   await open(page);
   await importState(page, state);
   await expect(page.getByRole('dialog', { name: 'Defeated on expedition' })).toBeVisible();
-  await page.reload();
+  // Restore the pending defeat while intentionally holding the art loader.
+  // A recovery action must not be offered before the controller is ready.
+  let releaseAssets: () => void = () => {
+    throw new Error('Missing asset gate');
+  };
+  const assets = new Promise<void>((resolve) => {
+    releaseAssets = resolve;
+  });
+  const manifest = '**/generated/manifest.json';
+  await page.route(manifest, async (route) => {
+    await assets;
+    await route.continue();
+  });
+  try {
+    await page.reload();
+    await expect(page.locator('#clearing-title')).toHaveText('The anchored crypt', {
+      timeout: 30000,
+    });
+    await expect(page.getByRole('status')).toHaveText('Opening the path…');
+    await expect(page.getByRole('dialog', { name: 'Defeated on expedition' })).toHaveCount(0);
+  } finally {
+    releaseAssets();
+  }
   await expect(page.getByRole('dialog', { name: 'Defeated on expedition' })).toBeVisible({
     timeout: 30000,
   });
+  await page.unroute(manifest);
   await settled(page);
   await page.getByRole('button', { name: 'Return to village' }).click();
-  await expect(page.locator('#clearing-title')).toHaveText('Wayfarer’s clearing');
   await settled(page);
+  await expect(page.locator('#clearing-title')).toHaveText('Wayfarer’s clearing');
   const report = page.getByRole('region', { name: 'Last death outcome' });
   await expect(report).toContainText('Lost 2 coins. Kept 23 carried coins.');
   const outcome = await report.innerText();
