@@ -275,8 +275,11 @@ test('uses source pixels for all 47 terrain cases and inspects layered boats and
 
 test('pauses and resumes the rendered shoreline with the shared menu pause', async ({ page }) => {
   test.setTimeout(60000); // Several software-WebGL captures can exceed the default on CI.
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
+  await page.clock.runFor(150);
   const sample = async () => {
     // Compare the world buffer without the modal's blurred backdrop or overlaid text.
     const pixels = await page.locator('.game-canvas canvas').screenshot({
@@ -299,17 +302,21 @@ test('pauses and resumes the rendered shoreline with the shared menu pause', asy
     }, pixels.toString('base64'));
   };
   const moving = await sample();
-  await expect.poll(sample).not.toBe(moving);
+  // A shoreline frame lasts 180ms; 200ms cannot alias its 720ms loop.
+  await page.clock.runFor(200);
+  expect(await sample()).not.toBe(moving);
   await page.getByRole('button', { name: 'Pause Esc' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await page.waitForTimeout(250);
+  await page.clock.runFor(250);
   const frozen = await sample();
-  await page.waitForTimeout(450);
+  await page.clock.runFor(450);
   expect(await sample()).toBe(frozen);
   await page.getByRole('button', { name: 'Back to the clearing' }).click();
   await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect(page.getByRole('status')).toHaveText('The path is open');
   const resumed = await sample();
-  await expect.poll(sample).not.toBe(resumed);
+  await page.clock.runFor(200);
+  expect(await sample()).not.toBe(resumed);
 });
 
 test('renders GUI panel corners from supplied pixels at different sizes and handles unsupported font text', async ({
