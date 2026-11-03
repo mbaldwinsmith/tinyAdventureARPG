@@ -1,6 +1,6 @@
 # Foundation architecture
 
-The foundation implements **M01** and **M02** asset inventory/imports and **M03** core state/time plus **M04** world/input, **M05** cardinal combat, **M06** persistent expeditions, **M07** durable saves and **M08** inventory/equipment. A clearing, cottage, larger woodland and separate combat practice field exercise the integration. Four generated surface biomes and an anchored crypt extend these authored regions. The M09 expanded tool set remains later work.
+The foundation implements **M01** and **M02** asset inventory/imports and **M03** core state/time plus **M04** world/input, **M05** cardinal combat, **M06** persistent expeditions, **M07** durable saves **M08** inventory/equipment and **M09** tools/puzzles. A clearing, cottage, larger woodland and separate combat practice field exercise the integration. Four generated surface biomes and an anchored crypt extend these authored regions. The authored tool trail connects the woodland to a permanent forest shortcut; see [tools](tools.md).
 
 ## Ownership
 

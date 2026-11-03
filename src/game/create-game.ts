@@ -1,3 +1,4 @@
+import { createToolView } from './tool-view';
 import { DexieSaveRepository } from '../platform/saves/dexie-repository';
 import { downloadBackup } from '../platform/saves/files';
 import type PhaserTypes from 'phaser';
@@ -101,6 +102,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
       private actor: PhaserTypes.GameObjects.Sprite | undefined;
       private scenery: ReturnType<typeof createWorldView> | undefined;
       private battle: ReturnType<typeof createBattleView> | undefined;
+      private tools: ReturnType<typeof createToolView> | undefined;
       private shakenTick = -1;
       private explosion: PhaserTypes.GameObjects.Graphics | undefined;
       private overlay: PhaserTypes.GameObjects.Graphics | undefined;
@@ -138,6 +140,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
             state = controller.session.actor;
           this.cameras.main.setBackgroundColor(region.style === 'cottage' ? '#292e3f' : '#63ab3f');
           this.scenery = createWorldView(this, manifest, controller.session);
+          this.tools = createToolView(this, manifest, controller.session);
           this.battle = createBattleView(this, manifest, controller.session, Phaser.TintModes.FILL);
           const first = lookup({
             texture: `hero-${controller.session.snapshot.hero}-idle`,
@@ -189,6 +192,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
             this.actor = undefined;
             this.scenery = undefined;
             this.battle = undefined;
+            this.tools = undefined;
             this.explosion = undefined;
             this.overlay = undefined;
             this.debugText = undefined;
@@ -201,6 +205,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
               'animation',
               'tick',
               'battle',
+              'tools',
+              'facing',
             ])
               delete host.dataset[key];
           });
@@ -269,7 +275,9 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
               action,
               facing: cardinal(intent.x, intent.y, controller.session.actor.facing),
             });
-        } else if (intent.pressed.includes('attack'))
+        } else if (intent.pressed.includes('bow'))
+          bridge.send({ type: 'tool.action', tool: 'bow' });
+        else if (intent.pressed.includes('attack'))
           bridge.send({ type: 'animation.preview', action: 'sword' });
         if (this.restartIfNeeded()) return;
         const snapshot = controller.session.snapshot,
@@ -277,6 +285,7 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         this.drawDebug(deltaMs);
         this.scenery?.sync();
         this.battle?.render();
+        this.tools?.render();
         if (snapshot.paused) {
           this.cameras.main.shakeEffect.reset();
           actor.anims.pause();
@@ -333,6 +342,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
         this.scenery?.advance(frame.simulatedMs);
         this.scenery?.sync();
         this.battle?.render();
+        this.tools?.render();
+        if (this.tools?.hero(actor, moving)) return;
         if (this.battle?.hero(actor, moving)) {
           const battle = controller.session.battlePresentation;
           if (
@@ -419,6 +430,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           cameraY: String(Math.round(this.cameras.main.scrollY)),
           animation: this.actor?.anims.currentAnim?.key ?? '',
           battle: JSON.stringify(controller.session.battlePresentation),
+          tools: JSON.stringify(controller.session.toolsPresentation),
+          facing: state.facing,
           tick: String(controller.session.tick),
         });
       }

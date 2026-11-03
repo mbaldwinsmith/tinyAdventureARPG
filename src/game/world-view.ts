@@ -1,3 +1,4 @@
+import { TRAIL_ID, trailPathAt, TRAIL_ENTRY } from '../content/tool-trail';
 import { createGeneratedWorldView } from './generated-world-view';
 import { EXPEDITION_PORTAL } from '../core/generated-world';
 import type Phaser from 'phaser';
@@ -58,7 +59,12 @@ export function createWorldView(
   };
   const dirt = terrainProfiles.find((p) => p.id === 'new-grasslands-dirt');
   if (!dirt) throw new Error('Missing dirt terrain');
-  const path = region.style === 'clearing' ? clearingPathAt : woodlandPathAt;
+  const path =
+    region.id === TRAIL_ID
+      ? trailPathAt
+      : region.style === 'clearing'
+        ? clearingPathAt
+        : woodlandPathAt;
   for (let y = 0; y < region.height / 16; y++)
     for (let x = 0; x < region.width / 16; x++) {
       image(
@@ -173,7 +179,22 @@ export function createWorldView(
       .lineStyle(1, 0xf2dca6, 0.65);
     marking.strokeRect(24, 24, 432, 224).strokeCircle(240, 220, 12);
     marking.lineStyle(2, 0xe7cf8a).strokeRect(228, 256, 24, 5);
-  } else {
+  } else if (region.id !== TRAIL_ID) {
+    const entry = TRAIL_ENTRY.position;
+    scene.add
+      .graphics()
+      .setDepth(24)
+      .lineStyle(2, 0xf3d088)
+      .strokeRect(entry.x - 12, entry.y - 6, 24, 12);
+    scene.add
+      .text(entry.x, entry.y - 12, 'TOOLS', {
+        fontFamily: 'monospace',
+        fontSize: '8px',
+        color: '#fff0bc',
+        backgroundColor: '#315946',
+      })
+      .setOrigin(0.5, 1)
+      .setDepth(4000);
     for (const point of WOODLAND_TREES) compose('tree-original', point.x, point.y);
     prop(512, 272, 'sign');
     scene.add

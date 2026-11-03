@@ -1,3 +1,4 @@
+import { ToolsPanel } from './ToolsPanel';
 import { InventoryPanel } from './InventoryPanel';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -174,11 +175,13 @@ export function App() {
               <span className="location-dot" aria-hidden="true" />
               <h2 id="clearing-title">{snapshot.region.name}</h2>
               <span className="location-type">
-                {snapshot.expedition
-                  ? 'PERSISTENT EXPEDITION'
-                  : snapshot.combat?.active
-                    ? 'COMBAT PRACTICE'
-                    : 'FOREST PREVIEW'}
+                {snapshot.tools?.active
+                  ? 'TOOL TRAIL'
+                  : snapshot.expedition
+                    ? 'PERSISTENT EXPEDITION'
+                    : snapshot.combat?.active
+                      ? 'COMBAT PRACTICE'
+                      : 'FOREST PREVIEW'}
               </span>
             </div>
             <span className="engine-status" role="status">
@@ -187,7 +190,9 @@ export function App() {
                 : snapshot.status === 'failed'
                   ? 'Unable to open the path'
                   : snapshot.pauseReasons.includes('death')
-                    ? 'Defeated — practice paused'
+                    ? snapshot.region.id === 'region:practice'
+                      ? 'Defeated — practice paused'
+                      : 'Defeated — expedition paused'
                     : !mounted
                       ? 'Scene unloaded'
                       : snapshot.pauseReasons.includes('workbench')
@@ -286,6 +291,7 @@ export function App() {
         <DeathReport snapshot={snapshot} />
         <SavePanel bridge={bridge} snapshot={snapshot} />
         <InventoryPanel bridge={bridge} snapshot={snapshot} assets={assets} />
+        <ToolsPanel bridge={bridge} snapshot={snapshot} />
         <CombatPanel bridge={bridge} snapshot={snapshot} assets={assets} />
         <section className="below-world" aria-label="Preview options and development status">
           <div className="appearance-panel">

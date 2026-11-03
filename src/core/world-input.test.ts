@@ -1,3 +1,4 @@
+import { TRAIL_ID, TRAIL_FEATURES } from '../content/tool-trail';
 import { describe, it, expect } from 'vitest';
 import { moveFoot, footRect, overlaps, freeFoot, cardinal } from './motion';
 import { PadReader, DEFAULT_INPUT, stickVector, padDevice } from './actions';
@@ -53,9 +54,16 @@ describe('foot collision and authored navigation', () => {
     expect(positions[1]).toEqual(positions[0]);
     expect(positions[2]).toEqual(positions[0]);
   });
-  it('keeps every authored spawn clear and each interaction reachable through the collision layout', () => {
+  it('keeps every authored spawn clear and each interaction reachable through the collision layout with mechanism barriers opened', () => {
     for (const region of PREVIEW_WORLD.regions) {
-      const solids = region.solids.map((s) => s.rect);
+      const barrierIds = new Set(
+        TRAIL_FEATURES.filter((f) =>
+          ['bomb-wall', 'root-wall', 'plate-gate', 'blue-gate', 'orange-gate'].includes(f.kind),
+        ).map((f) => f.id),
+      );
+      const solids = region.solids
+        .filter((s) => region.id !== TRAIL_ID || s.owner === null || !barrierIds.has(s.owner))
+        .map((s) => s.rect);
       for (const spawn of region.spawns)
         expect(freeFoot(spawn.position, region.width, region.height, solids)).toBe(true);
       const first = region.spawns[0];

@@ -24,19 +24,21 @@ export function CombatPanel({
       <div>
         <p className="eyebrow">LEARN THE RHYTHM</p>
         <h2>
-          {snapshot.expedition
+          {snapshot.expedition || snapshot.region.id === 'region:tool-trail'
             ? 'Expedition combat'
             : combat?.active
               ? 'The practice field'
               : 'Try your first encounter'}
         </h2>
         <p className="small-copy">
-          {snapshot.expedition
-            ? 'The warden guards a one-time reward. Find the route tools, read its windup and strike or block.'
-            : 'Watch the golden windup. Strike, block from the front, or roll clear. Practice refills health and energy; defeat retains your possessions.'}
+          {snapshot.region.id === 'region:tool-trail'
+            ? 'Watch the marked hazards and use your tools against enemies. Solved passages remain open.'
+            : snapshot.expedition
+              ? 'The warden guards a one-time reward. Find the route tools, read its windup and strike or block.'
+              : 'Watch the golden windup. Strike, block from the front, or roll clear. Practice refills health and energy; defeat retains your possessions.'}
         </p>
       </div>
-      {!snapshot.expedition && (
+      {!(snapshot.expedition || snapshot.region.id === 'region:tool-trail') && (
         <div className="trial-controls">
           <label>
             Encounter
@@ -60,7 +62,7 @@ export function CombatPanel({
               snapshot.status !== 'ready' ||
               snapshot.paused ||
               snapshot.carrying ||
-              !!snapshot.expedition
+              !!(snapshot.expedition || snapshot.region.id === 'region:tool-trail')
             }
             onClick={() => {
               const result = bridge.send({ type: 'combat.start', trial });
@@ -81,7 +83,11 @@ export function CombatPanel({
                 {combat.health} / {combat.maximumHealth}
               </span>
               <progress
-                aria-label={snapshot.expedition ? 'Expedition health' : 'Practice health'}
+                aria-label={
+                  snapshot.expedition || snapshot.region.id === 'region:tool-trail'
+                    ? 'Expedition health'
+                    : 'Practice health'
+                }
                 max={combat.maximumHealth}
                 value={combat.health}
               />
@@ -92,7 +98,11 @@ export function CombatPanel({
                 {combat.energy} / {combat.maximumEnergy}
               </span>
               <progress
-                aria-label={snapshot.expedition ? 'Expedition energy' : 'Practice energy'}
+                aria-label={
+                  snapshot.expedition || snapshot.region.id === 'region:tool-trail'
+                    ? 'Expedition energy'
+                    : 'Practice energy'
+                }
                 max={combat.maximumEnergy}
                 value={combat.energy}
               />
@@ -123,7 +133,7 @@ export function CombatPanel({
           <p className="combat-feedback" aria-live="polite" data-testid="combat-feedback">
             {combat.feedback ||
               (combat.completed
-                ? snapshot.expedition
+                ? snapshot.expedition || snapshot.region.id === 'region:tool-trail'
                   ? 'Encounter cleared. Collect the coins and explore the reward room.'
                   : 'Encounter cleared. Collect the coins or try another trial.'
                 : 'Golden ring: windup. Red: active attack. Keep room to recover.')}
@@ -143,11 +153,11 @@ export function CombatPanel({
             </button>
           )}
           <p className="small-copy">
-            {snapshot.expedition
+            {snapshot.expedition || snapshot.region.id === 'region:tool-trail'
               ? 'Glowing trail markers lead between regions.'
               : 'The marked exit is at the south edge.'}{' '}
-            Arrow shots cost energy, never ammunition.{' '}
-            {snapshot.expedition
+            Arrows use cooldowns, never ammunition or energy.{' '}
+            {snapshot.expedition || snapshot.region.id === 'region:tool-trail'
               ? 'Gates and discoveries remain when you return.'
               : 'A new trial explicitly resets its enemies and refills your pools.'}
           </p>
@@ -174,13 +184,17 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
     <dialog
       ref={ref}
       className="interaction-dialog"
-      aria-label={snapshot.expedition ? 'Defeated on expedition' : 'Defeated in practice'}
+      aria-label={
+        snapshot.expedition || snapshot.region.id === 'region:tool-trail'
+          ? 'Defeated on expedition'
+          : 'Defeated in practice'
+      }
       onCancel={(e) => e.preventDefault()}
     >
       <p className="eyebrow">TAKE A BREATH</p>
       <h2>Another chance.</h2>
       <p>
-        {snapshot.expedition
+        {snapshot.expedition || snapshot.region.id === 'region:tool-trail'
           ? `The expedition is paused. Each carried material unit has a ${Math.round(snapshot.lossPolicy.materialChance * 100)}% loss chance, and ${Math.round(snapshot.lossPolicy.moneyFraction * 100)}% of carried money is lost, rounded down. Equipment, deposits, permanent tools and discoveries are protected. The return and loss result are checkpointed once.`
           : 'The field is paused. Your possessions are safe. Return to the entrance with full health and energy; defeated enemies and unclaimed coins remain.'}
       </p>
@@ -200,7 +214,9 @@ export function DefeatDialog({ bridge, snapshot }: { bridge: GameBridge; snapsho
             );
         }}
       >
-        {snapshot.expedition ? 'Return to village' : 'Return to practice entrance'}
+        {snapshot.expedition || snapshot.region.id === 'region:tool-trail'
+          ? 'Return to village'
+          : 'Return to practice entrance'}
       </button>
       <CheckpointRecovery bridge={bridge} snapshot={snapshot} />
       {error && <p role="alert">{error}</p>}

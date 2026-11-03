@@ -1,3 +1,4 @@
+import { toolCommandSchemas } from '../core/tool-model';
 import { inventoryCommandSchemas } from '../core/inventory-model';
 import { z } from 'zod';
 import { copyData, freezeData } from '../core/data';
@@ -33,6 +34,7 @@ const IMPORTANT_EVENTS = new Set([
   'combat.enemy-defeated',
   'combat.player-defeated',
   'combat.encounter-completed',
+  'tools.changed',
 ]);
 export const DURABLE_COMMANDS = new Set([
   'appearance.set',
@@ -44,6 +46,8 @@ export const DURABLE_COMMANDS = new Set([
   'storage.item',
   'storage.money',
   ...inventoryCommandSchemas.map((s) => s.shape.type.value),
+  ...toolCommandSchemas.map((s) => s.shape.type.value),
+  'tool.use',
 ]);
 export class SaveManager {
   private state: Omit<SaveView, 'pending'> = {

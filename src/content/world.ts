@@ -1,3 +1,4 @@
+import { TOOL_TRAIL_DEFINITION, TRAIL_ENTRY } from './tool-trail';
 import { EXPEDITION_PORTAL } from '../core/generated-world';
 import { WorldRegistry } from '../core/world';
 import { CLEARING } from './clearing';
@@ -163,9 +164,13 @@ export const PREVIEW_WORLD = new WorldRegistry([
     style: 'woodland',
     width: 960,
     height: 544,
-    spawns: [{ id: 'entry', position: { x: 480, y: 480 }, facing: 'up' }],
+    spawns: [
+      { id: 'entry', position: { x: 480, y: 480 }, facing: 'up' },
+      { id: 'trail-return', position: { x: 480, y: 280 }, facing: 'down' },
+    ],
     objects: [
       ...WOODLAND_TREES.map((p, i) => object(`woodland-tree-${i}`, p.x, p.y)),
+      TRAIL_ENTRY,
       object('woodland-gate', 480, 520),
       object('woodland-sign', 512, 272),
     ],
@@ -177,6 +182,13 @@ export const PREVIEW_WORLD = new WorldRegistry([
     ],
     water: [],
     interactions: [
+      {
+        ...TRAIL_ENTRY,
+        kind: 'door',
+        label: 'Enter the tool trail',
+        text: '',
+        destination: { regionId: 'region:tool-trail', spawn: 'entry' },
+      },
       interaction('woodland-gate', 'door', 480, 520, 'Return to clearing', '', {
         regionId: 'region:clearing',
         spawn: 'woodland-return',
@@ -213,6 +225,7 @@ export const PREVIEW_WORLD = new WorldRegistry([
       }),
     ],
   },
+  TOOL_TRAIL_DEFINITION,
 ]);
 export function woodlandPathAt(x: number, y: number): boolean {
   return (x >= 29 && x <= 30) || (y >= 15 && y <= 16);

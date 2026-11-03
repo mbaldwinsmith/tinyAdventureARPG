@@ -1,3 +1,19 @@
+import { TOOL_RULES } from '../content/tools';
+import { TRAIL_ID } from '../content/tool-trail';
+import { toolCommandSchemas, toolCommandSchema, activeToolSchema } from './tool-model';
+import {
+  toolCommand as applyToolCommand,
+  interactTrail,
+  toolSolidEntries,
+  toolMovement,
+  stepTools,
+  toolWorldHit,
+  toolsView,
+  trailPresentation,
+  hookPulling,
+} from './tools';
+import type { ToolContext } from './tools';
+import type { BattleContext } from './combat';
 import { COMBAT_RULES } from '../content/combat';
 import {
   inventoryCommandSchemas,
@@ -35,7 +51,7 @@ import type { HeroId, Position, SaveState } from './model';
 import { allocatedId } from './ids';
 import { entityIdSchema, toolIdSchema, itemInstanceIdSchema } from './ids';
 import type { WorldRegistry, Interaction } from './world';
-import { targetInReach, solidEntriesFor } from './world';
+import { targetInReach } from './world';
 import { footRect, freeFoot, overlaps, segmentBlocked } from './motion';
 import type { Region } from './model';
 import type { EntityId, InstanceId, ItemInstanceId } from './ids';
@@ -77,6 +93,7 @@ export const coreCommandSchema = z.discriminatedUnion('type', [
   }),
   ...inventoryCommandSchemas,
   selectedUseSchema,
+  ...toolCommandSchemas,
 ]);
 export type CoreCommand = z.infer<typeof coreCommandSchema>;
 export type CoreResult =
@@ -94,7 +111,8 @@ type WorldEvent =
   | { type: 'world.region-entered'; regionId: string }
   | { type: 'interaction.changed' }
   | { type: 'storage.changed'; chestId: string }
-  | { type: 'inventory.changed'; message: string };
+  | { type: 'inventory.changed'; message: string }
+  | { type: 'tools.changed'; message: string };
 export type DomainEvent = (EventBody | WorldEvent | CombatEvent) & {
   sequence: number;
   tick: number;
@@ -126,6 +144,7 @@ interface CoreSnapshot {
   readonly transitionSequence: number;
   readonly storage: GameSession['storageView'];
   readonly inventory: GameSession['inventoryView'];
+  readonly tools: GameSession['toolsView'];
   readonly deathReport: GameSession['deathReport'];
   readonly lossPolicy: { materialChance: number; moneyFraction: number };
   readonly expedition: ReturnType<GameSession['expeditionView']>;
@@ -161,7 +180,7 @@ export class GameSession {
       const definition = areaDefinition(this.state, world, combat.regionId, combat.instanceId);
       const area = retainedArea(this.state, combat.regionId, combat.instanceId);
       // Opened gates can close neither around actors nor at checkpoint continuation.
-      const solids = solidEntriesFor(definition, area).map((s) => s.rect);
+      const solids = toolSolidEntries(this.state, definition, area).map((s) => s.rect);
       for (const enemy of combat.enemies)
         if (
           ![enemy.position, enemy.home].every((p) =>
@@ -188,7 +207,8 @@ export class GameSession {
     const expedition = this.expeditionView(),
       storage = this.storageView,
       deathReport = this.deathReport,
-      inventory = this.inventoryView;
+      inventory = this.inventoryView,
+      tools = this.toolsView;
     const combat = this.state.combat
       ? combatView(
           this.state.combat,
@@ -202,6 +222,7 @@ export class GameSession {
       !this.cached ||
       JSON.stringify(this.cached.storage) !== JSON.stringify(storage) ||
       JSON.stringify(this.cached.inventory) !== JSON.stringify(inventory) ||
+      JSON.stringify(this.cached.tools) !== JSON.stringify(tools) ||
       (this.cached.deathReport !== deathReport &&
         JSON.stringify(this.cached.deathReport) !== JSON.stringify(deathReport)) ||
       JSON.stringify(this.cached.expedition) !== JSON.stringify(expedition) ||
@@ -236,6 +257,7 @@ export class GameSession {
         expedition,
         storage,
         inventory,
+        tools,
         deathReport,
         lossPolicy: {
           materialChance: this.state.deathRules.materialChance,
@@ -272,18 +294,23 @@ export class GameSession {
     const command = parsed.data;
     if (command.type.startsWith('inventory.')) return this.inventoryCommand(command);
     if (command.type === 'tool.use') {
-      if (this.state.pack.selectedTool === 'shield')
+      if (this.state.player.carrying || this.state.tools.carriedBomb !== null)
+        return this.toolCommand({ type: 'tool.throw' });
+      const tool = this.state.pack.selectedTool;
+      if (tool === 'shield')
         return {
           ok: false,
           code: 'unavailable',
           message: 'Hold the shield or selected-tool binding to guard.',
         };
-      return this.combatCommand({
-        type: 'combat.action',
-        action: this.state.pack.selectedTool,
-        facing: null,
-      });
+      if (tool === 'sword' || tool === 'roll' || (tool === 'bow' && this.battleActive))
+        return this.combatCommand({ type: 'combat.action', action: tool, facing: null });
+      const parsed = activeToolSchema.safeParse(tool);
+      return parsed.success
+        ? this.toolCommand({ type: 'tool.action', tool: parsed.data })
+        : { ok: false, code: 'unavailable', message: 'Select an available tool.' };
     }
+    if (command.type.startsWith('tool.')) return this.toolCommand(command);
     if (command.type === 'storage.item' || command.type === 'storage.money')
       return this.storageCommand(command);
     if (command.type.startsWith('combat.')) return this.combatCommand(command);
@@ -360,7 +387,8 @@ export class GameSession {
           resolve ? resolve(context) : { position: context.position, facing: context.facing },
         );
         const battle = this.battleContext(this.tick + 1);
-        const movement = battle ? combatMovement(battle, desired) : desired;
+        const toolResolved = this.world ? toolMovement(this.toolContext(), desired) : desired;
+        const movement = battle ? combatMovement(battle, toolResolved) : toolResolved;
         const region = this.state.world.regions.find((r) => r.id === this.state.player.regionId);
         const geometry =
           region?.kind === 'surface' && region.phase !== 'unvisited'
@@ -406,6 +434,7 @@ export class GameSession {
         this.state.calendar.elapsedTicks++;
         if (this.state.calendar.elapsedTicks === this.state.timeRules.ticksPerDay)
           this.startDay('rollover');
+        if (this.world) stepTools(this.toolContext(this.state, battle));
         if (battle) {
           stepBattle(battle);
           if (this.state.combat?.death?.phase === 'pending') {
@@ -451,6 +480,8 @@ export class GameSession {
       width: this.regionDefinition.width,
       height: this.regionDefinition.height,
       solids: this.solids,
+      tracePlayerProjectile: (from: Position, to: Position) =>
+        toolWorldHit(this.toolContext(), 'arrow', from, to),
       emit: (event: CombatEvent) => {
         if (event.type === 'combat.enemy-defeated') {
           const dungeon = this.state.world.dungeons.find(
@@ -514,6 +545,15 @@ export class GameSession {
         };
         draft.player.actor.resources.health.current = draft.player.actor.resources.health.maximum;
         draft.player.actor.resources.energy.current = draft.player.actor.resources.energy.maximum;
+        const carriedObject = draft.player.carrying;
+        if (carriedObject) {
+          const oldArea = retainedArea(draft);
+          oldArea.changes.removedObjects = oldArea.changes.removedObjects.filter(
+            (id) => id !== carriedObject,
+          );
+          draft.player.carrying = null;
+        }
+        draft.tools.carriedBomb = null;
         try {
           enterArea(draft, this.world, 'region:clearing', 'start');
           assertWorldInvariants(draft, this.content);
@@ -576,6 +616,9 @@ export class GameSession {
         })),
         retainedMoney: loss.carried.money,
       };
+      this.state.tools.effects = [];
+      this.state.tools.carriedBomb = null;
+      this.state.tools.safe = null;
       actor.position = { ...spawn.position };
       actor.facing = spawn.facing;
       actor.resources.health.current = actor.resources.health.maximum;
@@ -612,7 +655,11 @@ export class GameSession {
     if (this.pauses.paused)
       return { ok: false, code: 'paused', message: 'Close the current menu first.' };
     if (command.type === 'combat.start') {
-      if (this.state.player.instanceId || this.activeArea().geometry.generated)
+      if (
+        this.state.player.instanceId ||
+        this.activeArea().geometry.generated ||
+        this.state.player.regionId === TRAIL_ID
+      )
         return unavailable('Return to the village before starting practice.');
       if (!this.world || this.state.player.carrying)
         return unavailable('Set down the box before entering practice.');
@@ -642,6 +689,9 @@ export class GameSession {
       this.activeRegion().phase = 'dormant';
       destination.phase = 'active';
       this.state.player.regionId = destination.id;
+      this.state.tools.effects = [];
+      this.state.tools.carriedBomb = null;
+      this.state.tools.safe = null;
       actor.position = { ...spawn.position };
       actor.facing = spawn.facing;
       if (!this.state.player.permanent.discoveredRegions.includes(destination.id))
@@ -659,6 +709,8 @@ export class GameSession {
     }
     if (!s || !this.battleActive) return unavailable('Enter a practice trial first.');
     if (command.type === 'combat.action') {
+      if (hookPulling(this.state) || this.state.tools.effects.some((e) => e.phase === 'windup'))
+        return unavailable('Finish the active tool first.');
       const error = beginAction(
         s,
         actor,
@@ -709,7 +761,7 @@ export class GameSession {
     return retainedArea(this.state);
   }
   private solidEntries() {
-    return solidEntriesFor(this.regionDefinition, this.activeArea());
+    return toolSolidEntries(this.state, this.regionDefinition, this.activeArea());
   }
   get solids() {
     if (!this.world) return [];
@@ -750,7 +802,15 @@ export class GameSession {
       const target = this.regionDefinition.interactions.find(
         (t) => t.id === this.state.player.carrying,
       );
-      return target ? { ...target, label: 'Set down small box' } : null;
+      return target
+        ? {
+            ...target,
+            label:
+              target.id === 'entity:clearing-box'
+                ? 'Set down small box'
+                : 'Set down carried object',
+          }
+        : null;
     }
     const actor = this.state.player.actor,
       region = this.activeArea();
@@ -783,6 +843,23 @@ export class GameSession {
       (this.state.combat?.action || this.tick < (this.state.combat?.hurtUntil ?? 0))
     )
       return { ok: false, code: 'unavailable', message: 'Recover before interacting.' };
+    if (hookPulling(this.state) || this.state.tools.effects.some((e) => e.phase === 'windup'))
+      return { ok: false, code: 'unavailable', message: 'Finish the active tool first.' };
+    if (requested === null && this.state.tools.carriedBomb !== null)
+      return this.toolCommand({ type: 'tool.throw' });
+    if (
+      requested === null &&
+      this.state.tools.effects.some(
+        (e) =>
+          e.kind === 'bomb' &&
+          e.phase === 'fuse' &&
+          Math.hypot(
+            e.position.x - this.state.player.actor.position.x,
+            e.position.y - this.state.player.actor.position.y,
+          ) <= 26,
+      )
+    )
+      return this.toolCommand({ type: 'tool.lift-bomb' });
     const target = this.nearestTarget();
     if (!target || (requested !== null && target.id !== requested))
       return { ok: false, code: 'unavailable', message: 'Move closer and face the object.' };
@@ -817,6 +894,21 @@ export class GameSession {
         (id) => id !== target.id,
       );
       this.state.player.carrying = null;
+    } else if (target.kind === 'mechanism') {
+      const candidate = copyData(this.state);
+      try {
+        const text = interactTrail(this.toolContext(candidate), target.id);
+        assertWorldInvariants(candidate, this.content);
+        this.state = candidate;
+        this.state.tools.feedback = text;
+        this.emit({ type: 'tools.changed', message: text });
+      } catch (error) {
+        return {
+          ok: false,
+          code: 'unavailable',
+          message: error instanceof Error ? error.message : 'This mechanism could not change.',
+        };
+      }
     } else if (target.kind === 'carryable') {
       if (this.swimming)
         return {
@@ -1038,6 +1130,56 @@ export class GameSession {
       deposited: view(chest?.inventory ?? { capacity: 20, items: [], money: 0 }, true),
     });
   }
+  private toolContext(
+    state: SaveState = this.state,
+    battle: BattleContext | null = null,
+  ): ToolContext {
+    if (!this.world) throw new Error('Tool world is unavailable.');
+    const definition = areaDefinition(state, this.world),
+      area = retainedArea(state);
+    return {
+      state,
+      definition,
+      area,
+      battle,
+      solids: () => toolSolidEntries(state, definition, area).map((s) => s.rect),
+      changed: (message) => this.emit({ type: 'tools.changed', message }),
+    };
+  }
+  private toolCommand(input: unknown): CoreResult {
+    if (this.pauses.paused)
+      return { ok: false, code: 'paused', message: 'Close the current menu before using a tool.' };
+    const parsed = toolCommandSchema.safeParse(input);
+    if (!parsed.success)
+      return { ok: false, code: 'invalid-command', message: 'Invalid tool command.' };
+    if (parsed.data.type === 'tool.action' && parsed.data.tool === 'bow' && this.battleActive)
+      return this.combatCommand({ type: 'combat.action', action: 'bow', facing: null });
+    const draft = copyData(this.state);
+    try {
+      applyToolCommand(this.toolContext(draft), parsed.data);
+      assertWorldInvariants(draft, this.content);
+      this.state = draft;
+      this.cached = undefined;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        code: 'unavailable',
+        message: error instanceof Error ? error.message : 'The tool could not be used.',
+      };
+    }
+  }
+  get toolsView() {
+    return this.world ? toolsView(this.state, this.regionDefinition, this.activeArea()) : null;
+  }
+  get trailPresentation() {
+    return this.world
+      ? freezeData(trailPresentation(this.state, this.regionDefinition, this.activeArea()))
+      : [];
+  }
+  get toolsPresentation() {
+    return freezeData(copyData(this.state.tools));
+  }
   get selectedTool() {
     return this.state.pack.selectedTool;
   }
@@ -1068,8 +1210,32 @@ export class GameSession {
           id: 'bow' as const,
           name: 'Bow',
           energyCost: COMBAT_RULES.bowEnergy,
-          cooldownSeconds: cooldown(battle?.bowReadyTick ?? 0),
+          cooldownSeconds: Math.max(
+            cooldown(battle?.bowReadyTick ?? 0),
+            Math.ceil(
+              (this.state.player.actor.cooldowns.find((c) => c.toolId === 'tool:bow')
+                ?.remainingTicks ?? 0) / 5,
+            ) / 10,
+          ),
         },
+        ...(['bomb', 'boomerang', 'hook', 'magic', 'push', 'pull'] as const).map((id) => ({
+          id,
+          name: {
+            bomb: 'Bomb',
+            boomerang: 'Boomerang',
+            hook: 'Hook',
+            magic: 'Magic rod',
+            push: 'Push',
+            pull: 'Pull',
+          }[id],
+          energyCost:
+            id === 'bomb' ? TOOL_RULES.bombEnergy : id === 'magic' ? TOOL_RULES.magicEnergy : 0,
+          cooldownSeconds:
+            Math.ceil(
+              (this.state.player.actor.cooldowns.find((c) => c.toolId === `tool:${id}`)
+                ?.remainingTicks ?? 0) / 5,
+            ) / 10,
+        })),
       ],
       expectedTransaction: this.state.nextTransaction,
       capacity: this.state.player.carried.capacity,

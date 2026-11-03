@@ -1,3 +1,4 @@
+import { TRAIL_ID } from '../content/tool-trail';
 import { changesSchema } from './model';
 import type { SaveState, RetainedArea, Geometry } from './model';
 import type { CombatState } from './combat-model';
@@ -73,6 +74,8 @@ export function enterArea(
   destinationId: string,
   spawnId = 'entry',
 ): void {
+  if (state.tools.carriedBomb !== null)
+    throw new Error('Throw or put down the live bomb before travelling.');
   const destination = state.world.regions.find((r) => r.id === destinationId);
   if (!destination) throw new Error('Unknown destination');
   const config = EXPEDITIONS.find((e) => e.id === destinationId);
@@ -141,6 +144,17 @@ export function enterArea(
     )
   )
     previous.anchor.phase = 'pending-regeneration';
+  const oldArea = retainedArea(state);
+  for (const effect of state.tools.effects)
+    if (effect.kind === 'thrown' && effect.objectId) {
+      // Unlanded throws retain their pre-lift position in saved geometry.
+      oldArea.changes.removedObjects = oldArea.changes.removedObjects.filter(
+        (id) => id !== effect.objectId,
+      );
+    }
+  state.tools.effects = [];
+  state.tools.carriedBomb = null;
+  state.tools.safe = null;
   if (state.combat) {
     state.combat.guard = false;
     state.combat.action = null;
@@ -154,6 +168,21 @@ export function enterArea(
   if (index >= 0) state.combat = state.world.savedCombats.splice(index, 1)[0] ?? null;
   else if (area.geometry.generated)
     state.combat = expeditionBattle(state, area, destinationId, instanceId);
+  else if (destinationId === TRAIL_ID) {
+    const battle = createBattle('mixed', 1, state.clock.tick);
+    battle.regionId = regionIdSchema.parse(TRAIL_ID);
+    battle.enemies = battle.enemies
+      .filter((e) => ['skeleton', 'slime'].includes(e.kind))
+      .map((e, i) => ({
+        ...e,
+        id: entityIdSchema.parse(`entity:trail-enemy-${e.kind}`),
+        position: { x: i ? 688 : 896, y: i ? 120 : 80 },
+        home: { x: i ? 688 : 896, y: i ? 120 : 80 },
+      }));
+    battle.feedback =
+      'Tool trail: puzzle tools also affect enemies. Death uses the agreed carried-material rule.';
+    state.combat = battle;
+  }
   if (state.combat)
     state.combat.nextSequence = Math.max(
       state.combat.nextSequence,

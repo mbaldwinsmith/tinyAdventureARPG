@@ -255,9 +255,16 @@ describe('pack ownership and equipment', () => {
   });
   it('migrates v2 without rerolling items, equipment, geometry or RNG and defaults only the new pack state', () => {
     const migrated = readSaveState(v2, PREVIEW_CONTENT);
-    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.schemaVersion).toBe(4);
     expect(migrated.pack).toEqual({ selectedTool: 'sword', starterClaimed: false });
-    expect(migrated.world).toEqual(v2.world);
+    const retained = structuredClone(migrated.world);
+    retained.regions = retained.regions.filter((r) => r.id !== 'region:tool-trail');
+    const woodland = retained.regions.find((r) => r.id === 'region:woodland');
+    if (woodland?.kind === 'surface' && woodland.phase !== 'unvisited')
+      woodland.geometry.objects = woodland.geometry.objects.filter(
+        (o) => o.id !== 'entity:woodland-tool-trail',
+      );
+    expect(retained).toEqual(v2.world);
     expect(migrated.random).toEqual(v2.random);
     expect(migrated.player).toEqual(v2.player);
     const game = new GameSession(migrated, PREVIEW_CONTENT, PREVIEW_WORLD);
