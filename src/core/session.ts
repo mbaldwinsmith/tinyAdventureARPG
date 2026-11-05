@@ -1,3 +1,11 @@
+import { completedMixedTrial } from './build-model';
+import {
+  ABILITIES,
+  ABILITY_COST,
+  BUILD_REWARDS,
+  rewardIdSchema,
+  ENEMY_FAMILY,
+} from '../content/builds';
 import { TOOL_RULES } from '../content/tools';
 import { TRAIL_ID } from '../content/tool-trail';
 import { toolCommandSchemas, toolCommandSchema, activeToolSchema } from './tool-model';
@@ -21,7 +29,13 @@ import {
   selectedUseSchema,
 } from './inventory-model';
 import { inventoryTransaction, receiveItem } from './inventory';
-import { effectiveStats, describeItem } from './equipment';
+import {
+  effectiveStats,
+  describeItem,
+  buildEffects,
+  swordFamilyBonus,
+  toolEnergyCost,
+} from './equipment';
 import { readSaveState } from './save-state';
 import { transferItem, transferMoney } from './transactions';
 import { retainedArea, areaDefinition, enterArea } from './expeditions';
@@ -435,18 +449,18 @@ export class GameSession {
         if (this.state.calendar.elapsedTicks === this.state.timeRules.ticksPerDay)
           this.startDay('rollover');
         if (this.world) stepTools(this.toolContext(this.state, battle));
-        if (battle) {
-          stepBattle(battle);
-          if (this.state.combat?.death?.phase === 'pending') {
-            this.pauses.set('death', true);
-            this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
-            this.state.clock.remainderMs = 0;
-            return {
-              steps: i + 1,
-              simulatedMs: (i + 1) * STEP_MS,
-              droppedMs: Math.max(0, elapsedMs - (i + 1) * STEP_MS),
-            };
-          }
+        if (battle) stepBattle(battle);
+        if (this.state.build.active && --this.state.build.active.remainingTicks === 0)
+          this.state.build.active = null;
+        if (battle && this.state.combat?.death?.phase === 'pending') {
+          this.pauses.set('death', true);
+          this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
+          this.state.clock.remainderMs = 0;
+          return {
+            steps: i + 1,
+            simulatedMs: (i + 1) * STEP_MS,
+            droppedMs: Math.max(0, elapsedMs - (i + 1) * STEP_MS),
+          };
         }
       }
       this.state.clock.remainderMs = budget.remainderMs;
@@ -476,6 +490,12 @@ export class GameSession {
       state,
       actor: this.state.player.actor,
       stats: effectiveStats(this.state.player, this.content),
+      outgoingDamage: (kind: keyof typeof ENEMY_FAMILY, damage: number, sword: boolean) => {
+        const bonus = sword
+          ? swordFamilyBonus(this.state.player, this.content, ENEMY_FAMILY[kind])
+          : 0;
+        return (damage + bonus) * buildEffects(this.state, this.content).damageMultiplier;
+      },
       tick,
       width: this.regionDefinition.width,
       height: this.regionDefinition.height,
@@ -483,6 +503,8 @@ export class GameSession {
       tracePlayerProjectile: (from: Position, to: Position) =>
         toolWorldHit(this.toolContext(), 'arrow', from, to),
       emit: (event: CombatEvent) => {
+        if (event.type === 'combat.encounter-completed' && completedMixedTrial(state))
+          this.state.build.mixedTrialCompleted = true;
         if (event.type === 'combat.enemy-defeated') {
           const dungeon = this.state.world.dungeons.find(
             (d) => d.id === this.state.player.instanceId,
@@ -543,6 +565,7 @@ export class GameSession {
           })),
           retainedMoney: loss.carried.money,
         };
+        draft.build.active = null;
         draft.player.actor.resources.health.current = draft.player.actor.resources.health.maximum;
         draft.player.actor.resources.energy.current = draft.player.actor.resources.energy.maximum;
         const carriedObject = draft.player.carrying;
@@ -621,6 +644,7 @@ export class GameSession {
       this.state.tools.safe = null;
       actor.position = { ...spawn.position };
       actor.facing = spawn.facing;
+      this.state.build.active = null;
       actor.resources.health.current = actor.resources.health.maximum;
       actor.resources.energy.current = actor.resources.energy.maximum;
       s.action = null;
@@ -717,6 +741,7 @@ export class GameSession {
         command.action,
         this.tick,
         command.facing ?? actor.facing,
+        buildEffects(this.state, this.content).cooldownFactor,
       );
       return error ? unavailable(error) : { ok: true };
     }
@@ -1142,6 +1167,7 @@ export class GameSession {
       definition,
       area,
       battle,
+      modifiers: buildEffects(state, this.content),
       solids: () => toolSolidEntries(state, definition, area).map((s) => s.rect),
       changed: (message) => this.emit({ type: 'tools.changed', message }),
     };
@@ -1183,10 +1209,60 @@ export class GameSession {
   get selectedTool() {
     return this.state.pack.selectedTool;
   }
+  private buildRewardAvailable(reward: keyof typeof BUILD_REWARDS) {
+    if (this.state.build.claims.includes(reward)) return false;
+    switch (reward) {
+      case 'chest':
+        return (
+          this.state.pack.starterClaimed &&
+          !!this.world &&
+          !this.state.player.carrying &&
+          this.nearestTarget()?.id === 'entity:clearing-chest'
+        );
+      case 'encounter':
+        return this.state.build.mixedTrialCompleted || completedMixedTrial(this.state.combat);
+      case 'boss':
+        return this.state.world.dungeons.some((dungeon) =>
+          dungeon.geometry.generated?.placements.some(
+            (placement) =>
+              placement.kind === 'reward' && dungeon.changes.claimedRewards.includes(placement.id),
+          ),
+        );
+      case 'quest':
+        return this.state.world.regions.some(
+          (region) =>
+            region.id === TRAIL_ID &&
+            region.kind === 'surface' &&
+            region.phase !== 'unvisited' &&
+            region.changes.openedPassages.some((id) => id === 'entity:trail-shortcut'),
+        );
+    }
+  }
   get inventoryView() {
     const battle = this.state.combat;
+    const build = this.state.build;
+    const effects = buildEffects(this.state, this.content);
     const cooldown = (ready: number) => Math.ceil(Math.max(0, ready - this.tick) / 5) / 10;
     return freezeData({
+      build: {
+        rewards: rewardIdSchema.options.map((id) => ({
+          id,
+          name: BUILD_REWARDS[id].name,
+          requirement: BUILD_REWARDS[id].requirement,
+          claimed: build.claims.includes(id),
+          available: this.buildRewardAvailable(id),
+        })),
+        unlocked: build.unlocked.map((id) => ({
+          id,
+          name: ABILITIES[id].name,
+          description: ABILITIES[id].description,
+        })),
+        selected: build.selected,
+        active: build.active ? ABILITIES[build.active.id].name : null,
+        activeSeconds: build.active ? Math.ceil(build.active.remainingTicks / 50) : 0,
+        cooldownSeconds: cooldown(build.readyTick),
+        energyCost: ABILITY_COST,
+      },
       hotbar: [
         {
           id: 'sword' as const,
@@ -1228,8 +1304,10 @@ export class GameSession {
             push: 'Push',
             pull: 'Pull',
           }[id],
-          energyCost:
+          energyCost: toolEnergyCost(
             id === 'bomb' ? TOOL_RULES.bombEnergy : id === 'magic' ? TOOL_RULES.magicEnergy : 0,
+            effects.energyDiscount,
+          ),
           cooldownSeconds:
             Math.ceil(
               (this.state.player.actor.cooldowns.find((c) => c.toolId === `tool:${id}`)
@@ -1273,6 +1351,18 @@ export class GameSession {
       return fail('Close other menus before changing your pack.');
     if (command.expectedTransaction !== this.state.nextTransaction)
       return fail('Your pack changed. Select the item again.');
+    if (command.type === 'inventory.build-claim' && !this.buildRewardAvailable(command.reward))
+      return fail('This build prize is unavailable.');
+    if (
+      command.type === 'inventory.ability-use' &&
+      (this.pauses.paused ||
+        this.state.player.actor.resources.health.current <= 0 ||
+        (this.battleActive &&
+          (this.state.combat?.action || this.tick < (this.state.combat?.hurtUntil ?? 0))) ||
+        hookPulling(this.state) ||
+        this.state.tools.effects.some((effect) => effect.phase === 'windup'))
+    )
+      return fail('Resume play and finish your action before activating an ability.');
     if (!Number.isSafeInteger(this.state.nextTransaction + 1))
       return fail('Transaction limit reached.');
     if (
@@ -1287,9 +1377,15 @@ export class GameSession {
     )
       return fail('Finish the action or recover before changing equipment.');
     try {
-      const next = inventoryTransaction(this.state, this.content, command);
+      const next = inventoryTransaction(
+        { ...this.state, random: this.random.snapshot() },
+        this.content,
+        command,
+      );
       this.state.player = next.player;
       this.state.pack = next.pack;
+      this.state.build = next.build;
+      if (next.random) this.random = next.random;
       this.state.world.nextId = next.nextId;
       this.state.nextTransaction++;
       this.inventoryFeedback = next.message;

@@ -23,7 +23,7 @@ Keyboard Tab/Shift-Tab and native activation reach the controls; arrows select n
 | Discard          | Explicit confirmation and fresh transaction token; equipped items rejected; permanent capabilities untouched.                                                |
 | Pickup           | Whole reward accepted or retained at its source; no silent overflow or partial claim.                                                                        |
 
-The existing preview defaults are 20 carried stacks, wood stacks of 99 and main-hand/off-hand/body/relic slots. The current content supplies only hand equipment. These are integration defaults, not approval of campaign capacity, acquisition order or M10 procedural loot budgets. The starter kit is fixed authored preview content. Renewable generated supply points now award two wood plus their existing one coin; their offscreen later-day refresh rule is unchanged. Coin-only drops do not consume stack space.
+The existing preview defaults are 20 carried stacks, wood stacks of 99 and main-hand/off-hand/body/relic slots. The preview supplies hand equipment and relics. Capacity and acquisition order are preview defaults. The starter kit is fixed authored preview content. Renewable generated supply points now award two wood plus their existing one coin; their offscreen later-day refresh rule is unchanged. Coin-only drops do not consume stack space.
 
 Every possession or selected-tool command carries a shared `expectedTransaction` token. Successful inventory/chest changes, material/coin pickup and death resolution advance it. Invalid/stale commands change neither owner nor allocation counter. Menus pause simulation; inventory operations are allowed under inventory/storage pauses and rejected under unrelated modal/background/death pauses. Equipment changes also reject an active combat action or hurt recovery.
 
@@ -31,7 +31,7 @@ Every possession or selected-tool command carries a shared `expectedTransaction`
 
 Saved `actor.stats` remain the base. Equipment adds its validated template modifiers and the instance's saved enchantment magnitudes. Active status multipliers apply after those additions, once per stack. Effective stats clamp at zero and reject non-finite results. Re-equipping and reloading never accumulate bonuses into the saved base.
 
-The preview iron sword adds one attack; Keen +2 adds two more. A base attack of one therefore becomes four. Melee damage uses the existing `swordDamage + effectiveAttack - 1` formula; bow damage remains its fixed projectile balance. A shield adds one defence to physical damage handling. Effective movement speed reaches the actual fixed-step motion resolver. The pack shows base and effective values, and descriptions explicitly say modifiers apply while equipped. No additional item ability effects are currently supplied; procedural abilities and comparisons belong to M10.
+The preview iron sword adds one attack; Keen +2 adds two more. A base attack of one therefore becomes four. Melee base damage uses `swordDamage + effectiveAttack - 1`. Bow shots start at their configured projectile damage. A shield adds one defence to physical damage handling. Effective movement speed reaches the actual fixed-step motion resolver. The pack shows base and effective values, and descriptions explicitly say modifiers apply while equipped. M10 adds [roll budgets, enemy-specific enchantments, relic effects and active abilities](builds.md). The pack compares a selected item with the item in its compatible slot.
 
 ## Selected tool
 
@@ -41,7 +41,7 @@ Cooldown readouts derive from saved ready ticks in 0.1-second display steps; ene
 
 ## Saves, loss and failure
 
-M08 schema 3 added `pack.selectedTool` and `pack.starterClaimed`; M09 schema 4 adds tool effects and expands the selected tools. Envelope version remains 2. Explicit v1 → v2 → v3 → v4 migration preserves geometry, discoveries, item identities, enchantments, equipment and random continuation; earlier saves default to sword selection and unclaimed supplies, without automatically granting a kit. The synthetic v2 fixture includes a carried/equipped enchanted sword.
+M08 schema 3 added `pack.selectedTool` and `pack.starterClaimed`; M09 schema 4 adds tool effects and expands the selected tools. M10 schema 5 adds saved builds. Envelope version remains 2. Explicit v1 → v2 → v3 → v4 → v5 migration preserves geometry, discoveries, item identities, enchantments, equipment and random continuation; earlier saves default to sword selection and unclaimed supplies, without automatically granting a kit. The synthetic v2 fixture includes a carried/equipped enchanted sword.
 
 All inventory commands use the existing durable-first coordinator. A detached candidate, including IDs and nonce, is committed before live ownership, equipment stats or success feedback change. Failed writes keep the previous live pack and expose retry/export/recovery inside the modal. A lost acknowledgement retries the exact encoded checkpoint; it cannot grant a second kit or discard twice. See [save architecture](saves.md).
 

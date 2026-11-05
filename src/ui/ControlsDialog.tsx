@@ -14,6 +14,7 @@ const labels = {
   pause: 'Pause',
   inventory: 'Open pack',
   use: 'Use selected tool',
+  ability: 'Activate ability',
 };
 const buttonChoices = [
   [0, 'South face'],
@@ -25,6 +26,8 @@ const buttonChoices = [
   [7, 'Right trigger'],
   [8, 'View / Select'],
   [9, 'Start / Menu'],
+  [10, 'Left stick click'],
+  [11, 'Right stick click'],
 ] as const;
 export function ControlsDialog({
   bridge,

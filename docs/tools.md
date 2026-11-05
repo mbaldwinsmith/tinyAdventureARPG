@@ -1,6 +1,6 @@
 # Tools and the authored trail
 
-M09 adds an authored tool trail reached through the north woodland path. Its final cracked shortcut leads to the existing persistent forest. The forest, crypt anchor, reward/exit boundary and retained generated geography keep their existing rules. The trail is an integration route; its kit and balances do not decide the campaign acquisition order or M10 loot tables.
+M09 adds an authored tool trail reached through the north woodland path. Its final cracked shortcut leads to the existing persistent forest. The forest, crypt anchor, reward/exit boundary and retained generated geography keep their existing rules. Opening the shortcut also earns the optional [Trailblazer build prize](builds.md). The trail kit and balances are preview defaults.
 
 ## Playing the trail
 
@@ -48,4 +48,4 @@ Travel cancels unsettled projectiles and restores any unlanded thrown objects at
 
 Schema 4 adds tool effect state and the expanded selected-tool set. Envelope version remains 2. Explicit v1 → v2 → v3 → v4 migration adds the authored annex and its woodland entry once, preserving every older region/dungeon layout, object delta, item/enchantment, deposit, permanent discovery and random continuation. Geography is not regenerated from a seed during migration.
 
-Physical controller hardware, final campaign acquisition/balance and procedural item abilities remain outside this integration milestone. Automated controllers emulate the standard browser Gamepad API.
+M10 adds preview build modifiers. Physical controller hardware and final campaign acquisition and balance remain outside this integration milestone. Automated controllers emulate the standard browser Gamepad API.

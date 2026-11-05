@@ -180,6 +180,25 @@ describe('persistent expedition transitions and anchored successor boundaries', 
     expect(state.player.instanceId).toBe(successor);
     expect(state.world.dungeons).toHaveLength(2);
   });
+  it('unlocks optional rolled warden gear only after the anchor reward is collected', () => {
+    const defeated = beatAnchor(fresh('region:crypt'));
+    const locked = new GameSession(defeated, PREVIEW_CONTENT, PREVIEW_WORLD);
+    const claim = (game: GameSession) =>
+      game.dispatch({
+        type: 'inventory.build-claim',
+        reward: 'boss',
+        expectedTransaction: game.inventoryView.expectedTransaction,
+      });
+    expect(claim(locked).ok).toBe(false);
+    const game = new GameSession(near(defeated, 'reward'), PREVIEW_CONTENT, PREVIEW_WORLD);
+    expect(claim(game).ok).toBe(true);
+    expect(game.inventoryView.items.map((item) => item.name)).toEqual([
+      'Iron sword',
+      'Bastion Stone',
+    ]);
+    expect(game.inventoryView.items[0]?.enchantments).toHaveLength(2);
+    expect(claim(game).ok).toBe(false);
+  });
   it('renews only offscreen supplies and claimed ordinary enemies on a later day, preserving geography, gates, caches and anchor corpses', () => {
     let state = fresh();
     state = near(state, 'key');

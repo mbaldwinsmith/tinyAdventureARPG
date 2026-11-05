@@ -56,7 +56,7 @@ describe('serializable identities, content and possession boundaries', () => {
     if (!unlock) throw new Error('Missing fixture');
     unlock.requiresUnlocks.push(unlock.id);
     expect(() => new ContentRegistry(cycle)).toThrow('Cyclic');
-    expect(() => saveSchema.parse({ ...createPreviewSave(), schemaVersion: 5 })).toThrow();
+    expect(() => saveSchema.parse({ ...createPreviewSave(), schemaVersion: 6 })).toThrow();
     const unknown = copyData(PREVIEW_CONTENT.data);
     const item = unknown.items[0];
     if (!item) throw new Error('Missing fixture');

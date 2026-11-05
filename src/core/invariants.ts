@@ -1,3 +1,5 @@
+import { LOOT_TIERS } from '../content/builds';
+import { validateBuildState } from './builds';
 import { assertToolInvariants } from './tool-invariants';
 import { effectiveStats } from './equipment';
 import { validateGeneratedGeometry } from './generation';
@@ -251,6 +253,16 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
         item.enchantments.map((e) => e.id),
         'enchantment',
       );
+      if (item.lootTier) {
+        const tier = LOOT_TIERS[item.lootTier];
+        if (
+          template.kind !== 'equipment' ||
+          !item.enchantments.length ||
+          item.enchantments.length > tier.maxAffixes ||
+          item.enchantments.reduce((sum, affix) => sum + affix.magnitude, 0) > tier.budget
+        )
+          throw new Error(`Invalid rolled loot budget: ${item.id}`);
+      }
       const groups = new Set<string>();
       for (const e of item.enchantments) {
         const definition = content.enchantment(e.id);
@@ -289,6 +301,7 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
       throw new Error('Equipment requires permanent tool ownership');
   }
   effectiveStats(player, content);
+  validateBuildState(state);
   unique(
     player.actor.cooldowns.map((c) => c.toolId),
     'cooldown',

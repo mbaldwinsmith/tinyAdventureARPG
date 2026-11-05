@@ -1,3 +1,4 @@
+import { abilityIdSchema } from '../content/builds';
 import { useEffect, useRef, useState } from 'react';
 import type { GameBridge, GameSnapshot } from '../bridge/game-bridge';
 import type { AssetManifest } from '../assets/definitions';
@@ -12,6 +13,7 @@ export function ItemDescription({ item }: { item: InventoryItem }) {
   return (
     <div className="item-description">
       <p>{item.description}</p>
+      {item.level !== null && <p className="small-copy">Item level {item.level}</p>}
       {item.properties.length > 0 && (
         <ul>
           {item.properties.map((p) => (
@@ -42,7 +44,7 @@ export function ItemDescription({ item }: { item: InventoryItem }) {
           item.
         </p>
       )}
-      <small>No additional ability effects. Instance {item.id.slice(14)}.</small>
+      <small>Instance {item.id.slice(14)}.</small>
     </div>
   );
 }
@@ -67,6 +69,7 @@ export function InventoryPanel({
     });
     if (result.ok) focusWorld();
   };
+  const ability = pack.build.unlocked.find((option) => option.id === pack.build.selected);
   return (
     <section className="pack-panel" aria-label="Pack and tools">
       <div className="pack-heading">
@@ -131,6 +134,35 @@ export function InventoryPanel({
           <ActionPrompt manifest={assets} input={snapshot.input} action="use" />
         </button>
       </div>
+      {ability && (
+        <div className="hotbar-use">
+          <p className="small-copy">
+            {ability.description} {pack.build.energyCost} energy.
+            {pack.build.active && ` Active for ${pack.build.activeSeconds}s.`}
+            {pack.build.cooldownSeconds > 0 &&
+              ` Ready in ${pack.build.cooldownSeconds.toFixed(1)}s.`}
+          </p>
+          <button
+            className="button button-subtle"
+            disabled={
+              snapshot.status !== 'ready' ||
+              snapshot.paused ||
+              busy ||
+              pack.build.cooldownSeconds > 0
+            }
+            onClick={() => {
+              bridge.send({
+                type: 'inventory.ability-use',
+                expectedTransaction: pack.expectedTransaction,
+              });
+              focusWorld();
+            }}
+          >
+            Activate {ability.name}{' '}
+            <ActionPrompt manifest={assets} input={snapshot.input} action="ability" />
+          </button>
+        </div>
+      )}
       {pack.selectedTool === 'shield' && (
         <p className="small-copy">
           Hold the selected-tool binding or the dedicated shield binding to guard; release to lower
@@ -141,6 +173,9 @@ export function InventoryPanel({
         <p className="pack-feedback" aria-live="polite">
           {snapshot.notice ?? `Last action: ${pack.feedback}`}
         </p>
+      )}
+      {pack.build.rewards.some((reward) => reward.available) && (
+        <p className="small-copy">Open the pack to claim your available build prizes.</p>
       )}
       {!pack.starterClaimed && (
         <p className="small-copy">
@@ -361,6 +396,63 @@ function InventoryDialog({ bridge, snapshot }: { bridge: GameBridge; snapshot: G
           }
         />
       )}
+      <details>
+        <summary>
+          Build prizes · {pack.build.rewards.filter((reward) => reward.available).length} ready
+        </summary>
+        <ul>
+          {pack.build.rewards.map((reward) => (
+            <li key={reward.id}>
+              <strong>{reward.name}</strong> · {reward.claimed ? 'Claimed' : reward.requirement}
+              {reward.available && (
+                <button
+                  className="button button-subtle"
+                  disabled={busy}
+                  onClick={() =>
+                    send({
+                      type: 'inventory.build-claim',
+                      reward: reward.id,
+                      expectedTransaction: pack.expectedTransaction,
+                    })
+                  }
+                >
+                  Claim {reward.name}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </details>
+      {pack.build.unlocked.length > 0 && (
+        <section aria-label="Abilities">
+          <label>
+            Selected ability
+            <select
+              value={pack.build.selected ?? ''}
+              disabled={busy || !!pack.build.active}
+              onChange={(event) => {
+                const result = abilityIdSchema.safeParse(event.target.value);
+                if (result.success)
+                  send({
+                    type: 'inventory.ability-select',
+                    ability: result.data,
+                    expectedTransaction: pack.expectedTransaction,
+                  });
+              }}
+            >
+              {pack.build.unlocked.map((ability) => (
+                <option key={ability.id} value={ability.id}>
+                  {ability.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="small-copy">
+            {pack.build.unlocked.find((ability) => ability.id === pack.build.selected)?.description}{' '}
+            Unlocks are permanent. Activate during play for {pack.build.energyCost} energy.
+          </p>
+        </section>
+      )}
       {(error || snapshot.notice) && <p role="alert">{error ?? snapshot.notice}</p>}
       {pack.feedback && (
         <p className="pack-feedback" aria-live="polite">
@@ -423,6 +515,18 @@ function ItemActions({
           {item.name} × {item.quantity}
         </h3>
         <ItemDescription item={item} />
+        {item.slots.map((slot) => {
+          const worn = pack.items.find(
+            (entry) => entry.equippedSlot === slot.id && entry.id !== item.id,
+          );
+          if (!worn) return null;
+          return (
+            <details key={slot.id}>
+              <summary>Compare with equipped {worn.name}</summary>
+              <ItemDescription item={worn} />
+            </details>
+          );
+        })}
       </div>
       <div className="pack-action-controls">
         {item.slots.map((slot) => (

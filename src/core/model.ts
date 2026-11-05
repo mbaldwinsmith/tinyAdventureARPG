@@ -1,3 +1,5 @@
+import { buildStateSchema, emptyBuild } from './build-model';
+import { lootTierSchema } from '../content/builds';
 import { toolStateSchema, emptyToolState } from './tool-model';
 import { packStateSchema } from './inventory-model';
 import { lossPolicySchema } from './death-loss';
@@ -40,6 +42,7 @@ export const itemInstanceSchema = z.strictObject({
   id: itemInstanceIdSchema,
   templateId: itemIdSchema,
   quantity: z.number().int().min(1).max(999),
+  lootTier: lootTierSchema.optional(),
   enchantments: z
     .array(z.strictObject({ id: enchantmentIdSchema, magnitude: z.number().finite() }))
     .max(16),
@@ -151,7 +154,8 @@ export const deathReportSchema = z.strictObject({
   retainedMoney: uint,
 });
 export const saveSchema = z.strictObject({
-  schemaVersion: z.literal(4),
+  schemaVersion: z.literal(5),
+  build: buildStateSchema.default(emptyBuild()),
   tools: toolStateSchema.default(emptyToolState()),
   pack: packStateSchema.default({ selectedTool: 'sword', starterClaimed: false }),
   deathRules: lossPolicySchema

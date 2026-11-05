@@ -404,3 +404,51 @@ test('uses keyboard and standard controller pack navigation, quantities, confirm
     ).projectiles.some((p: { faction: string }) => p.faction === 'player'),
   ).toBe(true);
 });
+
+test('claims an elemental heirloom, equips it and retains the exact build after activating an ability', async ({
+  page,
+}, info) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await open(page);
+  await importState(page, fixture());
+  await claim(page);
+  await openPack(page);
+  await pack(page)
+    .getByText(/Build prizes · 1 ready/)
+    .click();
+  await pack(page).getByRole('button', { name: 'Claim Travel chest heirloom' }).click();
+  await settled(page);
+  const sword = pack(page).getByRole('button', { name: /Select pack item 5: Iron sword/ });
+  await sword.click();
+  await expect(pack(page).getByRole('region', { name: 'Selected item details' })).toContainText(
+    /against (animals|undead|slimes)/,
+  );
+  await pack(page).getByRole('button', { name: 'Equip Main hand', exact: true }).click();
+  await settled(page);
+  await expect(
+    pack(page).getByRole('combobox', { name: 'Selected ability', exact: true }),
+  ).toHaveValue('battle-focus');
+  await page.screenshot({ path: info.outputPath('elemental-build.png'), fullPage: true });
+  await pack(page).getByRole('button', { name: 'Close pack' }).click();
+  await expect(page.locator('.game-canvas')).toBeFocused();
+  await page.keyboard.press('z');
+  await settled(page);
+  await expect(page.getByRole('region', { name: 'Pack and tools' })).toContainText(
+    'Battle Focus activated.',
+  );
+  const before = await backup(page);
+  const rolled = before.player.carried.items.find((item) => item.lootTier === 'trail');
+  expect(rolled?.enchantments).toHaveLength(1);
+  expect(before.build.active?.id).toBe('battle-focus');
+  await page.reload();
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await settled(page);
+  const after = await backup(page);
+  expect(after.player.carried.items.find((item) => item.lootTier === 'trail')).toEqual(rolled);
+  expect(after.player.equipment).toEqual(before.player.equipment);
+  expect(after.build.selected).toBe('battle-focus');
+  expect(after.build.claims).toEqual(['chest']);
+  expect(errors).toEqual([]);
+});

@@ -13,6 +13,7 @@ export const ACTIONS = [
   'pause',
   'inventory',
   'use',
+  'ability',
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 export const actionSchema = z.enum(ACTIONS);
@@ -52,6 +53,7 @@ export const DEFAULT_KEYS: KeyBindings = {
   pause: 'Escape',
   inventory: 'KeyI',
   use: 'KeyX',
+  ability: 'KeyZ',
 };
 export const ARROW_ACTIONS: Readonly<Record<string, Action>> = {
   ArrowUp: 'up',
@@ -72,6 +74,7 @@ export interface InputView {
   bowButton: number;
   inventoryButton: number;
   useButton: number;
+  abilityButton: number;
 }
 export const DEFAULT_INPUT: InputView = {
   device: 'keyboard',
@@ -85,6 +88,7 @@ export const DEFAULT_INPUT: InputView = {
   bowButton: 5,
   inventoryButton: 8,
   useButton: 7,
+  abilityButton: 6,
 };
 export type Navigation = 'up' | 'down' | 'left' | 'right' | 'confirm' | 'cancel';
 export interface PadSample {
@@ -136,6 +140,7 @@ export class PadReader {
       | 'bowButton'
       | 'inventoryButton'
       | 'useButton'
+      | 'abilityButton'
     >,
   ) {
     const pad =
@@ -188,6 +193,7 @@ export class PadReader {
     if (rising(bindings.bowButton)) pressed.push('bow');
     if (rising(bindings.inventoryButton)) pressed.push('inventory');
     if (rising(bindings.useButton)) pressed.push('use');
+    if (rising(bindings.abilityButton)) pressed.push('ability');
     for (const [button, direction] of [
       [12, 'up'],
       [13, 'down'],
@@ -241,6 +247,7 @@ export const BUTTON_ACTIONS = [
   'pause',
   'inventory',
   'use',
+  'ability',
 ] as const;
 export type ButtonAction = (typeof BUTTON_ACTIONS)[number];
 export const BUTTON_PROPERTIES = {
@@ -252,4 +259,5 @@ export const BUTTON_PROPERTIES = {
   pause: 'pauseButton',
   inventory: 'inventoryButton',
   use: 'useButton',
+  ability: 'abilityButton',
 } as const;

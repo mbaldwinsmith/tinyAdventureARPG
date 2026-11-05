@@ -1,3 +1,4 @@
+import { toolEnergyCost } from './equipment';
 import { TOOL_RULES as R } from '../content/tools';
 import { TRAIL_FEATURES, TRAIL_ID, TRAIL_COLOR_ID, featurePosition } from '../content/tool-trail';
 import type { TrailFeature } from '../content/tool-trail';
@@ -16,6 +17,7 @@ export interface ToolContext {
   definition: RegionDefinition;
   solids: () => Rect[];
   battle: BattleContext | null;
+  modifiers: { cooldownFactor: number; energyDiscount: number };
   changed: (message: string) => void;
 }
 const distance = (a: Position, b: Position) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -178,7 +180,9 @@ function ready(c: ToolContext, tool: ActiveTool) {
 function cool(c: ToolContext, tool: ActiveTool) {
   c.state.player.actor.cooldowns.push({
     toolId: toolIdSchema.parse(`tool:${tool}`),
-    remainingTicks: R.cooldown[tool],
+    remainingTicks: Math.ceil(
+      R.cooldown[tool] * (tool === 'push' || tool === 'pull' ? 1 : c.modifiers.cooldownFactor),
+    ),
   });
 }
 function nearestMovable(c: ToolContext) {
@@ -293,7 +297,10 @@ export function toolCommand(c: ToolContext, command: ToolCommand) {
     moveWeight(c, tool);
     return;
   }
-  const cost = tool === 'bomb' ? R.bombEnergy : tool === 'magic' ? R.magicEnergy : 0;
+  const cost = toolEnergyCost(
+    tool === 'bomb' ? R.bombEnergy : tool === 'magic' ? R.magicEnergy : 0,
+    c.modifiers.energyDiscount,
+  );
   if (c.state.player.actor.resources.energy.current < cost)
     throw new Error('Wait for energy to recover; no ammunition is consumed.');
   let landing: Position | null = null,

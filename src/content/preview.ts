@@ -1,3 +1,4 @@
+import { BUILD_REWARDS, ELEMENTS } from './builds';
 import { TRAIL_ID, trailPathAt } from './tool-trail';
 import { EXPEDITIONS } from './expeditions';
 import { ContentRegistry } from './schemas';
@@ -76,8 +77,52 @@ export const PREVIEW_CONTENT = new ContentRegistry({
       equipmentSlots: ['slot:off-hand'],
       requiredTool: 'tool:shield',
     },
+    ...[
+      {
+        id: 'item:swift-coil',
+        name: 'Swift Coil',
+        description: 'Shortens bow, bomb, boomerang, hook and magic cooldowns by 20%.',
+        toolRecovery: 0.2,
+      },
+      {
+        id: 'item:bastion-stone',
+        name: 'Bastion Stone',
+        description: 'Adds two defence while equipped.',
+        statModifiers: { defence: 2 },
+      },
+      {
+        id: 'item:ember-lens',
+        name: 'Ember Lens',
+        description: 'Bombs and magic cost one less energy, with a minimum cost of one.',
+        toolEnergyDiscount: 1,
+      },
+    ].map((relic) => ({
+      ...relic,
+      kind: 'relic',
+      maxStack: 1,
+      tags: ['relic'],
+      equipmentSlots: ['slot:relic'],
+      requiredTool: null,
+    })),
   ],
   enchantments: [
+    ...ELEMENTS.map((element) => ({
+      ...element,
+      allowedTags: ['blade'],
+      exclusiveGroup: 'element',
+      stat: null,
+      minimum: 1,
+      maximum: 3,
+    })),
+    {
+      id: 'enchantment:fortified',
+      name: 'Fortified',
+      allowedTags: ['armour'],
+      exclusiveGroup: 'guard',
+      stat: 'defence',
+      minimum: 1,
+      maximum: 2,
+    },
     {
       id: 'enchantment:keen',
       name: 'Keen',
@@ -98,9 +143,15 @@ export const PREVIEW_CONTENT = new ContentRegistry({
     },
   ],
 });
+for (const reward of Object.values(BUILD_REWARDS)) {
+  if (reward.gear && PREVIEW_CONTENT.item(reward.gear).kind !== 'equipment')
+    throw new Error(`Invalid rolled gear in ${reward.name}`);
+  if (reward.relic && PREVIEW_CONTENT.item(reward.relic).kind !== 'relic')
+    throw new Error(`Invalid relic in ${reward.name}`);
+}
 export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
   return saveSchema.parse({
-    schemaVersion: 4,
+    schemaVersion: 5,
     contentVersion: 1,
     world: {
       id: 'world:preview',

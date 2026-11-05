@@ -37,6 +37,8 @@ export function ActionPrompt({
         7: 'RT',
         8: 'View',
         9: 'Start',
+        10: 'L3',
+        11: 'R3',
       }[button] ?? 'Button');
   const prompt =
     input.device === 'generic'

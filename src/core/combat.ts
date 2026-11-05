@@ -17,6 +17,7 @@ export interface BattleContext {
   state: CombatState;
   actor: Actor;
   stats?: Actor['stats'];
+  outgoingDamage?: (enemy: CombatEnemy['kind'], base: number, sword: boolean) => number;
   tracePlayerProjectile?: (from: Position, to: Position) => void;
   tick: number;
   width: number;
@@ -117,6 +118,7 @@ export function beginAction(
   kind: CombatAction,
   tick: number,
   facing: Direction,
+  bowCooldownFactor = 1,
 ): string | null {
   if (actor.resources.health.current <= 0) return 'Return to the practice entrance first.';
   if (state.action || tick < state.hurtUntil) return 'Recover before acting again.';
@@ -136,7 +138,7 @@ export function beginAction(
   if (kind === 'sword')
     state.attackReadyTick = tick + R.sword.windup + R.sword.active + R.sword.recovery;
   if (kind === 'roll') state.rollReadyTick = tick + R.rollCooldown;
-  if (kind === 'bow') state.bowReadyTick = tick + R.bowCooldown;
+  if (kind === 'bow') state.bowReadyTick = tick + Math.ceil(R.bowCooldown * bowCooldownFactor);
   return null;
 }
 function feedback(c: BattleContext, message: string, subject = 'player') {
@@ -214,8 +216,10 @@ export function damageEnemy(
   enemy: CombatEnemy,
   damage: number,
   from: Position,
+  sword = false,
 ): boolean {
   if (enemy.health <= 0 || c.tick < enemy.invulnerableUntil) return false;
+  damage = c.outgoingDamage?.(enemy.kind, damage, sword) ?? damage;
   enemy.health = Math.max(0, enemy.health - damage);
   enemy.position = knock(c, enemy.position, from, 8);
   enemy.hurtUntil = c.tick + 10;
@@ -529,7 +533,7 @@ export function stepBattle(c: BattleContext) {
         if (
           overlaps(attackBox(a.position, action.facing), footRect(e.position)) &&
           visible(c, a.position, e.position) &&
-          damageEnemy(c, e, R.swordDamage + (c.stats ?? a.stats).attack - 1, a.position)
+          damageEnemy(c, e, R.swordDamage + (c.stats ?? a.stats).attack - 1, a.position, true)
         )
           action.hitIds.push(e.id);
       }

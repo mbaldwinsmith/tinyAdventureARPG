@@ -17,6 +17,14 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Added — elemental gear, relics and abilities
+
+- **M10-001, M10-002, M10-003, M10-005:** Add two validated roll budgets, compatible pools and exclusive affix groups. Save the exact item identity, level and roll magnitude. Fire targets animals, Holy targets undead, and Ice targets slimes on sword hits. Keen adds attack and Fortified adds defence.
+- **M10-004, M10-006, M10-007:** Add one equipped relic slot with Swift Coil for faster tool cooldowns, Bastion Stone for defence and Ember Lens for cheaper bombs and magic. Cap combined cooldown reduction at 40% and energy discounts at one. Keep gear and relics protected under the existing death rule.
+- **M10-008, M10-009:** Grant permanent Battle Focus and Tool Focus unlocks through one-time, progression-gated chest, mixed encounter, crypt boss and Trailblazer challenge prizes. One ability can be selected and activated with Z or LT. Its temporary effect and shared cooldown follow active play. Reward claims commit all items, RNG and unlocks together. Save schema 5 migrates existing adventures and recognizes retained completed mixed trials.
+- **M10-010, M10-011, M10-012:** Explain item levels, rolled magnitudes, target families, equipped-item comparisons and ability costs in the pack. Verify actual sword contacts against each family, play the same bomb passage with three relic loadouts, test capped effects, migration and full-pack retries, and exercise the heirloom claim, activation and reload through the browser.
+- `npm run check` passed with 148 unit tests. All 36 integration browser journeys passed across the targeted runs, including the focused heirloom rerun after correcting its combobox locator. The production build and three production WebGL journeys passed. The starter tables and balance are preview choices. Controller checks use emulated input. The Trailblazer challenge uses the existing shortcut objective ahead of the full quest system.
+
 ### Added — tools and recoverable environmental puzzles
 
 - **M09-001, M09-002, M09-003, M09-004:** Add cardinal bow release/cooldown without ammunition or energy, saved bomb placement/lift/throw with the original two-second fuse and one marked blast, returning boomerangs with one enemy hit per leg, remote switch activation and pickup retrieval claimed only on catch. Full coin balances leave rewards unclaimed. Bombs use regenerating energy; menus and closed-game time freeze effects.
