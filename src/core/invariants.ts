@@ -1,3 +1,4 @@
+import { assertToolInvariants } from './tool-invariants';
 import { effectiveStats } from './equipment';
 import { validateGeneratedGeometry } from './generation';
 import { assertCombatInvariants } from './combat-invariants';
@@ -46,6 +47,7 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
     ),
   ];
   assertCombatInvariants(state);
+  assertToolInvariants(state);
   unique(entityIds, 'entity ID');
   const knownEntities = new Set(entityIds);
   unique(

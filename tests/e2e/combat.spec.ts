@@ -66,10 +66,11 @@ test('releases real arrows, spends roll energy, and freezes every combat clock u
   // and an observation refresh; unit tests enforce the exact release boundary.
   await press(page, 'f', 500);
   expect((await battle(page)).projectiles.some((p) => p.faction === 'player')).toBe(true);
-  await expect(page.getByTestId('combat-energy')).not.toHaveText('10 / 10');
+  await expect(page.getByTestId('combat-energy')).toHaveText('10 / 10');
   await page.clock.runFor(400);
   await press(page, 'r', 100);
   expect((await battle(page)).action?.kind).toBe('roll');
+  await expect(page.getByTestId('combat-energy')).not.toHaveText('10 / 10');
   await page.keyboard.press('Escape');
   await page.clock.runFor(150);
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -103,6 +104,7 @@ test('pauses on defeat and returns once without resetting the encounter or losin
   await page.clock.runFor(150);
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByTestId('combat-health')).toHaveText('10 / 10');
+  await page.clock.runFor(150);
   const returned = await battle(page);
   expect(returned.generation).toBe(defeated.generation);
   expect(returned.death?.id).toBe(defeated.death?.id);

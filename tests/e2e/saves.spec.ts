@@ -48,7 +48,8 @@ function chestFixture() {
 test('banks both owners durably, reloads, sleeps once, exports and imports a separate slot, then creates a named adventure', async ({
   page,
 }, info) => {
-  test.setTimeout(90000);
+  // Multiple software-WebGL reloads must retain their own assertion budgets on CI.
+  test.setTimeout(180000);
   await open(page);
   await importState(page, chestFixture());
   await page.getByRole('button', { name: 'Open local storage' }).click();

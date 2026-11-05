@@ -112,12 +112,15 @@ export function InventoryPanel({
         <p className="small-copy">
           {snapshot.combat?.active
             ? `Borrowed encounter kit · ${snapshot.combat.energy} / ${snapshot.combat.maximumEnergy} energy. No ammunition.`
-            : 'The four-action kit is available in practice and expeditions. Choose a tool here, then use its selected-tool binding.'}
+            : 'Choose a tool here, then use X / RT. New trail tools require permanent ownership; Push and Pull work on marked weights.'}
         </p>
         <button
           className="button button-subtle"
           disabled={
-            !snapshot.combat?.active || snapshot.paused || busy || pack.selectedTool === 'shield'
+            (!snapshot.combat?.active && ['sword', 'roll'].includes(pack.selectedTool)) ||
+            snapshot.paused ||
+            busy ||
+            pack.selectedTool === 'shield'
           }
           onClick={() => {
             bridge.send({ type: 'tool.use' });
@@ -153,6 +156,7 @@ export function InventoryPanel({
 function InventoryDialog({ bridge, snapshot }: { bridge: GameBridge; snapshot: GameSnapshot }) {
   const ref = useRef<HTMLDialogElement>(null),
     closeButton = useRef<HTMLButtonElement>(null),
+    lastFocused = useRef<HTMLElement | null>(null),
     [selected, setSelected] = useState<string | null>(null),
     [error, setError] = useState<string | null>(null),
     [discard, setDiscard] = useState<{
@@ -161,6 +165,7 @@ function InventoryDialog({ bridge, snapshot }: { bridge: GameBridge; snapshot: G
       transaction: number;
     } | null>(null),
     pack = snapshot.inventory;
+  const busy = !!snapshot.saves?.busy || !!snapshot.saves?.pending;
   useEffect(() => {
     ref.current?.showModal();
     closeButton.current?.focus();
@@ -168,9 +173,12 @@ function InventoryDialog({ bridge, snapshot }: { bridge: GameBridge; snapshot: G
       focusWorld();
     };
   }, []);
+  useEffect(() => {
+    if (!busy && lastFocused.current?.isConnected && ref.current?.contains(lastFocused.current))
+      lastFocused.current.focus();
+  }, [busy]);
   if (!pack) return null;
-  const busy = !!snapshot.saves?.busy || !!snapshot.saves?.pending,
-    item = pack.items.find((i) => i.id === selected) ?? pack.items[0],
+  const item = pack.items.find((i) => i.id === selected) ?? pack.items[0],
     send = (command: Parameters<GameBridge['send']>[0]) => {
       const result = bridge.send(command);
       setError(result.ok ? null : result.message);
@@ -186,6 +194,9 @@ function InventoryDialog({ bridge, snapshot }: { bridge: GameBridge; snapshot: G
       ref={ref}
       className="interaction-dialog inventory-dialog"
       aria-label="Inventory and equipment"
+      onFocusCapture={(event) => {
+        if (event.target instanceof HTMLElement) lastFocused.current = event.target;
+      }}
       onCancel={(e) => {
         e.preventDefault();
         if (!discard) close();

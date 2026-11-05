@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { itemInstanceIdSchema, slotIdSchema, entityIdSchema } from './ids';
-export const selectedToolSchema = z.enum(['sword', 'shield', 'roll', 'bow']);
+export const selectedToolSchema = z.enum([
+  'sword',
+  'shield',
+  'roll',
+  'bow',
+  'bomb',
+  'boomerang',
+  'hook',
+  'magic',
+  'push',
+  'pull',
+]);
 export type SelectedTool = z.infer<typeof selectedToolSchema>;
 export const packStateSchema = z.strictObject({
   selectedTool: selectedToolSchema.default('sword'),

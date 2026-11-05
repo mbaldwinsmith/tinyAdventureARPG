@@ -8,7 +8,17 @@ import { freezeData } from './data';
 
 const interactionSchema = z.strictObject({
   id: entityIdSchema,
-  kind: z.enum(['door', 'sign', 'npc', 'chest', 'farm-plot', 'carryable', 'portal', 'generated']),
+  kind: z.enum([
+    'door',
+    'sign',
+    'npc',
+    'chest',
+    'farm-plot',
+    'carryable',
+    'portal',
+    'generated',
+    'mechanism',
+  ]),
   position: positionSchema,
   label: z.string().min(1).max(80),
   text: z.string().max(1000),

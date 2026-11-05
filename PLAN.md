@@ -307,21 +307,21 @@ Validation: 120 unit tests; strict types/lint/format and asset/catalogue checks;
 
 ## M09 — Tools and environmental puzzles
 
-- [ ] **M09-001** Implement bow aiming in cardinal directions, release timing and cooldown without ammunition stacks.
-- [ ] **M09-002** Implement bomb placement/throw, fuse, blast footprint and regenerating energy cost.
-- [ ] **M09-003** Implement boomerang outward/return travel, target-hit policy and catch/cooldown lifecycle.
-- [ ] **M09-004** Implement boomerang pickup retrieval and supported remote switch activation.
-- [ ] **M09-005** Implement hook target eligibility, launch/tether/retraction and safe landing positions.
-- [ ] **M09-006** Implement magic rod casting, effect/projectile interaction and regenerating energy cost.
-- [ ] **M09-007** Implement pickup/carry/throw interactions for supported pots, crates and bombs.
-- [ ] **M09-008** Implement push/pull rules and distinguish movable heavy weights from liftable objects.
-- [ ] **M09-009** Implement pressure plates and linked doors with saved solution states where appropriate.
-- [ ] **M09-010** Implement blue/orange lever-and-barrier groups with non-colour-only state feedback.
-- [ ] **M09-011** Implement spikes, shooting traps, directional pushing tiles and pit/acid/water hazards.
-- [ ] **M09-012** Implement swimming/water entry/exit and tool-gated crossings without softlocking the player.
-- [ ] **M09-013** Mark and implement bombable walls, hook anchors and permanent forest shortcuts consistently.
-- [ ] **M09-014** Validate each tool's combat/exploration roles and energy recovery in required puzzle routes.
-- [ ] **M09-015** Deliver a vertical slice: village chest → persistent forest → anchored dungeon → boss defeat → safe regeneration.
+- [x] **M09-001** Implement bow aiming in cardinal directions, release timing and cooldown without ammunition stacks.
+- [x] **M09-002** Implement bomb placement/throw, fuse, blast footprint and regenerating energy cost.
+- [x] **M09-003** Implement boomerang outward/return travel, target-hit policy and catch/cooldown lifecycle.
+- [x] **M09-004** Implement boomerang pickup retrieval and supported remote switch activation.
+- [x] **M09-005** Implement hook target eligibility, launch/tether/retraction and safe landing positions.
+- [x] **M09-006** Implement magic rod casting, effect/projectile interaction and regenerating energy cost.
+- [x] **M09-007** Implement pickup/carry/throw interactions for supported pots, crates and bombs.
+- [x] **M09-008** Implement push/pull rules and distinguish movable heavy weights from liftable objects.
+- [x] **M09-009** Implement pressure plates and linked doors with saved solution states where appropriate.
+- [x] **M09-010** Implement blue/orange lever-and-barrier groups with non-colour-only state feedback.
+- [x] **M09-011** Implement spikes, shooting traps, directional pushing tiles and pit/acid/water hazards.
+- [x] **M09-012** Implement swimming/water entry/exit and tool-gated crossings without softlocking the player.
+- [x] **M09-013** Mark and implement bombable walls, hook anchors and permanent forest shortcuts consistently.
+- [x] **M09-014** Validate each tool's combat/exploration roles and energy recovery in required puzzle routes.
+- [x] **M09-015** Deliver a vertical slice: village chest → persistent forest → anchored dungeon → boss defeat → safe regeneration.
 
 **Acceptance:** the slice survives death and reload. Every required puzzle has a recoverable solution without consumable ammunition; visual cues explain interactable surfaces.
 

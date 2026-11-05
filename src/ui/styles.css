@@ -1391,3 +1391,27 @@ footer span span {
     padding: 1rem;
   }
 }
+
+.tools-panel {
+  margin: 1.25rem 0;
+  padding: 1.2rem 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #edf0e3;
+}
+.tool-hint {
+  padding: 0.8rem 1rem;
+  border-left: 3px solid #947a42;
+  background: #f3eddb;
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+.tool-context-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.tools-panel details {
+  font-size: 0.85rem;
+}

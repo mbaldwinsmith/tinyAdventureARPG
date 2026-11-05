@@ -202,7 +202,7 @@ describe('atomic local storage and confirmed per-unit loss', () => {
   it('migrates the supported v1 fixture without rerolling geography, discoveries, money or random continuation and rejects future versions', () => {
     const legacy: unknown = legacyFixture,
       upgraded = readSaveState(legacy, PREVIEW_CONTENT);
-    expect(upgraded.schemaVersion).toBe(3);
+    expect(upgraded.schemaVersion).toBe(4);
     expect(upgraded.player.carried.money).toBe(17);
     expect(upgraded.world.regions.find((r) => r.id === 'region:forest')).toMatchObject({
       changes: { exploredRooms: [0, 1] },
@@ -214,7 +214,15 @@ describe('atomic local storage and confirmed per-unit loss', () => {
       equipment: 'protected',
     });
     const legacyObject = JSON.parse(JSON.stringify(legacy));
-    expect(upgraded.world).toEqual(saveSchema.parse({ ...legacyObject, schemaVersion: 3 }).world);
+    const original = saveSchema.parse({ ...legacyObject, schemaVersion: 4 }).world;
+    const retained = structuredClone(upgraded.world);
+    retained.regions = retained.regions.filter((r) => r.id !== 'region:tool-trail');
+    const woodland = retained.regions.find((r) => r.id === 'region:woodland');
+    if (woodland?.kind === 'surface' && woodland.phase !== 'unvisited')
+      woodland.geometry.objects = woodland.geometry.objects.filter(
+        (o) => o.id !== 'entity:woodland-tool-trail',
+      );
+    expect(retained).toEqual(original);
     expect(upgraded.random).toEqual(legacyObject.random);
     expect(() => readSaveState({ ...upgraded, schemaVersion: 99 }, PREVIEW_CONTENT)).toThrow(
       'Unsupported',

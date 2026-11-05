@@ -41,10 +41,12 @@ Cooldown readouts derive from saved ready ticks in 0.1-second display steps; ene
 
 ## Saves, loss and failure
 
-Schema 3 adds only `pack.selectedTool` and `pack.starterClaimed`. Envelope version remains 2. Explicit v1 → v2 → v3 migration preserves geometry, discoveries, item identities, enchantments, equipment and random continuation; earlier saves default to sword selection and unclaimed supplies, without automatically granting a kit. The synthetic v2 fixture includes a carried/equipped enchanted sword.
+M08 schema 3 added `pack.selectedTool` and `pack.starterClaimed`; M09 schema 4 adds tool effects and expands the selected tools. Envelope version remains 2. Explicit v1 → v2 → v3 → v4 migration preserves geometry, discoveries, item identities, enchantments, equipment and random continuation; earlier saves default to sword selection and unclaimed supplies, without automatically granting a kit. The synthetic v2 fixture includes a carried/equipped enchanted sword.
 
 All inventory commands use the existing durable-first coordinator. A detached candidate, including IDs and nonce, is committed before live ownership, equipment stats or success feedback change. Failed writes keep the previous live pack and expose retry/export/recovery inside the modal. A lost acknowledgement retries the exact encoded checkpoint; it cannot grant a second kit or discard twice. See [save architecture](saves.md).
 
 Item descriptions show the actual agreed rule: each carried material unit has a 25% loss chance; equipment is protected, including unequipped equipment. Deposited items are protected in their local chest. Ten percent of carried money is lost, rounded down. Permanent tools, discoveries and progress remain protected. The saved death report is the resolved outcome; it does not reroll on reload. Practice remains loss-free. Selection and equipment identity survive death.
 
 Automated coverage exercises rejected/accepted transactions, identity/stat/migration rules, real combat/motion effects, failed writes/retries, browser pack/chest/money controls, discard acknowledgement, keyboard and emulated standard controllers, reload and protected equipment through expedition death. Physical controller hardware still needs playtesting.
+
+M09 expands the pack selector with bomb, boomerang, hook, magic, Push and Pull. Selected use invokes the same durable tool commands as context buttons. Arrows now use cooldowns without energy; bombs and magic use regenerating energy. Native modal focus is restored after a saved selection so successive controller changes remain usable.

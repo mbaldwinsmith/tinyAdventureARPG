@@ -300,6 +300,8 @@ test('uses keyboard and standard controller pack navigation, quantities, confirm
   await open(page);
   await importState(page, fixture());
   await claim(page);
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByLabel('World collision overlay').check();
   await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
   await page.locator('.game-canvas').focus();
   await page.keyboard.press('i');
@@ -382,12 +384,23 @@ test('uses keyboard and standard controller pack navigation, quantities, confirm
   await settled(page);
   await page.clock.runFor(120);
   await press(7);
-  await page.clock.runFor(220);
-  await expect(page.getByTestId('combat-energy')).not.toHaveText('10 / 10');
+  await settled(page);
+  await page.clock.runFor(400);
+  expect(
+    JSON.parse(
+      (await page.locator('.game-canvas').getAttribute('data-battle')) ?? 'null',
+    ).projectiles.some((p: { faction: string }) => p.faction === 'player'),
+  ).toBe(true);
   await expect(page.locator('.tool-slot.selected')).toContainText('Bow');
   await page.clock.runFor(1200);
   await page.locator('.game-canvas').focus();
   await page.keyboard.press('x');
-  await page.clock.runFor(160);
-  await expect(page.getByTestId('combat-energy')).not.toHaveText('10 / 10');
+  await page.clock.runFor(100);
+  await settled(page);
+  await page.clock.runFor(400);
+  expect(
+    JSON.parse(
+      (await page.locator('.game-canvas').getAttribute('data-battle')) ?? 'null',
+    ).projectiles.some((p: { faction: string }) => p.faction === 'player'),
+  ).toBe(true);
 });

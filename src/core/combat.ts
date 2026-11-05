@@ -17,6 +17,7 @@ export interface BattleContext {
   state: CombatState;
   actor: Actor;
   stats?: Actor['stats'];
+  tracePlayerProjectile?: (from: Position, to: Position) => void;
   tick: number;
   width: number;
   height: number;
@@ -208,7 +209,7 @@ export function damagePlayer(
   }
   return 'hit';
 }
-function damageEnemy(
+export function damageEnemy(
   c: BattleContext,
   enemy: CombatEnemy,
   damage: number,
@@ -457,6 +458,7 @@ function projectileStep(c: BattleContext) {
         x: from.x + (p.velocity.x * STEP_MS) / 1000,
         y: from.y + (p.velocity.y * STEP_MS) / 1000,
       };
+    if (p.faction === 'player') c.tracePlayerProjectile?.(from, to);
     p.remainingTicks--;
     if (
       to.x < 0 ||
@@ -595,6 +597,7 @@ export function nearestDrop(s: CombatState, position: Position) {
 export function combatView(s: CombatState, actor: Actor, tick: number, active: boolean, coins = 0) {
   return {
     active,
+    regionId: s.regionId,
     coins,
     trial: s.trial,
     health: Math.round(actor.resources.health.current * 10) / 10,

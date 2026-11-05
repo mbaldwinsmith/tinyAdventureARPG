@@ -1,3 +1,4 @@
+import { TRAIL_ID, trailPathAt } from './tool-trail';
 import { EXPEDITIONS } from './expeditions';
 import { ContentRegistry } from './schemas';
 import { saveSchema } from '../core/model';
@@ -16,6 +17,9 @@ export const PREVIEW_CONTENT = new ContentRegistry({
     'hook',
     'boomerang',
     'magic',
+    'swim',
+    'push',
+    'pull',
     'axe',
     'hoe',
     'pickaxe',
@@ -96,7 +100,7 @@ export const PREVIEW_CONTENT = new ContentRegistry({
 });
 export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
   return saveSchema.parse({
-    schemaVersion: 3,
+    schemaVersion: 4,
     contentVersion: 1,
     world: {
       id: 'world:preview',
@@ -117,15 +121,19 @@ export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
             tiles: Array.from({ length: (region.width / 16) * (region.height / 16) }, (_, i) => {
               const x = i % (region.width / 16),
                 y = Math.floor(i / (region.width / 16));
-              return region.style === 'clearing'
-                ? clearingPathAt(x, y)
+              return region.id === TRAIL_ID
+                ? trailPathAt(x, y)
                   ? 1
                   : 0
-                : region.style === 'woodland'
-                  ? woodlandPathAt(x, y)
+                : region.style === 'clearing'
+                  ? clearingPathAt(x, y)
                     ? 1
                     : 0
-                  : 0;
+                  : region.style === 'woodland'
+                    ? woodlandPathAt(x, y)
+                      ? 1
+                      : 0
+                    : 0;
             }),
             objects: region.objects.map((object) => ({
               id: object.id,

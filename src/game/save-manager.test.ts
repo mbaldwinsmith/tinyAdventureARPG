@@ -80,6 +80,70 @@ function depositCommand(bridge: GameBridge) {
   };
 }
 describe('durable-first session coordination', () => {
+  it('keeps tool energy and effect identity unpublished through failure, then retries the complete fuse checkpoint once', async () => {
+    const repository = new MemorySaveRepository(),
+      state = createPreviewSave('durable-tool');
+    enterArea(state, PREVIEW_WORLD, 'region:tool-trail');
+    state.player.actor.position = { x: 600, y: 408 };
+    state.player.actor.facing = 'right';
+    state.player.permanent.tools = [toolIdSchema.parse('tool:bomb')];
+    if (!state.combat) throw new Error('Missing tool trial');
+    state.combat.enemies = [];
+    state.combat.completed = true;
+    await preload(repository, state);
+    const f = await runtime(repository);
+    repository.failure = new Error('tool write failed');
+    expect(f.bridge.send({ type: 'tool.action', tool: 'bomb' })).toEqual({ ok: true });
+    await settled(f.bridge);
+    expect(f.controller.session.toolsPresentation.effects).toHaveLength(0);
+    expect(f.controller.session.actor.resources.energy.current).toBe(10);
+    expect(f.bridge.snapshot.saves?.pending).toBe(true);
+    repository.failure = null;
+    f.bridge.send({ type: 'save.retry' });
+    await settled(f.bridge);
+    expect(f.controller.session.toolsPresentation.effects).toHaveLength(1);
+    expect(f.controller.session.toolsPresentation.effects[0]).toMatchObject({
+      id: 1,
+      kind: 'bomb',
+      age: 0,
+    });
+    expect(f.controller.session.actor.resources.energy.current).toBe(7);
+    f.controller.dispose();
+    const restored = await runtime(repository);
+    expect(restored.controller.session.toolsPresentation.effects[0]).toMatchObject({
+      id: 1,
+      kind: 'bomb',
+      age: 0,
+    });
+    expect(restored.controller.session.toolsPresentation.nextId).toBe(2);
+    restored.controller.dispose();
+  });
+  it('recognizes the exact tool checkpoint after a lost acknowledgement without duplicating a bomb or charging energy twice', async () => {
+    const repository = new MemorySaveRepository(),
+      state = createPreviewSave('tool-ack');
+    enterArea(state, PREVIEW_WORLD, 'region:tool-trail');
+    state.player.actor.position = { x: 600, y: 408 };
+    state.player.actor.facing = 'right';
+    state.player.permanent.tools = [toolIdSchema.parse('tool:bomb')];
+    if (!state.combat) throw new Error('Missing trail');
+    state.combat.enemies = [];
+    state.combat.completed = true;
+    await preload(repository, state);
+    const f = await runtime(repository);
+    repository.afterCommitFailure = new Error('ack lost');
+    f.bridge.send({ type: 'tool.action', tool: 'bomb' });
+    await settled(f.bridge);
+    expect(f.controller.session.toolsPresentation.effects).toHaveLength(0);
+    const writes = repository.writes;
+    repository.afterCommitFailure = null;
+    f.bridge.send({ type: 'save.retry' });
+    await settled(f.bridge);
+    expect(repository.writes).toBe(writes);
+    expect(f.controller.session.toolsPresentation.effects).toHaveLength(1);
+    expect(f.controller.session.actor.resources.energy.current).toBe(7);
+    f.controller.dispose();
+  });
+
   it('keeps a full starter grant and equipment change private until their complete checkpoint commits', async () => {
     const repository = new MemorySaveRepository();
     await preload(repository);
