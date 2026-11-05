@@ -1,3 +1,6 @@
+import { applyFarmCommand, farmDayChanged, farmView } from './farm';
+import { farmCommandSchema, farmCommandSchemas } from './farm-model';
+import { FARM_BARREL, FARM_REGION } from '../content/farm';
 import {
   MERCHANT_ID,
   RESCUE_ID,
@@ -128,6 +131,7 @@ export const coreCommandSchema = z.discriminatedUnion('type', [
   selectedUseSchema,
   ...toolCommandSchemas,
   ...villageCommandSchemas,
+  ...farmCommandSchemas,
 ]);
 export type CoreCommand = z.infer<typeof coreCommandSchema>;
 export type CoreResult =
@@ -172,8 +176,14 @@ interface CoreSnapshot {
   readonly calendar: Readonly<ReturnType<typeof calendarView>>;
   readonly region: { id: string; name: string };
   readonly nearby: { id: EntityId; label: string; kind: string } | null;
-  readonly message: { title: string; body: string; villageNode?: VillageNode } | null;
+  readonly message: {
+    title: string;
+    body: string;
+    villageNode?: VillageNode;
+    farmTarget?: EntityId;
+  } | null;
   readonly village: GameSession['villageSnapshot'];
+  readonly farm: GameSession['farmSnapshot'];
   readonly carrying: boolean;
   readonly swimming: boolean;
   readonly transitionSequence: number;
@@ -244,7 +254,8 @@ export class GameSession {
       deathReport = this.deathReport,
       inventory = this.inventoryView,
       tools = this.toolsView,
-      village = this.villageSnapshot;
+      village = this.villageSnapshot,
+      farm = this.farmSnapshot;
     const combat = this.state.combat
       ? combatView(
           this.state.combat,
@@ -259,6 +270,7 @@ export class GameSession {
       JSON.stringify(this.cached.storage) !== JSON.stringify(storage) ||
       JSON.stringify(this.cached.inventory) !== JSON.stringify(inventory) ||
       JSON.stringify(this.cached.tools) !== JSON.stringify(tools) ||
+      JSON.stringify(this.cached.farm) !== JSON.stringify(farm) ||
       JSON.stringify(this.cached.village) !== JSON.stringify(village) ||
       (this.cached.deathReport !== deathReport &&
         JSON.stringify(this.cached.deathReport) !== JSON.stringify(deathReport)) ||
@@ -296,6 +308,7 @@ export class GameSession {
         inventory,
         tools,
         village,
+        farm,
         deathReport,
         lossPolicy: {
           materialChance: this.state.deathRules.materialChance,
@@ -330,6 +343,7 @@ export class GameSession {
     if (!parsed.success)
       return { ok: false, code: 'invalid-command', message: 'The command has invalid fields.' };
     const command = parsed.data;
+    if (command.type.startsWith('farm.')) return this.farmCommand(command);
     if (command.type.startsWith('village.')) return this.villageCommand(command);
     if (command.type.startsWith('inventory.')) return this.inventoryCommand(command);
     if (command.type === 'tool.use') {
@@ -398,6 +412,11 @@ export class GameSession {
   }
   private startDay(cause: 'sleep' | 'rollover') {
     this.state.calendar = { day: this.state.calendar.day + 1, elapsedTicks: 0 };
+    farmDayChanged(this.state);
+    if (cause === 'sleep') {
+      const energy = this.state.player.actor.resources.energy;
+      energy.current = energy.maximum;
+    }
     this.emit({ type: 'calendar.day-started', day: this.state.calendar.day, cause });
   }
   advance(
@@ -1025,6 +1044,17 @@ export class GameSession {
       this.discover();
       this.transitionSequence++;
       this.emit({ type: 'world.region-entered', regionId: this.state.player.regionId });
+    } else if (target.kind === 'farm-plot') {
+      this.message = freezeData({
+        title: target.id === FARM_BARREL.id ? 'Farm barrel' : 'Farm plot',
+        body:
+          target.id === FARM_BARREL.id
+            ? 'Refill your watering can here.'
+            : 'Plant a seasonal seed in hoed soil. Water growing crops before the day ends.',
+        farmTarget: target.id,
+      });
+      this.pauses.set('interaction', true);
+      this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
     } else if (target.kind === 'village') {
       this.openVillageNode(target.id === RESCUE_ID ? 'rescue' : 'welcome');
     } else if (target.kind === 'generated') {
@@ -1038,6 +1068,42 @@ export class GameSession {
     }
     this.emit({ type: 'interaction.changed' });
     return { ok: true };
+  }
+  get farmSnapshot() {
+    return this.state.player.regionId === FARM_REGION
+      ? farmView(this.state, this.message?.farmTarget ?? null)
+      : null;
+  }
+  private farmCommand(input: CoreCommand): CoreResult {
+    const parsed = farmCommandSchema.safeParse(input);
+    if (
+      !parsed.success ||
+      this.state.player.regionId !== FARM_REGION ||
+      this.message?.farmTarget !== parsed.data.target ||
+      this.nearestTarget()?.id !== parsed.data.target ||
+      this.pauses.snapshot().some((reason) => reason !== 'interaction')
+    )
+      return { ok: false, code: 'unavailable', message: 'Face the plot or farm barrel to use it.' };
+    if (parsed.data.expectedTransaction !== this.state.nextTransaction)
+      return { ok: false, code: 'stale-command', message: 'The farm has changed.' };
+    if (!Number.isSafeInteger(this.state.nextTransaction + 1))
+      return { ok: false, code: 'unavailable', message: 'Transaction limit reached.' };
+    const draft = copyData(this.state);
+    try {
+      const body = applyFarmCommand(draft, this.content, parsed.data);
+      draft.nextTransaction++;
+      assertWorldInvariants(draft, this.content);
+      this.state = draft;
+      this.message = freezeData({ ...this.message, body });
+      this.emit({ type: 'interaction.changed' });
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        code: 'unavailable',
+        message: error instanceof Error ? error.message : 'Farm action failed.',
+      };
+    }
   }
   private openVillageNode(node: VillageNode) {
     const dialogue = VILLAGE_DIALOGUE[node];

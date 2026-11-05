@@ -154,7 +154,7 @@ export const deathReportSchema = z.strictObject({
   retainedMoney: uint,
 });
 export const saveSchema = z.strictObject({
-  schemaVersion: z.literal(6),
+  schemaVersion: z.literal(7),
   build: buildStateSchema.default(emptyBuild()),
   tools: toolStateSchema.default(emptyToolState()),
   pack: packStateSchema.default({ selectedTool: 'sword', starterClaimed: false }),
@@ -169,11 +169,11 @@ export const saveSchema = z.strictObject({
     }),
   lastDeath: deathReportSchema.nullable().default(null),
   nextTransaction: z.number().int().positive().safe().default(1),
-  domains: persistentDomainsSchema.default({
-    farm: { plots: [] },
+  domains: persistentDomainsSchema.default(() => ({
+    farm: { plots: [], suppliesClaimed: false, water: 0 },
     village: { residents: [], dialogueFlags: [] },
     quests: [],
-  }),
+  })),
   combat: combatStateSchema.nullable().default(null),
   contentVersion: z.literal(1),
   world: z.strictObject({

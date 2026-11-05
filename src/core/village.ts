@@ -213,7 +213,7 @@ export function applyVillageCommand(
     throw new Error('Talk to Tessa and browse the store before trading.');
   if (command.type === 'village.buy') {
     const offer = SHOP_STOCK.find((row) => row.item === command.item);
-    if (!offer) throw new Error('The store does not stock that item.');
+    if (!offer?.buy) throw new Error('The store does not stock that item.');
     if (command.quantity > content.item(offer.item).maxStack)
       throw new Error('Choose a quantity within the stack limit.');
     if (!Number.isSafeInteger(state.world.nextId + 1))
@@ -232,8 +232,8 @@ export function applyVillageCommand(
   } else {
     const item = state.player.carried.items.find((entry) => entry.id === command.itemId);
     const offer = item && SHOP_STOCK.find((row) => row.item === item.templateId);
-    if (!item || !offer || item.enchantments.length || item.lootTier)
-      throw new Error('Tessa buys wood and plain equipment.');
+    if (!item || !offer?.sell || item.enchantments.length || item.lootTier)
+      throw new Error('Tessa buys wood, farm produce and plain equipment.');
     if (state.player.equipment.some((entry) => entry.itemId === item.id))
       throw new Error('Unequip the item before selling it.');
     if (item.quantity < command.quantity) throw new Error('You do not carry that quantity.');
@@ -281,15 +281,14 @@ export function villageView(state: SaveState, content: ContentRegistry, node: Vi
       node === 'shop'
         ? {
             money: state.player.carried.money,
-            offers: SHOP_STOCK.map(({ item, buy }) => ({
-              item,
-              buy,
-              name: content.item(item).name,
-              max: content.item(item).maxStack,
-            })),
+            offers: SHOP_STOCK.flatMap(({ item, buy }) =>
+              buy === null
+                ? []
+                : [{ item, buy, name: content.item(item).name, max: content.item(item).maxStack }],
+            ),
             sales: state.player.carried.items.flatMap((item) => {
               const offer = SHOP_STOCK.find((row) => row.item === item.templateId);
-              return offer &&
+              return offer?.sell &&
                 !item.enchantments.length &&
                 !item.lootTier &&
                 !state.player.equipment.some((entry) => entry.itemId === item.id)

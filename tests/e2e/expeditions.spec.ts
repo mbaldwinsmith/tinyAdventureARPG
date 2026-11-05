@@ -1,3 +1,4 @@
+import { FARM_PLOTS } from '../../src/content/farm';
 import { MERCHANT_ID, MERCHANT_PLOT, SHOP_REGION, STORE_DOOR } from '../../src/content/village';
 import { forestRescueSite } from '../../src/core/village';
 import { test, expect } from '@playwright/test';
@@ -565,5 +566,130 @@ test('rescues the forest merchant, opens her reserved store, stocks it and saves
   await page.clock.runFor(300);
   await expect(page.locator('#clearing-title')).toHaveText('Wayfarer’s clearing');
   await expect(journal).toContainText('Market stocked');
+  expect(errors).toEqual([]);
+});
+
+test('tends a crop over several days, retries a failed watering save and trades the harvest', async ({
+  page,
+}, info) => {
+  test.setTimeout(180000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const state = createPreviewSave('farm-trade-browser');
+  // Start with the merchant unlocked. The separate recruitment journey earns that unlock.
+  state.domains.village.residents.push({
+    id: MERCHANT_ID,
+    recruited: true,
+    service: 'general-store',
+  });
+  const plot = FARM_PLOTS[1];
+  state.player.actor.position = { x: plot.position.x, y: plot.position.y - 20 };
+  state.player.actor.facing = 'down';
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.goto('/');
+  await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
+  await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
+  await page.getByRole('button', { name: 'Saved adventures', exact: true }).click();
+  await page.getByLabel('Import backup as a new adventure', { exact: true }).setInputFiles({
+    name: 'farm-trade-fixture.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(state)),
+  });
+  await expect(page.locator('.save-panel > div strong')).toHaveText(
+    'Imported adventure (imported)',
+    { timeout: 30000 },
+  );
+  await expect(page.getByRole('dialog', { name: 'Saved adventures' })).toHaveCount(0);
+  const settle = () => expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
+  await settle();
+  await page.clock.runFor(300);
+  const farm = page.getByRole('dialog', { name: 'Farm plot' });
+  const openFarm = () => page.getByRole('button', { name: 'Tend farm plot' }).click();
+  const act = async (name: string) => {
+    await farm.getByRole('button', { name, exact: true }).click();
+    await settle();
+  };
+  const rest = async (day: number) => {
+    await act('Close farm');
+    await page.getByRole('button', { name: 'Rest until tomorrow' }).click();
+    await settle();
+    await expect(page.getByTestId('world-time')).toHaveText(`Day ${day} · Spring ${day} · 06:00`);
+    await openFarm();
+  };
+  await openFarm();
+  await act('Collect farm supplies');
+  await act('Hoe soil');
+  await act('Plant Turnip');
+  await expect(farm).toContainText('Turnip · 0 / 2 watered days');
+
+  await page.evaluate(() => {
+    const original = IDBObjectStore.prototype.put;
+    Object.defineProperty(window, 'restoreStorage', {
+      value: () => {
+        IDBObjectStore.prototype.put = original;
+      },
+      configurable: true,
+    });
+    IDBObjectStore.prototype.put = function () {
+      throw new DOMException('quota test fixture', 'QuotaExceededError');
+    };
+  });
+  await act('Water crop');
+  await expect(page.getByTestId('save-status')).toHaveText('Save needs attention');
+  await expect(farm).toContainText('Watering can 4 / 4');
+  await expect(farm).toContainText('Hoed, dry soil');
+  await page.evaluate(() => {
+    const restore = Reflect.get(window, 'restoreStorage');
+    if (typeof restore === 'function') restore();
+  });
+  await act('Retry checkpoint');
+  await expect(farm).toContainText('Watering can 3 / 4');
+  await expect(farm).toContainText('Watered today');
+
+  await rest(2);
+  await expect(farm).toContainText('Turnip · 1 / 2 watered days');
+  await rest(3);
+  await expect(farm).toContainText('Turnip · 1 / 2 watered days');
+  await act('Water crop');
+  await rest(4);
+  await expect(farm).toContainText('Turnip · Ready to harvest');
+  await act('Close farm');
+  await page.clock.runFor(120);
+  await page.locator('.game-canvas').screenshot({ path: info.outputPath('farm-ripe.png') });
+  await openFarm();
+  await act('Harvest Turnip');
+  await expect(farm).toContainText('Harvested 1 × Turnip.');
+  await act('Close farm');
+
+  await page.getByText('Development tools', { exact: true }).click();
+  await page.getByLabel('World collision overlay').check();
+  await page.clock.runFor(200);
+  await faceTarget(page, state, STORE_DOOR, MERCHANT_PLOT);
+  await page.getByRole('button', { name: 'Enter general store', exact: true }).click();
+  await settle();
+  await page.clock.runFor(300);
+  enterArea(state, PREVIEW_WORLD, SHOP_REGION);
+  await faceTarget(page, state, MERCHANT_ID, { x: 206, y: 102 });
+  const browse = async () => {
+    await page.getByRole('button', { name: 'Talk to Tessa', exact: true }).click();
+    await page.getByRole('button', { name: 'Browse the shop' }).click();
+  };
+  await browse();
+  const store = page.getByRole('dialog', { name: 'Tessa’s General Store' });
+  await store.getByRole('button', { name: 'Sell Turnip', exact: true }).click();
+  await settle();
+  await expect(store).toContainText('4 carried coins');
+  await store.getByRole('button', { name: 'Buy Turnip seeds', exact: true }).click();
+  await settle();
+  await expect(store).toContainText('2 carried coins');
+  await reloadCheckpoint(page);
+  await browse();
+  await expect(store).toContainText('2 carried coins');
+  await expect(store.getByRole('button', { name: 'Sell Turnip', exact: true })).toHaveCount(0);
+  await store.getByRole('button', { name: 'Continue exploring', exact: true }).click();
+  await page.getByRole('button', { name: 'Open pack' }).click();
+  await expect(page.getByRole('dialog', { name: 'Inventory and equipment' })).toContainText(
+    'Turnip seeds',
+  );
   expect(errors).toEqual([]);
 });

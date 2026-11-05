@@ -1,3 +1,4 @@
+import { createFarmView } from './farm-view';
 import { MERCHANT_PLOT, RESERVED_PLOTS, SHOP_REGION } from '../content/village';
 import { createVillageActorView } from './village-view';
 import { TRAIL_ID, trailPathAt, TRAIL_ENTRY } from '../content/tool-trail';
@@ -98,6 +99,10 @@ export function createWorldView(
     | undefined;
   const syncMerchant =
     region.id === SHOP_REGION ? createVillageActorView(scene, manifest, session) : null;
+  const syncFarm =
+    region.style === 'clearing'
+      ? createFarmView(scene, manifest, session, DEPTH.details + 3)
+      : null;
   if (region.style === 'clearing') {
     const p = EXPEDITION_PORTAL.position;
     scene.add
@@ -188,13 +193,6 @@ export function createWorldView(
       .image(310, 172, npc.page, npc.id)
       .setOrigin(0.5, 0.875)
       .setDepth(DEPTH.feet + 172);
-    const soil = scene.add
-      .graphics()
-      .setDepth(DEPTH.details + 3)
-      .fillStyle(0x684c43)
-      .fillRect(160, 186, 32, 24)
-      .lineStyle(1, 0xa77862);
-    for (let y = 190; y < 210; y += 5) soil.lineBetween(162, y, 190, y);
     box = prop(260, 198, 'world-small-box', DEPTH.items);
     scene.add
       .graphics()
@@ -270,6 +268,7 @@ export function createWorldView(
     },
     sync() {
       syncMerchant?.();
+      syncFarm?.();
       if (storefront) {
         const village = session.snapshot.village;
         storefront.reserve.setVisible(!village.recruited);

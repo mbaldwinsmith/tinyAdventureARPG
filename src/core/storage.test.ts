@@ -1,3 +1,4 @@
+import { FARM_BARREL, FARM_PLOTS } from '../content/farm';
 import { RESERVED_PLOTS, SHOP_REGION, STORE_DOOR } from '../content/village';
 import { describe, it, expect } from 'vitest';
 import { createPreviewSave, PREVIEW_CONTENT } from '../content/preview';
@@ -203,7 +204,7 @@ describe('atomic local storage and confirmed per-unit loss', () => {
   it('migrates the supported v1 fixture without rerolling geography, discoveries, money or random continuation and rejects future versions', () => {
     const legacy: unknown = legacyFixture,
       upgraded = readSaveState(legacy, PREVIEW_CONTENT);
-    expect(upgraded.schemaVersion).toBe(6);
+    expect(upgraded.schemaVersion).toBe(7);
     expect(upgraded.player.carried.money).toBe(17);
     expect(upgraded.world.regions.find((r) => r.id === 'region:forest')).toMatchObject({
       changes: { exploredRooms: [0, 1] },
@@ -215,7 +216,7 @@ describe('atomic local storage and confirmed per-unit loss', () => {
       equipment: 'protected',
     });
     const legacyObject = JSON.parse(JSON.stringify(legacy));
-    const original = saveSchema.parse({ ...legacyObject, schemaVersion: 6 }).world;
+    const original = saveSchema.parse({ ...legacyObject, schemaVersion: 7 }).world;
     const retained = structuredClone(upgraded.world);
     retained.regions = retained.regions.filter(
       (r) => r.id !== 'region:tool-trail' && r.id !== SHOP_REGION,
@@ -223,7 +224,11 @@ describe('atomic local storage and confirmed per-unit loss', () => {
     const clearing = retained.regions.find((r) => r.id === 'region:clearing');
     if (clearing?.kind === 'surface' && clearing.phase !== 'unvisited')
       clearing.geometry.objects = clearing.geometry.objects.filter(
-        (o) => o.id !== STORE_DOOR && !RESERVED_PLOTS.some((plot) => plot.id === o.id),
+        (o) =>
+          o.id !== STORE_DOOR &&
+          o.id !== FARM_BARREL.id &&
+          !FARM_PLOTS.some((plot) => plot.id === o.id && plot.id !== 'entity:clearing-plot') &&
+          !RESERVED_PLOTS.some((plot) => plot.id === o.id),
       );
     const woodland = retained.regions.find((r) => r.id === 'region:woodland');
     if (woodland?.kind === 'surface' && woodland.phase !== 'unvisited')

@@ -1,3 +1,4 @@
+import { farmCommandSchemas } from '../core/farm-model';
 import { villageCommandSchemas } from '../core/village-model';
 import { toolCommandSchemas } from '../core/tool-model';
 import { inventoryCommandSchemas } from '../core/inventory-model';
@@ -49,6 +50,7 @@ export const DURABLE_COMMANDS = new Set([
   ...inventoryCommandSchemas.map((s) => s.shape.type.value),
   ...toolCommandSchemas.map((s) => s.shape.type.value),
   ...villageCommandSchemas.map((s) => s.shape.type.value),
+  ...farmCommandSchemas.map((s) => s.shape.type.value),
   'tool.use',
 ]);
 export class SaveManager {

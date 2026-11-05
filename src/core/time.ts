@@ -50,6 +50,10 @@ export const timeRulesSchema = z.strictObject({
 export type Calendar = z.infer<typeof calendarSchema>;
 export type TimeRules = z.infer<typeof timeRulesSchema>;
 export const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'] as const;
+export const LATE_NIGHT_HOUR = 2;
+export function activeDayMinutes(rules: TimeRules) {
+  return ((LATE_NIGHT_HOUR - rules.startHour + 24) % 24 || 24) * 60;
+}
 export function calendarView(calendar: Calendar, rules: TimeRules) {
   const seasonIndex = Math.floor((calendar.day - 1) / rules.daysPerSeason) % 4;
   return {
@@ -58,7 +62,8 @@ export function calendarView(calendar: Calendar, rules: TimeRules) {
     season: SEASONS[seasonIndex] ?? 'Spring',
     year: Math.floor((calendar.day - 1) / (rules.daysPerSeason * 4)) + 1,
     minuteOfDay:
-      (rules.startHour * 60 + Math.floor((calendar.elapsedTicks * 1440) / rules.ticksPerDay)) %
+      (rules.startHour * 60 +
+        Math.floor((calendar.elapsedTicks * activeDayMinutes(rules)) / rules.ticksPerDay)) %
       1440,
   };
 }

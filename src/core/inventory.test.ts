@@ -1,3 +1,4 @@
+import { FARM_BARREL, FARM_PLOTS } from '../content/farm';
 import { RESERVED_PLOTS, SHOP_REGION, STORE_DOOR } from '../content/village';
 import { describe, it, expect } from 'vitest';
 import { createPreviewSave, PREVIEW_CONTENT } from '../content/preview';
@@ -256,7 +257,7 @@ describe('pack ownership and equipment', () => {
   });
   it('migrates v2 without rerolling items, equipment, geometry or RNG and defaults only the new pack state', () => {
     const migrated = readSaveState(v2, PREVIEW_CONTENT);
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.pack).toEqual({ selectedTool: 'sword', starterClaimed: false });
     const retained = structuredClone(migrated.world);
     retained.regions = retained.regions.filter(
@@ -265,7 +266,11 @@ describe('pack ownership and equipment', () => {
     const clearing = retained.regions.find((r) => r.id === 'region:clearing');
     if (clearing?.kind === 'surface' && clearing.phase !== 'unvisited')
       clearing.geometry.objects = clearing.geometry.objects.filter(
-        (o) => o.id !== STORE_DOOR && !RESERVED_PLOTS.some((plot) => plot.id === o.id),
+        (o) =>
+          o.id !== STORE_DOOR &&
+          o.id !== FARM_BARREL.id &&
+          !FARM_PLOTS.some((plot) => plot.id === o.id && plot.id !== 'entity:clearing-plot') &&
+          !RESERVED_PLOTS.some((plot) => plot.id === o.id),
       );
     const woodland = retained.regions.find((r) => r.id === 'region:woodland');
     if (woodland?.kind === 'surface' && woodland.phase !== 'unvisited')

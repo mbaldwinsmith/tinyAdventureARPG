@@ -1,3 +1,4 @@
+import { cropIdSchema, WATER_CAPACITY } from '../content/farm';
 import { z } from 'zod';
 import { entityIdSchema, regionIdSchema } from './ids';
 const uint = z.number().int().nonnegative().safe();
@@ -5,18 +6,24 @@ const uint = z.number().int().nonnegative().safe();
 export const persistentDomainsSchema = z.strictObject({
   farm: z
     .strictObject({
+      suppliesClaimed: z.boolean().default(false),
+      water: z.number().int().min(0).max(WATER_CAPACITY).default(0),
       plots: z
         .array(
           z.strictObject({
             id: entityIdSchema,
             regionId: regionIdSchema,
             prepared: z.boolean(),
+            crop: z
+              .strictObject({ id: cropIdSchema, growth: uint, withered: z.boolean() })
+              .nullable()
+              .default(null),
             wateredDay: z.number().int().positive().safe().nullable(),
           }),
         )
         .max(1000),
     })
-    .default({ plots: [] }),
+    .default(() => ({ plots: [], suppliesClaimed: false, water: 0 })),
   village: z
     .strictObject({
       dialogueFlags: z.array(z.literal('heard-about-stock')).max(1).default([]),
@@ -30,7 +37,7 @@ export const persistentDomainsSchema = z.strictObject({
         )
         .max(1000),
     })
-    .default({ residents: [], dialogueFlags: [] }),
+    .default(() => ({ residents: [], dialogueFlags: [] })),
   quests: z
     .array(
       z.strictObject({

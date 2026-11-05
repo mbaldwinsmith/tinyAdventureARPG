@@ -20,6 +20,7 @@ export const slotIdSchema = id('slot');
 export type EntityId = z.infer<typeof entityIdSchema>;
 export type RegionId = z.infer<typeof regionIdSchema>;
 export type InstanceId = z.infer<typeof instanceIdSchema>;
+export type ItemId = z.infer<typeof itemIdSchema>;
 export type ItemInstanceId = z.infer<typeof itemInstanceIdSchema>;
 export type ToolId = z.infer<typeof toolIdSchema>;
 
