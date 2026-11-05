@@ -65,7 +65,7 @@ export async function decodeSave(text: string, content: ContentRegistry) {
     return {
       state: readSaveState(input, content),
       metadata: null,
-      migrated: [1, 2, 3, 4].includes(Number(header.data.schemaVersion)),
+      migrated: [1, 2, 3, 4, 5].includes(Number(header.data.schemaVersion)),
     };
   }
   if (header.data.version !== 2)
@@ -77,6 +77,6 @@ export async function decodeSave(text: string, content: ContentRegistry) {
   return {
     state: readSaveState(value.state, content),
     metadata: value.metadata,
-    migrated: z.object({ schemaVersion: z.number() }).parse(value.state).schemaVersion < 5,
+    migrated: z.object({ schemaVersion: z.number() }).parse(value.state).schemaVersion < 6,
   };
 }

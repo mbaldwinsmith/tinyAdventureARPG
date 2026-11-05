@@ -1,3 +1,4 @@
+import { MERCHANT_ID, MERCHANT, SHOP_REGION, STOCK_QUEST, STOCK_WOOD } from '../content/village';
 import { LOOT_TIERS } from '../content/builds';
 import { validateBuildState } from './builds';
 import { assertToolInvariants } from './tool-invariants';
@@ -79,6 +80,22 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
       throw new Error('Invalid persisted farm record');
   for (const r of state.domains.village.residents)
     if (!knownEntities.has(r.id)) throw new Error('Invalid persisted resident');
+  const merchant = state.domains.village.residents.find((resident) => resident.id === MERCHANT_ID);
+  const stockQuest = state.domains.quests.find((quest) => quest.id === STOCK_QUEST);
+  if (merchant && merchant.service !== (merchant.recruited ? MERCHANT.service : null))
+    throw new Error('Merchant service and recruitment disagree');
+  if (
+    (player.regionId === SHOP_REGION || stockQuest || state.domains.village.dialogueFlags.length) &&
+    !merchant?.recruited
+  )
+    throw new Error('The general store needs a recruited merchant');
+  if (
+    stockQuest &&
+    (!state.domains.village.dialogueFlags.includes('heard-about-stock') ||
+      stockQuest.rewardClaimed !== (stockQuest.phase === 'completed') ||
+      stockQuest.progress !== (stockQuest.rewardClaimed ? STOCK_WOOD : 0))
+  )
+    throw new Error('Invalid shop quest outcome');
   for (const q of state.domains.quests)
     if (q.rewardClaimed && q.phase !== 'completed')
       throw new Error('Quest reward requires completion');

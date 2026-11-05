@@ -17,6 +17,14 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Added — reserved village plots and Tessa’s General Store
+
+- **M11-001, M11-002, M11-005, M11-012**. Retain the clearing’s farm plot and travel chest. Mark the merchant, workshop and waterside reserves. The northeast reserve becomes a blue-roofed store after recruitment and gains a stocked sign after the quest. Its door opens to a saved interior and returns to the same plot.
+- **M11-003, M11-004, M11-006, M11-010**. Find Tessa near the retained Whispering Forest trailhead and open its brass gate before inviting her. Validated dialogue checks availability and records the recruit once. Tessa’s emote and interaction position follow her store routine.
+- **M11-007, M11-008, M11-009, M11-013**. Add a village journal, a delivery of three carried Wood for a one-time reward of 12 coins, and trades in Wood, plain Iron swords and Shields. The existing transaction path saves dialogue flags, recruitment, quest rewards, inventory and money. Schema 6 adds the plots and interior to existing saves while preserving prior geography and RNG. Core tests cover migration, duplicate claims, stale actions and failed trades.
+- **M11-014**. The Chromium journey opens the brass gate, recruits Tessa, enters her store, stocks it, buys and sells supplies, and reloads inside with the saved balance and reward. Storefront and trade screens were visually reviewed. The merchant’s identity, stock, prices and reward are preview choices. Farming, fishing and campaign resident services remain open under M11-011.
+- `npm run check` passed with 153 unit tests. All 37 Chromium integration journeys, the production build and all three production browser journeys passed. The existing blue storefront source adds two runtime atlas frames. All 16 artwork archives passed integrity checks.
+
 ### Added — elemental gear, relics and abilities
 
 - **M10-001, M10-002, M10-003, M10-005:** Add two validated roll budgets, compatible pools and exclusive affix groups. Save the exact item identity, level and roll magnitude. Fire targets animals, Holy targets undead, and Ice targets slimes on sword hits. Keen adds attack and Fortified adds defence.

@@ -1,3 +1,4 @@
+import { villageCommandSchemas } from '../core/village-model';
 import { toolCommandSchemas } from '../core/tool-model';
 import { inventoryCommandSchemas, selectedUseSchema } from '../core/inventory-model';
 import { EXPEDITION_LOSS_POLICY } from '../core/death-loss';
@@ -22,6 +23,7 @@ export interface GameSnapshot {
   storage: GameSession['storageView'];
   inventory: GameSession['inventoryView'] | null;
   tools: GameSession['toolsView'];
+  village: GameSession['villageSnapshot'] | null;
   deathReport: GameSession['deathReport'];
   lossPolicy: typeof EXPEDITION_LOSS_POLICY;
   status: 'loading' | 'ready' | 'failed';
@@ -68,6 +70,7 @@ export const gameCommandSchema = z.discriminatedUnion('type', [
   coreCommandSchema.options[11],
   ...inventoryCommandSchemas,
   ...toolCommandSchemas,
+  ...villageCommandSchemas,
   selectedUseSchema,
   z.strictObject({ type: z.literal('save.open'), open: z.boolean() }),
   z.strictObject({ type: z.literal('save.write') }),
@@ -121,6 +124,7 @@ export const INITIAL_SNAPSHOT: GameSnapshot = freezeData({
   storage: null,
   inventory: null,
   tools: null,
+  village: null,
   deathReport: null,
   lossPolicy: EXPEDITION_LOSS_POLICY,
   status: 'loading',

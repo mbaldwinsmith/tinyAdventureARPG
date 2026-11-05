@@ -1,3 +1,5 @@
+import { SHOP_REGION } from '../content/village';
+import { merchantRecruited } from './village';
 import { TRAIL_ID } from '../content/tool-trail';
 import { changesSchema } from './model';
 import type { SaveState, RetainedArea, Geometry } from './model';
@@ -74,6 +76,8 @@ export function enterArea(
   destinationId: string,
   spawnId = 'entry',
 ): void {
+  if (destinationId === SHOP_REGION && !merchantRecruited(state))
+    throw new Error('Recruit Tessa before entering the general store.');
   if (state.tools.carriedBomb !== null)
     throw new Error('Throw or put down the live bomb before travelling.');
   const destination = state.world.regions.find((r) => r.id === destinationId);

@@ -1,3 +1,4 @@
+import { RESERVED_PLOTS, STORE_DOOR } from '../content/village';
 import { describe, it, expect } from 'vitest';
 import { createPreviewSave, PREVIEW_CONTENT } from '../content/preview';
 import { PREVIEW_WORLD } from '../content/world';
@@ -372,7 +373,7 @@ describe('saved tools and recoverable authored puzzles', () => {
         pack: { selectedTool: 'bow', starterClaimed: true },
       },
       migrated = readSaveState(old, PREVIEW_CONTENT);
-    expect(migrated.schemaVersion).toBe(5);
+    expect(migrated.schemaVersion).toBe(6);
     expect(migrated.pack).toEqual(old.pack);
     expect(migrated.player).toEqual(old.player);
     expect(migrated.random).toEqual(old.random);
@@ -380,13 +381,16 @@ describe('saved tools and recoverable authored puzzles', () => {
     for (const original of old.world.regions) {
       const current = migrated.world.regions.find((r) => r.id === original.id);
       if (
-        original.id === 'region:woodland' &&
+        (original.id === 'region:woodland' || original.id === 'region:clearing') &&
         current?.kind === 'surface' &&
         current.phase !== 'unvisited'
       ) {
         const retained = structuredClone(current);
         retained.geometry.objects = retained.geometry.objects.filter(
-          (o) => o.id !== 'entity:woodland-tool-trail',
+          (o) =>
+            o.id !== 'entity:woodland-tool-trail' &&
+            o.id !== STORE_DOOR &&
+            !RESERVED_PLOTS.some((plot) => plot.id === o.id),
         );
         expect(retained).toEqual(original);
       } else expect(current).toEqual(original);

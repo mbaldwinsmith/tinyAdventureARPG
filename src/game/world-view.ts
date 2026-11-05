@@ -1,3 +1,5 @@
+import { MERCHANT_PLOT, RESERVED_PLOTS, SHOP_REGION } from '../content/village';
+import { createVillageActorView } from './village-view';
 import { TRAIL_ID, trailPathAt, TRAIL_ENTRY } from '../content/tool-trail';
 import { createGeneratedWorldView } from './generated-world-view';
 import { EXPEDITION_PORTAL } from '../core/generated-world';
@@ -46,16 +48,20 @@ export function createWorldView(
   };
   const compose = (id: string, x: number, y: number, hide: readonly string[] = []) => {
     const definition = sceneryById(id);
-    for (const [index, piece] of definition.parts.entries())
-      if (!hide.includes(piece.layer))
-        image(
-          x - definition.foot.x + piece.x,
-          y - definition.foot.y + piece.y,
-          piece.rect,
-          piece.layer === 'canopy' || piece.layer === 'roof'
-            ? DEPTH.canopies + y
-            : DEPTH.feet + y + index * 0.001,
-        );
+    return definition.parts.flatMap((piece, index) =>
+      hide.includes(piece.layer)
+        ? []
+        : [
+            image(
+              x - definition.foot.x + piece.x,
+              y - definition.foot.y + piece.y,
+              piece.rect,
+              piece.layer === 'canopy' || piece.layer === 'roof'
+                ? DEPTH.canopies + y
+                : DEPTH.feet + y + index * 0.001,
+            ),
+          ],
+    );
   };
   const dirt = terrainProfiles.find((p) => p.id === 'new-grasslands-dirt');
   if (!dirt) throw new Error('Missing dirt terrain');
@@ -83,6 +89,15 @@ export function createWorldView(
   const pond: { sprite: Phaser.GameObjects.Image; frames: ReturnType<typeof lookup>[] }[] = [];
   let box: Phaser.GameObjects.Image | undefined;
   const chests = new Map<string, Phaser.GameObjects.Image>();
+  let storefront:
+    | {
+        pieces: Phaser.GameObjects.Image[];
+        label: Phaser.GameObjects.Text;
+        reserve: Phaser.GameObjects.Graphics;
+      }
+    | undefined;
+  const syncMerchant =
+    region.id === SHOP_REGION ? createVillageActorView(scene, manifest, session) : null;
   if (region.style === 'clearing') {
     const p = EXPEDITION_PORTAL.position;
     scene.add
@@ -129,6 +144,34 @@ export function createWorldView(
       compose('tree-original', x, y);
     }
     compose('house-plaster-1-green', 128, 112);
+    const plotLabel = (x: number, y: number, text: string) =>
+      scene.add
+        .text(x, y, text, {
+          fontFamily: 'monospace',
+          fontSize: '8px',
+          color: '#fff3c6',
+          backgroundColor: '#305a3d',
+          padding: { x: 2, y: 2 },
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(4000);
+    const outline = (x: number, y: number, width: number) =>
+      scene.add
+        .graphics()
+        .setDepth(DEPTH.details + 3)
+        .fillStyle(0x927752, 0.35)
+        .fillRect(x - width / 2, y - 16, width, 25)
+        .lineStyle(1, 0xe7cf8a, 0.85)
+        .strokeRect(x - width / 2, y - 16, width, 25);
+    for (const { name, position } of RESERVED_PLOTS) {
+      outline(position.x, position.y, 32);
+      plotLabel(position.x, position.y - 4, name);
+    }
+    storefront = {
+      pieces: compose('house-plaster-1-blue', MERCHANT_PLOT.x + 9, MERCHANT_PLOT.y),
+      label: plotLabel(MERCHANT_PLOT.x, MERCHANT_PLOT.y + 9, 'Merchant reserve'),
+      reserve: outline(MERCHANT_PLOT.x, MERCHANT_PLOT.y, 58),
+    };
     compose('bench', 174, 119);
     compose('boat-1-2-right', 385, 208, ['rider']);
     for (const [x, y] of CLEARING.bushes) prop(x, y + 8, 'bush', DEPTH.feet + y);
@@ -169,8 +212,14 @@ export function createWorldView(
       .fillRect(0, 176, 144, 16)
       .fillRect(176, 176, 144, 16);
     walls.lineStyle(2, 0x87929a).lineBetween(16, 24, 304, 24);
-    compose('bench', 112, 88);
-    chests.set('entity:cottage-chest', prop(230, 96, 'chest'));
+    if (region.id === SHOP_REGION) {
+      compose('bench', 136, 82);
+      prop(136, 75, 'chest');
+      prop(250, 68, 'chest');
+    } else {
+      compose('bench', 112, 88);
+      chests.set('entity:cottage-chest', prop(230, 96, 'chest'));
+    }
   } else if (region.style === 'practice') {
     for (const p of PRACTICE_BENCHES) compose('bench', p.x, p.y);
     const marking = scene.add
@@ -220,6 +269,19 @@ export function createWorldView(
       }
     },
     sync() {
+      syncMerchant?.();
+      if (storefront) {
+        const village = session.snapshot.village;
+        storefront.reserve.setVisible(!village.recruited);
+        for (const part of storefront.pieces) part.setVisible(village.recruited);
+        storefront.label.setText(
+          village.recruited
+            ? village.quest?.complete
+              ? 'STOCKED STORE'
+              : 'GENERAL STORE'
+            : 'Merchant reserve',
+        );
+      }
       const data = session.worldPresentation,
         actor = session.actor;
       for (const [id, sprite] of chests) {

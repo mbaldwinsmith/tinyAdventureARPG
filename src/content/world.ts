@@ -1,3 +1,4 @@
+import { MERCHANT_PLOT, MERCHANT_SHOP, RESERVED_PLOTS, SHOP_REGION, STORE_DOOR } from './village';
 import { TOOL_TRAIL_DEFINITION, TRAIL_ENTRY } from './tool-trail';
 import { EXPEDITION_PORTAL } from '../core/generated-world';
 import { WorldRegistry } from '../core/world';
@@ -39,9 +40,16 @@ export const PREVIEW_WORLD = new WorldRegistry([
     spawns: [
       { id: 'start', position: { ...CLEARING.spawn }, facing: 'down' },
       { id: 'cottage-return', position: { x: 117, y: 127 }, facing: 'down' },
+      {
+        id: 'merchant-return',
+        position: { x: MERCHANT_PLOT.x, y: MERCHANT_PLOT.y + 18 },
+        facing: 'down',
+      },
       { id: 'woodland-return', position: { x: 248, y: 32 }, facing: 'down' },
     ],
     objects: [
+      { id: STORE_DOOR, position: MERCHANT_PLOT },
+      ...RESERVED_PLOTS.map(({ id, position }) => ({ id, position })),
       ...CLEARING.trees.map(([x, y], i) => object(`clearing-tree-${i}`, x, y)),
       ...CLEARING.bushes.map(([x, y], i) => object(`clearing-bush-${i}`, x, y)),
       ...CLEARING.rocks.map(([x, y], i) => object(`clearing-rock-${i}`, x, y)),
@@ -78,6 +86,22 @@ export const PREVIEW_WORLD = new WorldRegistry([
     water: [{ x: 336, y: 144, width: 96, height: 80 }],
     interactions: [
       EXPEDITION_PORTAL,
+      {
+        id: STORE_DOOR,
+        position: MERCHANT_PLOT,
+        kind: 'door',
+        label: 'Enter general store',
+        text: '',
+        destination: { regionId: SHOP_REGION, spawn: 'entry' },
+      },
+      ...RESERVED_PLOTS.map(({ id, name, position }) => ({
+        id,
+        position,
+        kind: 'sign',
+        label: `Inspect ${name.toLowerCase()}`,
+        text: 'This plot is reserved for a future resident service.',
+        destination: null,
+      })),
       interaction(
         'clearing-sign',
         'sign',
@@ -226,6 +250,7 @@ export const PREVIEW_WORLD = new WorldRegistry([
     ],
   },
   TOOL_TRAIL_DEFINITION,
+  MERCHANT_SHOP,
 ]);
 export function woodlandPathAt(x: number, y: number): boolean {
   return (x >= 29 && x <= 30) || (y >= 15 && y <= 16);

@@ -18,6 +18,7 @@ const interactionSchema = z.strictObject({
     'portal',
     'generated',
     'mechanism',
+    'village',
   ]),
   position: positionSchema,
   label: z.string().min(1).max(80),

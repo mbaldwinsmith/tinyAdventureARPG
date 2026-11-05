@@ -346,20 +346,20 @@ Preview builds use one equipped relic and one selected active ability. Fire targ
 
 ## M11 — Village growth, NPCs and quests
 
-- [ ] **M11-001** Author the village map, farm area, storage access, expansion spaces and initial services.
-- [ ] **M11-002** Add entering/exiting building interiors with consistent saved positions and interactions.
-- [ ] **M11-003** Define recruitable NPC identities, appearance sources, dialogue and unlock requirements.
-- [ ] **M11-004** Implement rescue/recruitment state transitions that cannot recruit the same person twice.
-- [ ] **M11-005** Place recruited residents and visibly update their buildings, plots or services.
-- [ ] **M11-006** Implement dialogue nodes, choices, conditions and one-time effects through validated data.
-- [ ] **M11-007** Implement quest states, objectives and rewards with duplicate-claim protection.
-- [ ] **M11-008** Add a journal with current objectives, discoveries and clear next-step hints.
-- [ ] **M11-009** Implement shop buy/sell rules, price data and inventory/money transactions.
-- [ ] **M11-010** Add NPC emotes, readable interaction prompts and simple routines appropriate to the release scope.
-- [ ] **M11-011** Connect resident services to farming, equipment, fishing and campaign progression as agreed.
-- [ ] **M11-012** Add visible restoration stages that preserve earlier village progress.
-- [ ] **M11-013** Save and restore dialogue flags, recruitment, services, quests and restoration consistently.
-- [ ] **M11-014** Playtest the opening village loop and an entire recruit-to-service-unlock flow.
+- [x] **M11-001** Author the village map, farm area, storage access, expansion spaces and initial services.
+- [x] **M11-002** Add entering/exiting building interiors with consistent saved positions and interactions.
+- [x] **M11-003** Define recruitable NPC identities, appearance sources, dialogue and unlock requirements.
+- [x] **M11-004** Implement rescue/recruitment state transitions that cannot recruit the same person twice.
+- [x] **M11-005** Place recruited residents and visibly update their buildings, plots or services.
+- [x] **M11-006** Implement dialogue nodes, choices, conditions and one-time effects through validated data.
+- [x] **M11-007** Implement quest states, objectives and rewards with duplicate-claim protection.
+- [x] **M11-008** Add a journal with current objectives, discoveries and clear next-step hints.
+- [x] **M11-009** Implement shop buy/sell rules, price data and inventory/money transactions.
+- [x] **M11-010** Add NPC emotes, readable interaction prompts and simple routines appropriate to the release scope.
+- [ ] **M11-011** Connect resident services to farming, equipment, fishing and campaign progression as agreed. The merchant handles basic equipment and materials. Farming, fishing and campaign services are still open.
+- [x] **M11-012** Add visible restoration stages that preserve earlier village progress.
+- [x] **M11-013** Save and restore dialogue flags, recruitment, services, quests and restoration consistently.
+- [x] **M11-014** Playtest the opening village loop and an entire recruit-to-service-unlock flow.
 
 **Acceptance:** finding people changes the village visibly and functionally. Dialogue, shops and quest rewards use authoritative transactions and survive reloads.
 

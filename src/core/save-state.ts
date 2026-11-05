@@ -1,3 +1,4 @@
+import { MERCHANT_SHOP, MERCHANT_PLOT, RESERVED_PLOTS, STORE_DOOR } from '../content/village';
 import { completedMixedTrial, emptyBuild } from './build-model';
 import { z } from 'zod';
 import { regionIdSchema, entityIdSchema } from './ids';
@@ -5,7 +6,8 @@ import { saveSchema, changesSchema } from './model';
 import { assertWorldInvariants } from './invariants';
 import type { ContentRegistry } from '../content/schemas';
 import { TRAIL_ID, TRAIL_ENTRY, TOOL_TRAIL_DEFINITION, trailPathAt } from '../content/tool-trail';
-export const versionFourSaveSchema = saveSchema
+export const versionFiveSaveSchema = saveSchema.extend({ schemaVersion: z.literal(5) });
+export const versionFourSaveSchema = versionFiveSaveSchema
   .omit({ build: true })
   .extend({ schemaVersion: z.literal(4) });
 export const versionThreeSaveSchema = versionFourSaveSchema
@@ -58,7 +60,7 @@ function addToolTrail(state: z.infer<typeof versionThreeSaveSchema>) {
 }
 export function readSaveState(input: unknown, content: ContentRegistry) {
   const header = z.object({ schemaVersion: z.number().int() }).parse(input);
-  if (![1, 2, 3, 4, 5].includes(header.schemaVersion))
+  if (![1, 2, 3, 4, 5, 6].includes(header.schemaVersion))
     throw new Error(
       `Unsupported save schema ${header.schemaVersion}. The original data has been kept.`,
     );
@@ -83,6 +85,45 @@ export function readSaveState(input: unknown, content: ContentRegistry) {
         ),
       },
     };
+  }
+  if (header.schemaVersion <= 5) {
+    const old = versionFiveSaveSchema.parse(upgraded);
+    const clearing = old.world.regions.find((region) => region.id === 'region:clearing');
+    if (clearing?.kind === 'surface' && clearing.phase !== 'unvisited') {
+      for (const entry of [{ id: STORE_DOOR, position: MERCHANT_PLOT }, ...RESERVED_PLOTS]) {
+        const id = entityIdSchema.parse(entry.id);
+        if (!clearing.geometry.objects.some((object) => object.id === id))
+          clearing.geometry.objects.push({ id, position: { ...entry.position } });
+      }
+    }
+    if (!old.world.regions.some((region) => region.id === MERCHANT_SHOP.id)) {
+      const width = MERCHANT_SHOP.width / 16,
+        height = MERCHANT_SHOP.height / 16;
+      old.world.regions.push({
+        id: regionIdSchema.parse(MERCHANT_SHOP.id),
+        kind: 'surface',
+        phase: 'dormant',
+        generatorVersion: 1,
+        geometry: {
+          version: 1,
+          generated: null,
+          width,
+          height,
+          tilePixels: 16,
+          tiles: Array<number>(width * height).fill(0),
+          objects: MERCHANT_SHOP.objects.map(({ id, position }) => ({
+            id: entityIdSchema.parse(id),
+            position: { ...position },
+          })),
+        },
+        changes: changesSchema.parse({
+          removedObjects: [],
+          openedPassages: [],
+          claimedRewards: [],
+        }),
+      });
+    }
+    upgraded = { ...old, schemaVersion: 6 };
   }
   const state = saveSchema.parse(upgraded);
   assertWorldInvariants(state, content);

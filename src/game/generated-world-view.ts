@@ -1,3 +1,4 @@
+import { createVillageActorView } from './village-view';
 import type Phaser from 'phaser';
 import type { AssetManifest } from '../assets/definitions';
 import { createAtlasLookup, sourceFrameRect } from '../assets/atlas';
@@ -17,6 +18,10 @@ export function createGeneratedWorldView(
   manifest: AssetManifest,
   session: GameSession,
 ) {
+  const syncMerchant =
+    session.regionDefinition.id === 'region:forest'
+      ? createVillageActorView(scene, manifest, session)
+      : null;
   const g = session.geometry,
     layout = g.generated,
     lookup = createAtlasLookup(manifest);
@@ -184,6 +189,7 @@ export function createGeneratedWorldView(
       void _ms;
     },
     sync() {
+      syncMerchant?.();
       const changes = session.worldPresentation,
         actor = session.actor.position;
       for (const canopy of canopies)

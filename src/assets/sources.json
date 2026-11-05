@@ -1496,7 +1496,7 @@
     "id": "scenery-house-plaster-1-blue",
     "archive": "Tiny Village Pack.zip",
     "path": "Tiny Village Pack/Outdoors/Buildings/House1_blue.png",
-    "inspectionOnly": true
+    "inspectionOnly": false
   },
   {
     "id": "scenery-house-plaster-1-green",

@@ -1,3 +1,4 @@
+import { villageCommandSchemas } from '../core/village-model';
 import { toolCommandSchemas } from '../core/tool-model';
 import { inventoryCommandSchemas } from '../core/inventory-model';
 import { z } from 'zod';
@@ -47,6 +48,7 @@ export const DURABLE_COMMANDS = new Set([
   'storage.money',
   ...inventoryCommandSchemas.map((s) => s.shape.type.value),
   ...toolCommandSchemas.map((s) => s.shape.type.value),
+  ...villageCommandSchemas.map((s) => s.shape.type.value),
   'tool.use',
 ]);
 export class SaveManager {

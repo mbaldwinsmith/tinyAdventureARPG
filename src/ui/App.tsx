@@ -1,3 +1,5 @@
+import { VillageDialog, VillageJournal } from './VillagePanel';
+import { SHOP_REGION } from '../content/village';
 import { ToolsPanel } from './ToolsPanel';
 import { InventoryPanel } from './InventoryPanel';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
@@ -181,7 +183,9 @@ export function App() {
                     ? 'PERSISTENT EXPEDITION'
                     : snapshot.combat?.active
                       ? 'COMBAT PRACTICE'
-                      : 'FOREST PREVIEW'}
+                      : snapshot.region.id === SHOP_REGION
+                        ? 'VILLAGE SERVICE'
+                        : 'FOREST PREVIEW'}
               </span>
             </div>
             <span className="engine-status" role="status">
@@ -287,6 +291,7 @@ export function App() {
           )}
         </div>
         <ExpeditionPanel bridge={bridge} snapshot={snapshot} />
+        <VillageJournal snapshot={snapshot} />
         <StoragePanel key={snapshot.transitionSequence} bridge={bridge} snapshot={snapshot} />
         <DeathReport snapshot={snapshot} />
         <SavePanel bridge={bridge} snapshot={snapshot} />
@@ -477,9 +482,17 @@ export function App() {
         <DefeatDialog bridge={bridge} snapshot={snapshot} />
       )}
       {controlsOpen && <ControlsDialog bridge={bridge} snapshot={snapshot} close={closeControls} />}
-      {snapshot.message && (
-        <InteractionDialog message={snapshot.message} close={closeInteraction} />
-      )}
+      {snapshot.message &&
+        (snapshot.village?.dialogue ? (
+          <VillageDialog
+            key={snapshot.village.dialogue.node}
+            snapshot={snapshot}
+            bridge={bridge}
+            close={closeInteraction}
+          />
+        ) : (
+          <InteractionDialog message={snapshot.message} close={closeInteraction} />
+        ))}
       <dialog
         ref={dialog}
         className={`pause-dialog ${panelSkin ? 'pixel-panel' : ''}`}

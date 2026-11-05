@@ -1,3 +1,22 @@
+import {
+  MERCHANT_ID,
+  RESCUE_ID,
+  SHOP_REGION,
+  STOCK_QUEST,
+  STORE_DOOR,
+  VILLAGE_DIALOGUE,
+} from '../content/village';
+import type { VillageNode } from '../content/village';
+import { villageCommandSchemas, villageCommandSchema } from './village-model';
+import {
+  applyVillageCommand,
+  merchantRecruited,
+  rescueInteraction,
+  rescueRouteOpen,
+  storefrontSolid,
+  villageActor,
+  villageView,
+} from './village';
 import { completedMixedTrial } from './build-model';
 import {
   ABILITIES,
@@ -108,6 +127,7 @@ export const coreCommandSchema = z.discriminatedUnion('type', [
   ...inventoryCommandSchemas,
   selectedUseSchema,
   ...toolCommandSchemas,
+  ...villageCommandSchemas,
 ]);
 export type CoreCommand = z.infer<typeof coreCommandSchema>;
 export type CoreResult =
@@ -152,7 +172,8 @@ interface CoreSnapshot {
   readonly calendar: Readonly<ReturnType<typeof calendarView>>;
   readonly region: { id: string; name: string };
   readonly nearby: { id: EntityId; label: string; kind: string } | null;
-  readonly message: { title: string; body: string } | null;
+  readonly message: { title: string; body: string; villageNode?: VillageNode } | null;
+  readonly village: GameSession['villageSnapshot'];
   readonly carrying: boolean;
   readonly swimming: boolean;
   readonly transitionSequence: number;
@@ -222,7 +243,8 @@ export class GameSession {
       storage = this.storageView,
       deathReport = this.deathReport,
       inventory = this.inventoryView,
-      tools = this.toolsView;
+      tools = this.toolsView,
+      village = this.villageSnapshot;
     const combat = this.state.combat
       ? combatView(
           this.state.combat,
@@ -237,6 +259,7 @@ export class GameSession {
       JSON.stringify(this.cached.storage) !== JSON.stringify(storage) ||
       JSON.stringify(this.cached.inventory) !== JSON.stringify(inventory) ||
       JSON.stringify(this.cached.tools) !== JSON.stringify(tools) ||
+      JSON.stringify(this.cached.village) !== JSON.stringify(village) ||
       (this.cached.deathReport !== deathReport &&
         JSON.stringify(this.cached.deathReport) !== JSON.stringify(deathReport)) ||
       JSON.stringify(this.cached.expedition) !== JSON.stringify(expedition) ||
@@ -272,6 +295,7 @@ export class GameSession {
         storage,
         inventory,
         tools,
+        village,
         deathReport,
         lossPolicy: {
           materialChance: this.state.deathRules.materialChance,
@@ -306,6 +330,7 @@ export class GameSession {
     if (!parsed.success)
       return { ok: false, code: 'invalid-command', message: 'The command has invalid fields.' };
     const command = parsed.data;
+    if (command.type.startsWith('village.')) return this.villageCommand(command);
     if (command.type.startsWith('inventory.')) return this.inventoryCommand(command);
     if (command.type === 'tool.use') {
       if (this.state.player.carrying || this.state.tools.carriedBomb !== null)
@@ -786,7 +811,10 @@ export class GameSession {
     return retainedArea(this.state);
   }
   private solidEntries() {
-    return toolSolidEntries(this.state, this.regionDefinition, this.activeArea());
+    return [
+      ...toolSolidEntries(this.state, this.regionDefinition, this.activeArea()),
+      ...storefrontSolid(this.state),
+    ];
   }
   get solids() {
     if (!this.world) return [];
@@ -804,18 +832,40 @@ export class GameSession {
   get geometry() {
     return freezeData(copyData(this.activeArea().geometry));
   }
+  get villageSnapshot() {
+    return villageView(this.state, this.content, this.message?.villageNode ?? null);
+  }
+  get villageNpc() {
+    if (!this.world || !['region:forest', SHOP_REGION].includes(this.state.player.regionId))
+      return null;
+    const calendar = calendarView(this.state.calendar, this.state.timeRules);
+    return villageActor(
+      this.state,
+      this.activeArea().geometry,
+      this.regionDefinition,
+      calendar.minuteOfDay,
+    );
+  }
   get worldPresentation() {
     const region = this.activeArea();
+    const npc = this.villageNpc;
+    const objects = copyData(region.geometry.objects);
+    if (npc?.id === RESCUE_ID) objects.push({ id: npc.id, position: { ...npc.position } });
+    if (npc?.id === MERCHANT_ID) {
+      const object = objects.find((entry) => entry.id === MERCHANT_ID);
+      if (object) object.position = { ...npc.position };
+    }
     return freezeData({
       passages: [...region.changes.openedPassages],
       claimed: [...region.changes.claimedRewards],
-      objects: copyData(region.geometry.objects),
+      objects,
       removed: [...region.changes.removedObjects],
       opened: [...region.changes.openedObjects],
       carrying: this.state.player.carrying,
     });
   }
   private targetPosition(target: Interaction) {
+    if (target.id === MERCHANT_ID) return this.villageNpc?.position ?? target.position;
     return (
       this.activeArea().geometry.objects.find((o) => o.id === target.id)?.position ??
       target.position
@@ -839,7 +889,10 @@ export class GameSession {
     }
     const actor = this.state.player.actor,
       region = this.activeArea();
-    const targets = this.regionDefinition.interactions.filter(
+    const targets = [
+      ...this.regionDefinition.interactions,
+      ...rescueInteraction(this.villageNpc),
+    ].filter(
       (t) =>
         !region.changes.removedObjects.includes(t.id) &&
         targetInReach(actor.position, actor.facing, this.targetPosition(t)) &&
@@ -858,7 +911,16 @@ export class GameSession {
             this.targetPosition(b).y - actor.position.y,
           ) || a.id.localeCompare(b.id, 'en'),
     );
-    return targets[0] ?? null;
+    const closest = targets[0];
+    if (closest?.id === STORE_DOOR && !merchantRecruited(this.state))
+      return {
+        ...closest,
+        kind: 'sign',
+        label: 'Inspect merchant plot',
+        text: 'This plot is reserved for a general store. Find Tessa in Whispering Forest.',
+        destination: null,
+      };
+    return closest ?? null;
   }
   private interact(requested: EntityId | null): CoreResult {
     if (this.pauses.paused)
@@ -963,6 +1025,8 @@ export class GameSession {
       this.discover();
       this.transitionSequence++;
       this.emit({ type: 'world.region-entered', regionId: this.state.player.regionId });
+    } else if (target.kind === 'village') {
+      this.openVillageNode(target.id === RESCUE_ID ? 'rescue' : 'welcome');
     } else if (target.kind === 'generated') {
       return this.interactGenerated(target);
     } else {
@@ -974,6 +1038,55 @@ export class GameSession {
     }
     this.emit({ type: 'interaction.changed' });
     return { ok: true };
+  }
+  private openVillageNode(node: VillageNode) {
+    const dialogue = VILLAGE_DIALOGUE[node];
+    const stocked =
+      node === 'stock' &&
+      this.state.domains.quests.some((quest) => quest.id === STOCK_QUEST && quest.rewardClaimed);
+    this.message = freezeData({
+      title: dialogue.title,
+      body: stocked
+        ? 'The shelves are stocked. Thank you for bringing the wood.'
+        : node === 'rescue' && rescueRouteOpen(this.state)
+          ? 'The brass gate is open. I can bring my supplies to the clearing now.'
+          : dialogue.body,
+      villageNode: node,
+    });
+    if (this.pauses.set('interaction', true))
+      this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
+  }
+  private villageCommand(input: CoreCommand): CoreResult {
+    const fail = (message: string): CoreResult => ({ ok: false, code: 'unavailable', message });
+    const parsed = villageCommandSchema.safeParse(input);
+    const node = this.message?.villageNode;
+    if (
+      !parsed.success ||
+      !node ||
+      this.pauses.snapshot().some((reason) => reason !== 'interaction')
+    )
+      return fail('Speak with Tessa before continuing.');
+    const command = parsed.data;
+    if (command.expectedTransaction !== this.state.nextTransaction)
+      return {
+        ok: false,
+        code: 'stale-command',
+        message: 'The conversation or stock has changed.',
+      };
+    if (!Number.isSafeInteger(this.state.nextTransaction + 1))
+      return fail('Transaction limit reached.');
+    const draft = copyData(this.state);
+    try {
+      const next = applyVillageCommand(draft, this.content, node, command);
+      draft.nextTransaction++;
+      assertWorldInvariants(draft, this.content);
+      this.state = draft;
+      this.openVillageNode(next);
+      this.emit({ type: 'interaction.changed' });
+      return { ok: true };
+    } catch (error) {
+      return fail(error instanceof Error ? error.message : 'The village transaction failed.');
+    }
   }
   private discover() {
     const area = this.activeArea(),
@@ -1168,7 +1281,10 @@ export class GameSession {
       area,
       battle,
       modifiers: buildEffects(state, this.content),
-      solids: () => toolSolidEntries(state, definition, area).map((s) => s.rect),
+      solids: () =>
+        [...toolSolidEntries(state, definition, area), ...storefrontSolid(state)].map(
+          (s) => s.rect,
+        ),
       changed: (message) => this.emit({ type: 'tools.changed', message }),
     };
   }

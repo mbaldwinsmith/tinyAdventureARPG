@@ -1,3 +1,4 @@
+import { SHOP_STOCK } from './village';
 import { BUILD_REWARDS, ELEMENTS } from './builds';
 import { TRAIL_ID, trailPathAt } from './tool-trail';
 import { EXPEDITIONS } from './expeditions';
@@ -149,9 +150,10 @@ for (const reward of Object.values(BUILD_REWARDS)) {
   if (reward.relic && PREVIEW_CONTENT.item(reward.relic).kind !== 'relic')
     throw new Error(`Invalid relic in ${reward.name}`);
 }
+for (const offer of SHOP_STOCK) PREVIEW_CONTENT.item(offer.item);
 export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
   return saveSchema.parse({
-    schemaVersion: 5,
+    schemaVersion: 6,
     contentVersion: 1,
     world: {
       id: 'world:preview',

@@ -1,3 +1,5 @@
+import { MERCHANT_ID, MERCHANT_PLOT, SHOP_REGION, STORE_DOOR } from '../../src/content/village';
+import { forestRescueSite } from '../../src/core/village';
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { toolIdSchema } from '../../src/core/ids';
@@ -131,17 +133,14 @@ async function walk(page: Page, state: SaveState, target: Position) {
   const final = await pose(page);
   expect(Math.hypot(final.x - target.x, final.y - target.y)).toBeLessThan(4);
 }
-async function approach(page: Page, state: SaveState, kind: string) {
-  const layout = retainedArea(state).geometry.generated,
-    p = layout?.placements.find((p) => p.kind === kind || p.id.endsWith(kind));
-  if (!p) throw new Error('Missing target');
+async function faceTarget(page: Page, state: SaveState, id: string, position: Position) {
   const definition: RegionDefinition = areaDefinition(state, PREVIEW_WORLD),
     solids = solidEntriesFor(definition, retainedArea(state)).map((s) => s.rect);
   const candidates = [
-    { x: p.position.x, y: p.position.y + 20, key: 'ArrowUp' },
-    { x: p.position.x - 20, y: p.position.y, key: 'ArrowRight' },
-    { x: p.position.x + 20, y: p.position.y, key: 'ArrowLeft' },
-    { x: p.position.x, y: p.position.y - 20, key: 'ArrowDown' },
+    { x: position.x, y: position.y + 20, key: 'ArrowUp' },
+    { x: position.x - 20, y: position.y, key: 'ArrowRight' },
+    { x: position.x + 20, y: position.y, key: 'ArrowLeft' },
+    { x: position.x, y: position.y - 20, key: 'ArrowDown' },
   ];
   const current = await pose(page);
   candidates.sort(
@@ -152,17 +151,23 @@ async function approach(page: Page, state: SaveState, kind: string) {
     (q) =>
       freeFoot(q, definition.width, definition.height, solids) &&
       !solidEntriesFor(definition, retainedArea(state)).some(
-        (s) => s.owner !== p.id && segmentBlocked(q, p.position, s.rect),
+        (s) => s.owner !== id && segmentBlocked(q, position, s.rect),
       ),
   );
   if (!target) throw new Error('No approach');
   await walk(page, state, target);
   await move(page, target.key, 60);
+}
+async function approach(page: Page, state: SaveState, kind: string) {
+  const layout = retainedArea(state).geometry.generated,
+    p = layout?.placements.find((p) => p.kind === kind || p.id.endsWith(kind));
+  if (!p) throw new Error('Missing target');
+  await faceTarget(page, state, p.id, p.position);
   await page.keyboard.press('e');
   await page.clock.runFor(p.kind === 'portal' ? 450 : 150);
   if (p.kind === 'portal') await expect(page.getByRole('status')).toHaveText('The path is open');
 }
-async function openForest(page: Page) {
+async function openForest(page: Page, starterSupplies = false) {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
@@ -172,6 +177,16 @@ async function openForest(page: Page) {
   await page.clock.pauseAt(new Date('2026-01-01T00:10:00Z'));
   await page.clock.runFor(150);
   const state = createPreviewSave();
+  if (starterSupplies) {
+    await walk(page, state, { x: 240, y: 175 });
+    await walk(page, state, { x: 211, y: 175 });
+    await move(page, 'ArrowUp', 60);
+    await page.getByRole('button', { name: 'Open local storage' }).click();
+    await page.getByRole('button', { name: 'Collect starter supplies' }).click();
+    await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
+    await page.getByRole('button', { name: 'Close local storage' }).click();
+    await page.clock.runFor(120);
+  }
   await walk(page, state, { x: 80, y: 220 });
   await move(page, 'ArrowDown', 20);
   await expect(page.getByRole('button', { name: 'Enter the persistent forest' })).toBeVisible();
@@ -452,3 +467,103 @@ async function openCryptCheckpoint(page: Page) {
   await page.locator('.game-canvas').focus();
   return state;
 }
+
+test('rescues the forest merchant, opens her reserved store, stocks it and saves real trades', async ({
+  page,
+}, info) => {
+  test.setTimeout(300000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const state = await openForest(page, true);
+  const journal = page.getByRole('region', { name: 'Village journal' });
+  const site = forestRescueSite(retainedArea(state).geometry, areaDefinition(state, PREVIEW_WORLD));
+  if (!site) throw new Error('No rescue site');
+  await expect(journal).toContainText('Reserved plots marked');
+  const talkAtTrailhead = async () => {
+    await faceTarget(page, state, 'entity:forest-tessa', site);
+    await page.getByRole('button', { name: 'Talk to Tessa at the trailhead', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Tessa at the trailhead' })).toBeVisible();
+  };
+  const settle = () => expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
+  const close = async () => {
+    await page.getByRole('button', { name: 'Continue exploring', exact: true }).click();
+    await page.clock.runFor(120);
+  };
+  await talkAtTrailhead();
+  await expect(page.getByRole('button', { name: 'Invite Tessa to the village' })).toHaveCount(0);
+  await close();
+  await solve(page, state, 'key');
+  await solve(page, state, 'gate-key');
+  await talkAtTrailhead();
+  await page.getByRole('button', { name: 'Invite Tessa to the village' }).click();
+  await expect(page.getByRole('dialog', { name: 'Tessa is coming home' })).toBeVisible();
+  await settle();
+  await close();
+  await expect(journal).toContainText('General store open');
+  await approach(page, state, 'portal');
+  await expect(page.locator('#clearing-title')).toHaveText('Wayfarer’s clearing');
+  enterArea(state, PREVIEW_WORLD, 'region:clearing', 'start');
+  await faceTarget(page, state, STORE_DOOR, MERCHANT_PLOT);
+  await expect(
+    page.getByRole('button', { name: 'Enter general store', exact: true }),
+  ).toBeVisible();
+  await page.screenshot({ path: info.outputPath('merchant-storefront.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Enter general store', exact: true }).click();
+  await settle();
+  await page.clock.runFor(300);
+  await expect(page.locator('#clearing-title')).toHaveText('Tessa’s General Store');
+  // The test-side state is used only to calculate keyboard routes through retained geometry.
+  state.domains.village.residents.push({
+    id: MERCHANT_ID,
+    recruited: true,
+    service: 'general-store',
+  });
+  enterArea(state, PREVIEW_WORLD, SHOP_REGION);
+  await faceTarget(page, state, MERCHANT_ID, { x: 206, y: 102 });
+  await page.getByRole('button', { name: 'Talk to Tessa', exact: true }).click();
+  await page.getByRole('button', { name: 'Ask about shop supplies' }).click();
+  await page.getByRole('button', { name: 'Accept Stock the shelves' }).click();
+  await settle();
+  await expect(page.getByRole('dialog', { name: 'Stock the shelves' })).toContainText(
+    'Wood in pack: 3 / 3',
+  );
+  await page.getByRole('button', { name: 'Deliver 3 Wood' }).click();
+  await settle();
+  await expect(page.getByRole('dialog', { name: 'Stock the shelves' })).toContainText(
+    'Reward claimed · 12 coins',
+  );
+  await expect(page.getByRole('button', { name: 'Deliver 3 Wood' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Back to Tessa' }).click();
+  await page.getByRole('button', { name: 'Browse the shop' }).click();
+  const store = page.getByRole('dialog', { name: 'Tessa’s General Store' });
+  await expect(store).toContainText('12 carried coins');
+  await store.getByRole('button', { name: 'Buy Shield' }).click();
+  await settle();
+  await expect(store).toContainText('6 carried coins');
+  const quantity = store.getByLabel('Trade quantity');
+  await quantity.fill('99');
+  await store.getByRole('button', { name: 'Sell Wood' }).click();
+  await expect(store.getByRole('alert')).toHaveText('You do not carry that quantity.');
+  await expect(store).toContainText('6 carried coins');
+  await quantity.fill('1');
+  await store.getByRole('button', { name: 'Sell Wood' }).click();
+  await settle();
+  await expect(store).toContainText('7 carried coins');
+  await page.screenshot({ path: info.outputPath('merchant-shop.png'), fullPage: true });
+  await reloadCheckpoint(page);
+  await expect(page.locator('#clearing-title')).toHaveText('Tessa’s General Store');
+  await expect(journal).toContainText('Market stocked');
+  await expect(journal).toContainText('Reward claimed');
+  await page.getByRole('button', { name: 'Talk to Tessa', exact: true }).click();
+  await page.getByRole('button', { name: 'Browse the shop' }).click();
+  await expect(store).toContainText('7 carried coins');
+  await expect(store.getByRole('button', { name: 'Sell Shield' })).toHaveCount(2);
+  await close();
+  await faceTarget(page, state, 'entity:merchant-shop-exit', { x: 160, y: 184 });
+  await page.getByRole('button', { name: 'Leave general store', exact: true }).click();
+  await settle();
+  await page.clock.runFor(300);
+  await expect(page.locator('#clearing-title')).toHaveText('Wayfarer’s clearing');
+  await expect(journal).toContainText('Market stocked');
+  expect(errors).toEqual([]);
+});

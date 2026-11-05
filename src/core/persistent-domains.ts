@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { entityIdSchema, regionIdSchema } from './ids';
 const uint = z.number().int().nonnegative().safe();
-/** Storage contracts for later gameplay systems; these records do not run growth/recruitment/quests. */
+/** Persisted farm, village and quest records. */
 export const persistentDomainsSchema = z.strictObject({
   farm: z
     .strictObject({
@@ -19,6 +19,7 @@ export const persistentDomainsSchema = z.strictObject({
     .default({ plots: [] }),
   village: z
     .strictObject({
+      dialogueFlags: z.array(z.literal('heard-about-stock')).max(1).default([]),
       residents: z
         .array(
           z.strictObject({
@@ -29,7 +30,7 @@ export const persistentDomainsSchema = z.strictObject({
         )
         .max(1000),
     })
-    .default({ residents: [] }),
+    .default({ residents: [], dialogueFlags: [] }),
   quests: z
     .array(
       z.strictObject({
