@@ -214,6 +214,23 @@ test('walks into the generated forest, solves a key gate, pauses its explored ma
   );
   if (!gate) throw new Error('Missing gate');
   retainedArea(state).changes.openedPassages.push(gate.id);
+  const map = page.getByRole('dialog', { name: 'Explored map' });
+  const knownRooms = () =>
+    map.locator('svg > g > text:first-of-type').evaluateAll((labels) =>
+      labels
+        .filter((label) => label.textContent !== '?')
+        .map((label) => ({
+          x: label.getAttribute('x'),
+          y: label.getAttribute('y'),
+          name: label.textContent,
+        })),
+    );
+  await page.getByRole('button', { name: 'Open explored map' }).click();
+  await expect(map).toBeVisible();
+  const discovered = await knownRooms();
+  expect(discovered.length).toBeGreaterThanOrEqual(2);
+  await page.getByRole('button', { name: 'Close map' }).click();
+  await page.clock.runFor(100);
   await approach(page, state, 'portal');
   await expect(page.locator('#clearing-title')).toHaveText('Wayfarer’s clearing');
   enterArea(state, PREVIEW_WORLD, 'region:clearing', 'start');
@@ -223,9 +240,10 @@ test('walks into the generated forest, solves a key gate, pauses its explored ma
   await page.clock.runFor(300);
   await expect(page.locator('#clearing-title')).toHaveText('Whispering forest');
   await page.getByRole('button', { name: 'Open explored map' }).click();
-  await expect(page.getByRole('dialog', { name: 'Explored map' })).toContainText(
-    '2 PLACES REMEMBERED',
-  );
+  await expect(map).toBeVisible();
+  const remembered = await knownRooms();
+  expect(remembered).toEqual(expect.arrayContaining(discovered));
+  await expect(map).toContainText(`${remembered.length} PLACES REMEMBERED`);
   await page.screenshot({ path: testInfo.outputPath('explored-map.png'), fullPage: true });
   await page.getByRole('button', { name: 'Close map' }).click();
   await page.getByLabel('World collision overlay').uncheck();
