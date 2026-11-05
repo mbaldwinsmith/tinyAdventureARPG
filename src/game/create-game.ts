@@ -259,6 +259,11 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           if (combat?.active && combat.drop)
             bridge.send({ type: 'combat.collect', dropId: combat.drop });
           else bridge.send({ type: 'world.interact', target: null });
+        } else if (intent.pressed.includes('ability')) {
+          bridge.send({
+            type: 'inventory.ability-use',
+            expectedTransaction: controller.session.inventoryView.expectedTransaction,
+          });
         } else if (intent.pressed.includes('use') && controller.session.selectedTool !== 'shield') {
           bridge.send({ type: 'tool.use' });
         } else if (controller.session.battleActive) {

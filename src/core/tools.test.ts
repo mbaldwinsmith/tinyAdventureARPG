@@ -372,7 +372,7 @@ describe('saved tools and recoverable authored puzzles', () => {
         pack: { selectedTool: 'bow', starterClaimed: true },
       },
       migrated = readSaveState(old, PREVIEW_CONTENT);
-    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.schemaVersion).toBe(5);
     expect(migrated.pack).toEqual(old.pack);
     expect(migrated.player).toEqual(old.player);
     expect(migrated.random).toEqual(old.random);

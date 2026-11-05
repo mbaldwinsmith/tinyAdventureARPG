@@ -1,3 +1,5 @@
+import { ABILITIES, LOOT_TIERS } from '../content/builds';
+import type { EnemyFamily } from '../content/builds';
 import type { ContentRegistry } from '../content/schemas';
 import type { SaveState, ItemInstance } from './model';
 export type Stats = SaveState['player']['actor']['stats'];
@@ -15,8 +17,10 @@ export function effectiveStats(player: SaveState['player'], content: ContentRegi
     const base = content.item(item.templateId).statModifiers;
     for (const stat of ['attack', 'defence', 'movementSpeedPixelsPerSecond'] as const)
       result[stat] += base[stat];
-    for (const enchantment of item.enchantments)
-      result[content.enchantment(enchantment.id).stat] += enchantment.magnitude;
+    for (const enchantment of item.enchantments) {
+      const stat = content.enchantment(enchantment.id).stat;
+      if (stat) result[stat] += enchantment.magnitude;
+    }
   }
   for (const status of player.actor.statuses) {
     const definition = content.status(status.id);
@@ -28,6 +32,39 @@ export function effectiveStats(player: SaveState['player'], content: ContentRegi
     result[stat] = Math.max(0, result[stat]);
   }
   return result;
+}
+export function buildEffects(state: SaveState, content: ContentRegistry) {
+  const relic = state.player.equipment.find((item) => item.slot === 'slot:relic');
+  const carried = state.player.carried.items.find((item) => item.id === relic?.itemId);
+  const template = carried ? content.item(carried.templateId) : null;
+  const active = state.build.active ? ABILITIES[state.build.active.id] : null;
+  return {
+    damageMultiplier: active?.damageMultiplier ?? 1,
+    cooldownFactor: 1 - Math.min(0.4, (template?.toolRecovery ?? 0) + (active?.recovery ?? 0)),
+    energyDiscount: Math.min(
+      1,
+      (template?.toolEnergyDiscount ?? 0) + (active?.energyDiscount ?? 0),
+    ),
+  };
+}
+export function toolEnergyCost(cost: number, discount: number) {
+  return cost === 0 ? 0 : Math.max(1, cost - discount);
+}
+export function swordFamilyBonus(
+  player: SaveState['player'],
+  content: ContentRegistry,
+  family: EnemyFamily | null,
+) {
+  if (family === null) return 0;
+  const equipped = player.equipment.find((item) => item.slot === 'slot:main-hand');
+  const sword = player.carried.items.find((item) => item.id === equipped?.itemId);
+  return (
+    sword?.enchantments.reduce(
+      (bonus, affix) =>
+        bonus + (content.enchantment(affix.id).enemyFamily === family ? affix.magnitude : 0),
+      0,
+    ) ?? 0
+  );
 }
 export function describeItem(
   item: ItemInstance,
@@ -42,6 +79,7 @@ export function describeItem(
     ...item,
     name: template.name,
     description: template.description,
+    level: item.lootTier ? LOOT_TIERS[item.lootTier].level : null,
     kind: template.kind,
     maxStack: template.maxStack,
     equipped: !!equipped,
@@ -50,11 +88,16 @@ export function describeItem(
     properties: (['attack', 'defence', 'movementSpeedPixelsPerSecond'] as const)
       .filter((stat) => template.statModifiers[stat] !== 0)
       .map((stat) => ({ stat, label: STAT_LABELS[stat], value: template.statModifiers[stat] })),
-    enchantments: item.enchantments.map((e) => ({
-      ...e,
-      name: content.enchantment(e.id).name,
-      effect: `${STAT_LABELS[content.enchantment(e.id).stat]} ${e.magnitude >= 0 ? '+' : ''}${e.magnitude} while equipped`,
-    })),
+    enchantments: item.enchantments.map((e) => {
+      const definition = content.enchantment(e.id);
+      return {
+        ...e,
+        name: definition.name,
+        effect: definition.stat
+          ? `${STAT_LABELS[definition.stat]} +${e.magnitude} while equipped`
+          : `Sword hits deal +${e.magnitude} ${definition.name.toLowerCase()} damage against ${definition.enemyFamily}.`,
+      };
+    }),
     tool:
       template.requiredTool === null
         ? null

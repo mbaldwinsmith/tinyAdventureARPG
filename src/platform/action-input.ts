@@ -135,7 +135,7 @@ export class ActionInput implements InputPort {
     return { ok: true };
   }
   remapButton(action: ButtonAction, button: number): CommandResult {
-    if (![0, 2, 3, 4, 5, 6, 7, 8, 9].includes(button))
+    if (![0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(button))
       return { ok: false, code: 'invalid-command', message: 'Choose a supported standard button.' };
     const property = BUTTON_PROPERTIES[action];
     if (
@@ -160,6 +160,7 @@ export class ActionInput implements InputPort {
       bowButton: 5,
       inventoryButton: 8,
       useButton: 7,
+      abilityButton: 6,
     });
   }
   poll(paused: boolean) {

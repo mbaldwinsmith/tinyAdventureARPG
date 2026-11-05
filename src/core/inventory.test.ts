@@ -255,7 +255,7 @@ describe('pack ownership and equipment', () => {
   });
   it('migrates v2 without rerolling items, equipment, geometry or RNG and defaults only the new pack state', () => {
     const migrated = readSaveState(v2, PREVIEW_CONTENT);
-    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.schemaVersion).toBe(5);
     expect(migrated.pack).toEqual({ selectedTool: 'sword', starterClaimed: false });
     const retained = structuredClone(migrated.world);
     retained.regions = retained.regions.filter((r) => r.id !== 'region:tool-trail');

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { abilityIdSchema, rewardIdSchema } from '../content/builds';
 import { itemInstanceIdSchema, slotIdSchema, entityIdSchema } from './ids';
 export const selectedToolSchema = z.enum([
   'sword',
@@ -20,6 +21,17 @@ export const packStateSchema = z.strictObject({
 const transaction = z.number().int().positive().safe();
 const quantity = z.number().int().positive().max(999);
 export const inventoryCommandSchemas = [
+  z.strictObject({
+    type: z.literal('inventory.build-claim'),
+    reward: rewardIdSchema,
+    expectedTransaction: transaction,
+  }),
+  z.strictObject({
+    type: z.literal('inventory.ability-select'),
+    ability: abilityIdSchema,
+    expectedTransaction: transaction,
+  }),
+  z.strictObject({ type: z.literal('inventory.ability-use'), expectedTransaction: transaction }),
   z.strictObject({
     type: z.literal('inventory.split'),
     itemId: itemInstanceIdSchema,

@@ -327,18 +327,20 @@ Validation: 120 unit tests; strict types/lint/format and asset/catalogue checks;
 
 ## M10 — Enchantments, relics and abilities
 
-- [ ] **M10-001** Define item level/tier budgets and compatible enchantment pools in validated content data.
-- [ ] **M10-002** Generate enchanted items with reproducible rolls and persist rolled results rather than rerolling on load.
-- [ ] **M10-003** Prevent incompatible or contradictory affix combinations and cap extreme numerical effects.
-- [ ] **M10-004** Implement a reusable modifier/effect resolution order for damage, cooldowns, energy and tool effects.
-- [ ] **M10-005** Implement the confirmed initial enchantment set with meaningful visible differences.
-- [ ] **M10-006** Implement relic acquisition, slot limits, stacking rules and saved ownership/loss classification.
-- [ ] **M10-007** Implement the confirmed initial relic set, including interactions across multiple tools.
-- [ ] **M10-008** Implement ability unlocks, selection, activation and their permanent/temporary classification.
-- [ ] **M10-009** Define encounter, chest, boss and quest loot tables with progression constraints.
-- [ ] **M10-010** Explain build effects accurately in inventory, equipment comparisons and ability descriptions.
-- [ ] **M10-011** Verify modifier order, stacking caps, loss eligibility and enchanted-instance save round trips.
-- [ ] **M10-012** Playtest several distinct builds against the same encounters and tool puzzles.
+Preview builds use one equipped relic and one selected active ability. Fire targets animals, Holy targets undead, and Ice targets slimes. See [builds and loot](docs/builds.md) for the approved limits and the preview balance rules.
+
+- [x] **M10-001** Define item level/tier budgets and compatible enchantment pools in validated content data.
+- [x] **M10-002** Generate enchanted items with reproducible rolls and persist rolled results rather than rerolling on load.
+- [x] **M10-003** Prevent incompatible or contradictory affix combinations and cap extreme numerical effects.
+- [x] **M10-004** Implement a reusable modifier/effect resolution order for damage, cooldowns, energy and tool effects.
+- [x] **M10-005** Implement the confirmed initial enchantment set with meaningful visible differences.
+- [x] **M10-006** Implement relic acquisition, slot limits, stacking rules and saved ownership/loss classification.
+- [x] **M10-007** Implement the confirmed initial relic set, including interactions across multiple tools.
+- [x] **M10-008** Implement ability unlocks, selection, activation and their permanent/temporary classification.
+- [x] **M10-009** Define encounter, chest, boss and quest loot tables with progression constraints.
+- [x] **M10-010** Explain build effects accurately in inventory, equipment comparisons and ability descriptions.
+- [x] **M10-011** Verify modifier order, stacking caps, loss eligibility and enchanted-instance save round trips.
+- [x] **M10-012** Playtest several distinct builds against the same encounters and tool puzzles.
 
 **Acceptance:** builds differ in play rather than only in item names. Random equipment never replaces permanent progression ownership or creates mandatory-route dead ends.
 

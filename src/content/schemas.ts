@@ -8,6 +8,7 @@ import {
   slotIdSchema,
 } from '../core/ids';
 import { freezeData } from '../core/data';
+import { enemyFamilySchema } from './builds';
 
 export const statSchema = z.enum(['attack', 'defence', 'movementSpeedPixelsPerSecond']);
 export const damageTypeSchema = z.enum(['physical', 'fire', 'frost', 'arcane', 'poison']);
@@ -26,6 +27,8 @@ export const itemTemplateSchema = z
         movementSpeedPixelsPerSecond: z.number().min(-1000).max(1000).default(0),
       })
       .default({ attack: 0, defence: 0, movementSpeedPixelsPerSecond: 0 }),
+    toolRecovery: z.number().min(0).max(0.4).default(0),
+    toolEnergyDiscount: z.number().int().min(0).max(1).default(0),
     maxStack: z.number().int().min(1).max(999),
     tags: z.array(tag).max(32),
     equipmentSlots: z.array(slotIdSchema).max(16),
@@ -34,6 +37,15 @@ export const itemTemplateSchema = z
   .refine(
     (v) => !v.equipmentSlots.length || v.maxStack === 1,
     'Equippable items must be unique instances',
+  )
+  .refine(
+    (item) =>
+      item.kind === 'relic'
+        ? item.equipmentSlots.length === 1 && item.equipmentSlots[0] === 'slot:relic'
+        : !item.equipmentSlots.some((slot) => slot === 'slot:relic') &&
+          !item.toolRecovery &&
+          !item.toolEnergyDiscount,
+    'Only relics can use the relic slot and tool modifiers',
   );
 export const enchantmentSchema = z
   .strictObject({
@@ -41,11 +53,13 @@ export const enchantmentSchema = z
     name,
     allowedTags: z.array(tag).min(1).max(32),
     exclusiveGroup: tag.nullable(),
-    stat: statSchema,
-    minimum: z.number().finite(),
-    maximum: z.number().finite(),
+    stat: statSchema.nullable(),
+    enemyFamily: enemyFamilySchema.nullable().default(null),
+    minimum: z.number().int().min(0).max(5),
+    maximum: z.number().int().min(0).max(5),
   })
-  .refine((v) => v.minimum <= v.maximum, 'Invalid enchantment range');
+  .refine((v) => v.minimum <= v.maximum, 'Invalid enchantment range')
+  .refine((v) => (v.stat === null) !== (v.enemyFamily === null), 'Choose one enchantment effect');
 export const catalogueSchema = z.strictObject({
   version: z.literal(1),
   tools: z.array(z.strictObject({ id: toolIdSchema, name })),

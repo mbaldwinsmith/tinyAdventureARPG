@@ -1,3 +1,6 @@
+import { ABILITIES, ABILITY_COOLDOWN, ABILITY_COST, BUILD_REWARDS } from '../content/builds';
+import { rollAffixes } from './builds';
+import { RandomStreams } from './random';
 import type { ContentRegistry } from '../content/schemas';
 import type { SaveState, ItemInstance } from './model';
 import { itemInstanceSchema } from './model';
@@ -14,7 +17,9 @@ export function inventoryTransaction(
   command: InventoryCommand,
 ) {
   const player = copyData(state.player),
-    pack = copyData(state.pack);
+    pack = copyData(state.pack),
+    build = copyData(state.build);
+  let random: RandomStreams | null = null;
   let nextId = state.world.nextId,
     message = '';
   const allocate = () => {
@@ -47,6 +52,68 @@ export function inventoryTransaction(
     pack.starterClaimed = true;
     message =
       'Collected 12 wood, an iron sword, a shield and a Keen +2 iron sword. Sword and shield ownership are permanent. Open your pack to equip a blade.';
+  } else if (command.type === 'inventory.build-claim') {
+    if (build.claims.includes(command.reward)) throw new Error('This prize was already claimed.');
+    const reward = BUILD_REWARDS[command.reward];
+    const names: string[] = [];
+    if (reward.gear && reward.tier) {
+      random = new RandomStreams(state.world.seed, state.random);
+      const enchantments = rollAffixes(reward.gear, reward.tier, content, random);
+      player.carried = receiveItem(
+        player.carried,
+        itemInstanceSchema.parse({
+          id: allocate(),
+          templateId: reward.gear,
+          quantity: 1,
+          lootTier: reward.tier,
+          enchantments,
+        }),
+        content,
+      );
+      names.push(
+        content.item(reward.gear).name +
+          ' · ' +
+          enchantments.map((e) => `${content.enchantment(e.id).name} +${e.magnitude}`).join(', '),
+      );
+    }
+    if (reward.relic) {
+      player.carried = receiveItem(
+        player.carried,
+        itemInstanceSchema.parse({
+          id: allocate(),
+          templateId: reward.relic,
+          quantity: 1,
+          enchantments: [],
+        }),
+        content,
+      );
+      names.push(content.item(reward.relic).name);
+    }
+    if (reward.ability) {
+      build.unlocked.push(reward.ability);
+      build.selected ??= reward.ability;
+      names.push(`${ABILITIES[reward.ability].name} permanently unlocked`);
+    }
+    build.claims.push(command.reward);
+    message = `Claimed ${reward.name}: ${names.join('; ')}.`;
+  } else if (command.type === 'inventory.ability-select') {
+    if (!build.unlocked.includes(command.ability)) throw new Error('Unlock this ability first.');
+    if (build.active) throw new Error('Wait for the active ability to end before switching.');
+    build.selected = command.ability;
+    message = `Selected ${ABILITIES[command.ability].name}.`;
+  } else if (command.type === 'inventory.ability-use') {
+    if (!build.selected) throw new Error('Select an unlocked ability first.');
+    if (state.clock.tick < build.readyTick || build.active)
+      throw new Error('The ability is recovering.');
+    const energy = player.actor.resources.energy;
+    if (energy.current < ABILITY_COST) throw new Error('Wait for energy to recover.');
+    if (!Number.isSafeInteger(state.clock.tick + ABILITY_COOLDOWN))
+      throw new Error('Tick limit reached.');
+    const ability = ABILITIES[build.selected];
+    energy.current -= ABILITY_COST;
+    build.active = { id: build.selected, remainingTicks: ability.ticks };
+    build.readyTick = state.clock.tick + ABILITY_COOLDOWN;
+    message = `${ability.name} activated.`;
   } else if (command.type === 'inventory.select') {
     pack.selectedTool = command.tool;
     message = `Selected ${command.tool}. The dedicated sword, shield, roll and bow bindings still work.`;
@@ -111,7 +178,7 @@ export function inventoryTransaction(
     }
   }
   effectiveStats(player, content);
-  return { player, pack, nextId, message };
+  return { player, pack, build, random, nextId, message };
 }
 /** A complete reward is accepted or left unclaimed. It never silently drops overflow. */
 export function receiveItem(
