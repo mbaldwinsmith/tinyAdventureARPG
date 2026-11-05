@@ -1,3 +1,4 @@
+import { FARM_BARREL, FARM_PLOTS } from './farm';
 import { MERCHANT_PLOT, MERCHANT_SHOP, RESERVED_PLOTS, SHOP_REGION, STORE_DOOR } from './village';
 import { TOOL_TRAIL_DEFINITION, TRAIL_ENTRY } from './tool-trail';
 import { EXPEDITION_PORTAL } from '../core/generated-world';
@@ -61,7 +62,8 @@ export const PREVIEW_WORLD = new WorldRegistry([
       object('clearing-door', 117, 112),
       object('clearing-gate', 248, 16),
       object('clearing-wayfarer', 310, 172),
-      object('clearing-plot', 176, 202),
+      ...FARM_PLOTS,
+      FARM_BARREL,
       object('clearing-box', 260, 198),
       { id: EXPEDITION_PORTAL.id, position: EXPEDITION_PORTAL.position },
     ],
@@ -134,14 +136,14 @@ export const PREVIEW_WORLD = new WorldRegistry([
         'Talk to wayfarer',
         'A quiet place to start. Try carrying the small box, swimming in the pond, or following the path north. There is a whole Kingdom still to come.',
       ),
-      interaction(
-        'clearing-plot',
-        'farm-plot',
-        176,
-        202,
-        'Inspect soil',
-        'A small prepared plot. Planting, watering and crop growth come with the farming milestone.',
-      ),
+      ...FARM_PLOTS.map((plot) => ({
+        ...plot,
+        kind: 'farm-plot',
+        label: 'Tend farm plot',
+        text: '',
+        destination: null,
+      })),
+      { ...FARM_BARREL, kind: 'farm-plot', label: 'Use farm barrel', text: '', destination: null },
       interaction('clearing-box', 'carryable', 260, 198, 'Lift small box', ''),
     ],
   },

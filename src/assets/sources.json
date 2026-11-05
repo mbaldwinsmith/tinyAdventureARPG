@@ -1,5 +1,10 @@
 [
   {
+    "id": "farm-crops",
+    "archive": "Tiny Farm Pack.zip",
+    "path": "Tiny Farm Pack/Other/Sprouts_Fruit_Crops.png"
+  },
+  {
     "id": "hero-1-idle",
     "archive": "TAP_anim_v2.zip",
     "path": "TAP_anim_v2/Animations ver2/Char1/Char1_idle_16px.png",

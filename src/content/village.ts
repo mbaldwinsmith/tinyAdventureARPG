@@ -1,3 +1,4 @@
+import { CROPS } from './farm';
 import { z } from 'zod';
 import { entityIdSchema, itemIdSchema } from '../core/ids';
 
@@ -137,7 +138,7 @@ export const VILLAGE_DIALOGUE = z.record(villageNodeSchema, dialogue).parse({
   },
   shop: {
     title: 'Tessa’s General Store',
-    body: 'I buy and sell wood and plain equipment. Unequip gear before selling it.',
+    body: 'I trade wood and plain gear. I also sell seeds and buy farm produce.',
     choices: [{ id: 'back', label: 'Back to Tessa', next: 'welcome' }],
   },
 });
@@ -151,10 +152,14 @@ export const SHOP_STOCK = z
     z
       .strictObject({
         item: itemIdSchema,
-        buy: z.number().int().min(1).max(999),
-        sell: z.number().int().min(1).max(999),
+        buy: z.number().int().min(1).max(999).nullable(),
+        sell: z.number().int().min(1).max(999).nullable(),
       })
-      .refine((row) => row.sell < row.buy, 'Sell price must be below buy price'),
+      .refine((row) => row.sell !== null || row.buy !== null, 'At least one price is required')
+      .refine(
+        (row) => row.sell === null || row.buy === null || row.sell < row.buy,
+        'Sell price must be below buy price',
+      ),
   )
   .refine(
     (stock) => new Set(stock.map((row) => row.item)).size === stock.length,
@@ -164,4 +169,8 @@ export const SHOP_STOCK = z
     { item: 'item:wood', buy: 2, sell: 1 },
     { item: 'item:iron-sword', buy: 8, sell: 4 },
     { item: 'item:shield', buy: 6, sell: 3 },
+    ...Object.values(CROPS).flatMap((crop) => [
+      { item: crop.seed, buy: crop.seedPrice, sell: null },
+      { item: crop.produce, buy: null, sell: crop.salePrice },
+    ]),
   ]);

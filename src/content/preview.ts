@@ -1,3 +1,4 @@
+import { CROPS } from './farm';
 import { SHOP_STOCK } from './village';
 import { BUILD_REWARDS, ELEMENTS } from './builds';
 import { TRAIL_ID, trailPathAt } from './tool-trail';
@@ -43,6 +44,27 @@ export const PREVIEW_CONTENT = new ContentRegistry({
     },
   ],
   items: [
+    ...Object.values(CROPS)
+      .flatMap((crop) => [
+        {
+          id: crop.seed,
+          name: `${crop.name} seeds`,
+          description: `Plant in ${crop.seasons.join(' or ')}.`,
+        },
+        {
+          id: crop.produce,
+          name: crop.name,
+          description: 'Farm produce. Sell it at Tessa’s General Store.',
+        },
+      ])
+      .map((item) => ({
+        ...item,
+        kind: 'material',
+        maxStack: 99,
+        tags: ['material'],
+        equipmentSlots: [],
+        requiredTool: null,
+      })),
     {
       id: 'item:iron-sword',
       name: 'Iron sword',
@@ -153,7 +175,7 @@ for (const reward of Object.values(BUILD_REWARDS)) {
 for (const offer of SHOP_STOCK) PREVIEW_CONTENT.item(offer.item);
 export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
   return saveSchema.parse({
-    schemaVersion: 6,
+    schemaVersion: 7,
     contentVersion: 1,
     world: {
       id: 'world:preview',

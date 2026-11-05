@@ -25,4 +25,4 @@ The resident record owns recruitment and the general store service. The supplies
 
 Schema 6 adds the reserved plot objects, the authored shop interior and the dialogue flag. It preserves retained forest and crypt geography, loot rolls, possessions and RNG. Menus close on reload. Recruitment, shop access, dialogue flags, rewards, trades and the player’s saved shop position remain available.
 
-The general store is the first resident service in the preview. Dedicated farming, fishing and campaign services remain open in the plan.
+The store also sells seasonal seeds and buys harvested crops. Dedicated fishing and campaign services remain open in the plan. See [farming and produce prices](farming.md).

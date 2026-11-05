@@ -17,6 +17,15 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Added — seasonal farming and late-night rollover
+
+- **M12-001, M12-002, M12-003, M12-004, M12-005**. Add three stable beds, a saved starter claim, a hoe, a four-charge watering can and a refill barrel. Turnips, carrots and blueberries use nine selected soil and growth frames from the owned Tiny Farm Pack. Plot, energy, seed and water changes commit together.
+- **M12-006, M12-007, M12-008, M12-009, M12-010**. Advance watered crops once at dawn. Dry crops wait, incompatible crops wither, and blueberries regrow after harvest. The calendar advances from 02:00 to 06:00. Rest also fills energy. Both paths update moisture and growth with the date.
+- **M12-011, M12-015**. Tessa sells seeds and buys produce using the existing shop transactions. Save schema 7 migrates old dates without growing crops, keeps earlier inventory and geography, and adds the farm beds and barrel. The clock and crops advance only during active play or an explicit rest.
+- **M12-016, M12-017**. Verify crop growth across the day boundary, missed care, season changes, a pending expedition death, reload and a failed watering write. The Chromium farm journey raises a turnip, sells it, buys replacement seed and verifies the saved balance and inventory. Prices, yields, starter stock and care costs are preview values. M12-012 through M12-014 remain open for obstacles, recipes and animals.
+- Allocate fresh farm, resident and quest records for each adventure. The regression test mutates one new save and verifies that the next starts with empty farm and resident records.
+- `npm run check` passed with 160 unit tests. The full Chromium run passed 37 journeys and exposed the shared default. The merchant and farming journeys both passed in one worker after the fix. The final production build and all three production browser checks passed. Reviewed the ripe turnip and bed in the rendered clearing.
+
 ### Added — reserved village plots and Tessa’s General Store
 
 - **M11-001, M11-002, M11-005, M11-012**. Retain the clearing’s farm plot and travel chest. Mark the merchant, workshop and waterside reserves. The northeast reserve becomes a blue-roofed store after recruitment and gains a stocked sign after the quest. Its door opens to a saved interior and returns to the same plot.

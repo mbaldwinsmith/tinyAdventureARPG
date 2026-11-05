@@ -356,7 +356,7 @@ Preview builds use one equipped relic and one selected active ability. Fire targ
 - [x] **M11-008** Add a journal with current objectives, discoveries and clear next-step hints.
 - [x] **M11-009** Implement shop buy/sell rules, price data and inventory/money transactions.
 - [x] **M11-010** Add NPC emotes, readable interaction prompts and simple routines appropriate to the release scope.
-- [ ] **M11-011** Connect resident services to farming, equipment, fishing and campaign progression as agreed. The merchant handles basic equipment and materials. Farming, fishing and campaign services are still open.
+- [ ] **M11-011** Connect resident services to farming, equipment, fishing and campaign progression as agreed. The merchant handles basic equipment and materials, buys produce and sells seeds. Fishing and campaign services are still open.
 - [x] **M11-012** Add visible restoration stages that preserve earlier village progress.
 - [x] **M11-013** Save and restore dialogue flags, recruitment, services, quests and restoration consistently.
 - [x] **M11-014** Playtest the opening village loop and an entire recruit-to-service-unlock flow.
@@ -365,23 +365,23 @@ Preview builds use one equipped relic and one selected active ability. Fire targ
 
 ## M12 — Farming, days and seasons
 
-- [ ] **M12-001** Define crop/seed data, seasonal suitability, growth stages, watering needs and harvest yields.
-- [ ] **M12-002** Map the agreed crop set to supplied sprites using the pack's right-to-left crop guide where applicable.
-- [ ] **M12-003** Implement farm-plot identity, soil state and saved crop occupancy.
-- [ ] **M12-004** Implement hoe use, valid planting targets and seed inventory transactions.
-- [ ] **M12-005** Implement watering-can action, wet/dry feedback and an explicit water/refill rule.
-- [ ] **M12-006** Implement crop growth on day transitions, including missed watering and invalid-season handling.
-- [ ] **M12-007** Implement harvest and repeat-harvest behaviour for crop types that support it.
-- [ ] **M12-008** Implement day/season HUD, current date and clear sleep interaction.
-- [ ] **M12-009** Apply sleeping, day advance, energy restoration and crop updates as one consistent saved transition.
-- [ ] **M12-010** Implement season changes and the confirmed late-night/day-boundary rules.
-- [ ] **M12-011** Add seed buying and produce selling through village shop transactions.
+- [x] **M12-001** Define crop/seed data, seasonal suitability, growth stages, watering needs and harvest yields.
+- [x] **M12-002** Map the agreed crop set to supplied sprites using the pack's right-to-left crop guide where applicable.
+- [x] **M12-003** Implement farm-plot identity, soil state and saved crop occupancy.
+- [x] **M12-004** Implement hoe use, valid planting targets and seed inventory transactions.
+- [x] **M12-005** Implement watering-can action, wet/dry feedback and an explicit water/refill rule.
+- [x] **M12-006** Implement crop growth on day transitions, including missed watering and invalid-season handling.
+- [x] **M12-007** Implement harvest and repeat-harvest behaviour for crop types that support it.
+- [x] **M12-008** Implement day/season HUD, current date and clear sleep interaction.
+- [x] **M12-009** Apply sleeping, day advance, energy restoration and crop updates as one consistent saved transition.
+- [x] **M12-010** Implement season changes and the confirmed late-night/day-boundary rules. At 02:00 the day rolls to 06:00. Choosing to rest also fills energy.
+- [x] **M12-011** Add seed buying and produce selling through village shop transactions.
 - [ ] **M12-012** Add axe/pickaxe interactions for farm obstacles and supported renewable resource nodes.
 - [ ] **M12-013** Implement only the confirmed crafting/supply recipes needed by the release progression.
-- [ ] **M12-014** Add livestock/wildlife presence and any explicitly agreed animal-care mechanics within the content budget.
-- [ ] **M12-015** Persist soil, crop growth, watering, harvest states and calendar without closed-game catch-up.
-- [ ] **M12-016** Verify crops/calendar across pause, sleep, season rollover, death and interrupted save/reload.
-- [ ] **M12-017** Play a multi-day farming loop and tune its effort, income and relationship to expeditions.
+- [ ] **M12-014** Add livestock/wildlife presence and any explicitly agreed animal-care mechanics within the content budget. Farm obstacles, recipes and animal systems are outside the initial crop loop.
+- [x] **M12-015** Persist soil, crop growth, watering, harvest states and calendar without closed-game catch-up.
+- [x] **M12-016** Verify crops/calendar across pause, sleep, season rollover, death and interrupted save/reload.
+- [x] **M12-017** Play a multi-day farming loop and tune its effort, income and relationship to expeditions.
 
 **Acceptance:** planting, daily care, growth, harvest and sales form a complete playable loop. Pausing and reloading cannot grow crops twice or advance unintended days.
 

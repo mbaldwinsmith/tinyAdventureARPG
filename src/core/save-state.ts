@@ -1,3 +1,5 @@
+import { FARM_BARREL, FARM_PLOTS, FARM_REGION } from '../content/farm';
+import { activeDayMinutes } from './time';
 import { MERCHANT_SHOP, MERCHANT_PLOT, RESERVED_PLOTS, STORE_DOOR } from '../content/village';
 import { completedMixedTrial, emptyBuild } from './build-model';
 import { z } from 'zod';
@@ -6,7 +8,8 @@ import { saveSchema, changesSchema } from './model';
 import { assertWorldInvariants } from './invariants';
 import type { ContentRegistry } from '../content/schemas';
 import { TRAIL_ID, TRAIL_ENTRY, TOOL_TRAIL_DEFINITION, trailPathAt } from '../content/tool-trail';
-export const versionFiveSaveSchema = saveSchema.extend({ schemaVersion: z.literal(5) });
+const versionSixSaveSchema = saveSchema.extend({ schemaVersion: z.literal(6) });
+export const versionFiveSaveSchema = versionSixSaveSchema.extend({ schemaVersion: z.literal(5) });
 export const versionFourSaveSchema = versionFiveSaveSchema
   .omit({ build: true })
   .extend({ schemaVersion: z.literal(4) });
@@ -60,7 +63,7 @@ function addToolTrail(state: z.infer<typeof versionThreeSaveSchema>) {
 }
 export function readSaveState(input: unknown, content: ContentRegistry) {
   const header = z.object({ schemaVersion: z.number().int() }).parse(input);
-  if (![1, 2, 3, 4, 5, 6].includes(header.schemaVersion))
+  if (![1, 2, 3, 4, 5, 6, 7].includes(header.schemaVersion))
     throw new Error(
       `Unsupported save schema ${header.schemaVersion}. The original data has been kept.`,
     );
@@ -124,6 +127,21 @@ export function readSaveState(input: unknown, content: ContentRegistry) {
       });
     }
     upgraded = { ...old, schemaVersion: 6 };
+  }
+  if (header.schemaVersion <= 6) {
+    const old = versionSixSaveSchema.parse(upgraded);
+    const clearing = old.world.regions.find((region) => region.id === FARM_REGION);
+    if (clearing?.kind === 'surface' && clearing.phase !== 'unvisited')
+      for (const object of [...FARM_PLOTS, FARM_BARREL])
+        if (!clearing.geometry.objects.some((entry) => entry.id === object.id))
+          clearing.geometry.objects.push({ id: object.id, position: { ...object.position } });
+    if (old.calendar.elapsedTicks >= old.timeRules.ticksPerDay)
+      throw new Error('Calendar exceeds day boundary');
+    old.calendar.elapsedTicks = Math.min(
+      old.timeRules.ticksPerDay - 1,
+      Math.ceil((old.calendar.elapsedTicks * 1440) / activeDayMinutes(old.timeRules)),
+    );
+    upgraded = { ...old, schemaVersion: 7 };
   }
   const state = saveSchema.parse(upgraded);
   assertWorldInvariants(state, content);

@@ -1,3 +1,4 @@
+import { farmCommandSchemas } from '../core/farm-model';
 import { villageCommandSchemas } from '../core/village-model';
 import { toolCommandSchemas } from '../core/tool-model';
 import { inventoryCommandSchemas, selectedUseSchema } from '../core/inventory-model';
@@ -24,6 +25,7 @@ export interface GameSnapshot {
   inventory: GameSession['inventoryView'] | null;
   tools: GameSession['toolsView'];
   village: GameSession['villageSnapshot'] | null;
+  farm: GameSession['farmSnapshot'];
   deathReport: GameSession['deathReport'];
   lossPolicy: typeof EXPEDITION_LOSS_POLICY;
   status: 'loading' | 'ready' | 'failed';
@@ -35,7 +37,7 @@ export interface GameSnapshot {
   calendar: { day: number; dayOfSeason: number; season: string; year: number; minuteOfDay: number };
   region: { id: string; name: string };
   nearby: { id: EntityId; label: string; kind: string } | null;
-  message: { title: string; body: string } | null;
+  message: GameSession['snapshot']['message'];
   carrying: boolean;
   swimming: boolean;
   transitionSequence: number;
@@ -71,6 +73,7 @@ export const gameCommandSchema = z.discriminatedUnion('type', [
   ...inventoryCommandSchemas,
   ...toolCommandSchemas,
   ...villageCommandSchemas,
+  ...farmCommandSchemas,
   selectedUseSchema,
   z.strictObject({ type: z.literal('save.open'), open: z.boolean() }),
   z.strictObject({ type: z.literal('save.write') }),
@@ -125,6 +128,7 @@ export const INITIAL_SNAPSHOT: GameSnapshot = freezeData({
   inventory: null,
   tools: null,
   village: null,
+  farm: null,
   deathReport: null,
   lossPolicy: EXPEDITION_LOSS_POLICY,
   status: 'loading',

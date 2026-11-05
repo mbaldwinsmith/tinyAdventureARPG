@@ -1,3 +1,4 @@
+import { CROPS, FARM_PLOTS, FARM_REGION } from '../content/farm';
 import { MERCHANT_ID, MERCHANT, SHOP_REGION, STOCK_QUEST, STOCK_WOOD } from '../content/village';
 import { LOOT_TIERS } from '../content/builds';
 import { validateBuildState } from './builds';
@@ -75,7 +76,13 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
           r.phase !== 'unvisited' &&
           r.geometry.objects.some((o) => o.id === p.id),
       ) ||
-      (p.wateredDay !== null && p.wateredDay > state.calendar.day)
+      (p.wateredDay !== null && p.wateredDay > state.calendar.day) ||
+      (p.crop !== null &&
+        (!state.domains.farm.suppliesClaimed ||
+          !p.prepared ||
+          p.regionId !== FARM_REGION ||
+          !FARM_PLOTS.some((plot) => plot.id === p.id) ||
+          p.crop.growth > CROPS[p.crop.id].days))
     )
       throw new Error('Invalid persisted farm record');
   for (const r of state.domains.village.residents)

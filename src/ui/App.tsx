@@ -1,3 +1,4 @@
+import { FarmDialog } from './FarmPanel';
 import { VillageDialog, VillageJournal } from './VillagePanel';
 import { SHOP_REGION } from '../content/village';
 import { ToolsPanel } from './ToolsPanel';
@@ -402,7 +403,7 @@ export function App() {
               {String(Math.floor(snapshot.calendar.minuteOfDay / 60)).padStart(2, '0')}:
               {String(snapshot.calendar.minuteOfDay % 60).padStart(2, '0')}
             </h2>
-            <p>Time passes while you play. Rest starts a fresh day.</p>
+            <p>At 02:00 a new day starts. Rest to start tomorrow with full energy.</p>
           </div>
           <button
             className="button button-subtle"
@@ -490,6 +491,8 @@ export function App() {
             bridge={bridge}
             close={closeInteraction}
           />
+        ) : snapshot.farm?.target ? (
+          <FarmDialog snapshot={snapshot} bridge={bridge} close={closeInteraction} />
         ) : (
           <InteractionDialog message={snapshot.message} close={closeInteraction} />
         ))}

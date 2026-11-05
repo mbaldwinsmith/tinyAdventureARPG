@@ -1,3 +1,4 @@
+import { FARM_BARREL, FARM_PLOTS } from '../content/farm';
 import { RESERVED_PLOTS, STORE_DOOR } from '../content/village';
 import { describe, it, expect } from 'vitest';
 import { createPreviewSave, PREVIEW_CONTENT } from '../content/preview';
@@ -373,7 +374,7 @@ describe('saved tools and recoverable authored puzzles', () => {
         pack: { selectedTool: 'bow', starterClaimed: true },
       },
       migrated = readSaveState(old, PREVIEW_CONTENT);
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.pack).toEqual(old.pack);
     expect(migrated.player).toEqual(old.player);
     expect(migrated.random).toEqual(old.random);
@@ -390,6 +391,8 @@ describe('saved tools and recoverable authored puzzles', () => {
           (o) =>
             o.id !== 'entity:woodland-tool-trail' &&
             o.id !== STORE_DOOR &&
+            o.id !== FARM_BARREL.id &&
+            !FARM_PLOTS.some((plot) => plot.id === o.id && plot.id !== 'entity:clearing-plot') &&
             !RESERVED_PLOTS.some((plot) => plot.id === o.id),
         );
         expect(retained).toEqual(original);
