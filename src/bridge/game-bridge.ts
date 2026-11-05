@@ -1,3 +1,4 @@
+import { inventoryCommandSchemas, selectedUseSchema } from '../core/inventory-model';
 import { EXPEDITION_LOSS_POLICY } from '../core/death-loss';
 import type { SaveView } from '../game/save-manager';
 import { MAX_SAVE_BYTES } from '../platform/saves/codec';
@@ -18,6 +19,7 @@ import type { InputView, Navigation } from '../core/actions';
 export interface GameSnapshot {
   saves: Readonly<SaveView> | null;
   storage: GameSession['storageView'];
+  inventory: GameSession['inventoryView'] | null;
   deathReport: GameSession['deathReport'];
   lossPolicy: typeof EXPEDITION_LOSS_POLICY;
   status: 'loading' | 'ready' | 'failed';
@@ -62,6 +64,8 @@ export const gameCommandSchema = z.discriminatedUnion('type', [
   coreCommandSchema.options[9],
   coreCommandSchema.options[10],
   coreCommandSchema.options[11],
+  ...inventoryCommandSchemas,
+  selectedUseSchema,
   z.strictObject({ type: z.literal('save.open'), open: z.boolean() }),
   z.strictObject({ type: z.literal('save.write') }),
   z.strictObject({
@@ -112,6 +116,7 @@ type CommandHandler = (command: GameCommand) => CommandResult;
 export const INITIAL_SNAPSHOT: GameSnapshot = freezeData({
   saves: null,
   storage: null,
+  inventory: null,
   deathReport: null,
   lossPolicy: EXPEDITION_LOSS_POLICY,
   status: 'loading',

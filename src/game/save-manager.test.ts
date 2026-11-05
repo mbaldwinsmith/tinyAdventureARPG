@@ -80,6 +80,78 @@ function depositCommand(bridge: GameBridge) {
   };
 }
 describe('durable-first session coordination', () => {
+  it('keeps a full starter grant and equipment change private until their complete checkpoint commits', async () => {
+    const repository = new MemorySaveRepository();
+    await preload(repository);
+    const f = await runtime(repository);
+    const token = f.bridge.snapshot.inventory?.expectedTransaction;
+    if (token === undefined) throw new Error('Missing pack');
+    repository.failure = new Error('interrupted supplies');
+    expect(
+      f.bridge.send({
+        type: 'inventory.supplies',
+        chestId: entityIdSchema.parse('entity:clearing-chest'),
+        expectedTransaction: token,
+      }),
+    ).toEqual({ ok: true });
+    await settled(f.bridge);
+    expect(f.controller.session.export().pack.starterClaimed).toBe(false);
+    expect(f.controller.session.export().player.carried.items).toHaveLength(1);
+    expect(f.controller.session.export().player.permanent.tools).toHaveLength(0);
+    repository.failure = null;
+    f.bridge.send({ type: 'save.retry' });
+    await settled(f.bridge);
+    expect(f.controller.session.export().pack.starterClaimed).toBe(true);
+    expect(f.controller.session.export().player.carried.items).toHaveLength(4);
+    const keen = f.bridge.snapshot.inventory?.items.find((i) => i.enchantments.length);
+    if (!keen) throw new Error('Missing enchanted blade');
+    repository.afterCommitFailure = new Error('equipment acknowledgement lost');
+    f.bridge.send({
+      type: 'inventory.equip',
+      itemId: keen.id,
+      slot: slotIdSchema.parse('slot:main-hand'),
+      expectedTransaction: f.controller.session.export().nextTransaction,
+    });
+    await settled(f.bridge);
+    expect(f.controller.session.inventoryView.stats.attack).toBe(1);
+    const writes = repository.writes;
+    repository.afterCommitFailure = null;
+    f.bridge.send({ type: 'save.retry' });
+    await settled(f.bridge);
+    expect(repository.writes).toBe(writes);
+    expect(f.controller.session.inventoryView.stats.attack).toBe(4);
+    f.controller.dispose();
+    const restored = await runtime(repository);
+    expect(restored.controller.session.inventoryView.stats.attack).toBe(4);
+    expect(restored.controller.session.export().player.actor.stats.attack).toBe(1);
+    restored.controller.dispose();
+  });
+  it('retains possessions during a failed deliberate discard and rejects its stale confirmation after retry', async () => {
+    const repository = new MemorySaveRepository();
+    await preload(repository);
+    const f = await runtime(repository),
+      item = f.controller.session.export().player.carried.items[0];
+    if (!item) throw new Error('Missing wood');
+    const command = {
+      type: 'inventory.discard' as const,
+      itemId: item.id,
+      quantity: 3,
+      confirmed: true as const,
+      expectedTransaction: f.controller.session.export().nextTransaction,
+    };
+    repository.failure = new Error('discard write failed');
+    f.bridge.send(command);
+    await settled(f.bridge);
+    expect(f.controller.session.export().player.carried.items[0]?.quantity).toBe(10);
+    expect(f.bridge.snapshot.saves?.pending).toBe(true);
+    repository.failure = null;
+    f.bridge.send({ type: 'save.retry' });
+    await settled(f.bridge);
+    expect(f.controller.session.export().player.carried.items[0]?.quantity).toBe(7);
+    expect(f.bridge.send(command)).toMatchObject({ ok: false });
+    f.controller.dispose();
+  });
+
   it('keeps a failed item transfer out of the live owner, exports the staged recovery and commits it exactly once after retry', async () => {
     const repository = new MemorySaveRepository();
     await preload(repository);

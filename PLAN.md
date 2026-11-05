@@ -282,20 +282,28 @@ Validation covers 110 unit tests, 28 browser integration flows across relevant r
 
 ## M08 — Inventory, equipment and chest UI
 
-- [ ] **M08-001** Implement stack merging/splitting, item movement and capacity checks using core commands.
-- [ ] **M08-002** Implement unique enchanted item identity so incompatible stacks cannot silently merge.
-- [ ] **M08-003** Implement equipment slot rules, stat updates and validated equip/unequip commands.
-- [ ] **M08-004** Build React inventory/equipment panels with keyboard/controller selection and pointer support.
-- [ ] **M08-005** Add readable item descriptions showing base properties, enchantments and relevant ability effects.
-- [ ] **M08-006** Build paired player/chest views with deposit/withdraw/split actions and clear ownership.
-- [ ] **M08-007** Build money deposit/withdraw controls with clear carried/deposited totals.
-- [ ] **M08-008** Add pickup feedback and deliberate handling for full inventories and uncollectable rewards.
-- [ ] **M08-009** Implement hotbar/tool selection with binding prompts and cooldown/energy feedback.
-- [ ] **M08-010** Add discard confirmation appropriate to valuable unique items and prevent discarding permanent unlock ownership.
-- [ ] **M08-011** Show loss-risk categories without promising unchosen probabilities or hidden guarantees.
-- [ ] **M08-012** Verify chest/equipment operations through UI commands, save/load and death transitions.
+- [x] **M08-001** Implement stack merging/splitting, item movement and capacity checks using core commands.
+- [x] **M08-002** Implement unique enchanted item identity so incompatible stacks cannot silently merge.
+- [x] **M08-003** Implement equipment slot rules, stat updates and validated equip/unequip commands.
+- [x] **M08-004** Build React inventory/equipment panels with keyboard/controller selection and pointer support.
+- [x] **M08-005** Add readable item descriptions showing base properties, enchantments and relevant ability effects.
+- [x] **M08-006** Build paired player/chest views with deposit/withdraw/split actions and clear ownership.
+- [x] **M08-007** Build money deposit/withdraw controls with clear carried/deposited totals.
+- [x] **M08-008** Add pickup feedback and deliberate handling for full inventories and uncollectable rewards.
+- [x] **M08-009** Implement hotbar/tool selection with binding prompts and cooldown/energy feedback.
+- [x] **M08-010** Add discard confirmation appropriate to valuable unique items and prevent discarding permanent unlock ownership.
+- [x] **M08-011** Show loss-risk categories without promising unchosen probabilities or hidden guarantees.
+- [x] **M08-012** Verify chest/equipment operations through UI commands, save/load and death transitions.
 
 **Acceptance:** deposits and equipment work through the same rules on every input device. React cannot independently mutate authoritative possessions.
+
+### M08 delivery evidence
+
+All 12 tasks are complete. Typed core commands split/merge/reorder carried stacks, validate unique enchanted identities, equip compatible slots, derive actual combat/movement stats and deliberately discard instances without removing permanent tools. React pack/equipment panels, paired local chest views and money controls use the same owner and durable-first checkpoints. Shared nonces reject stale confirmations; full rewards remain unclaimed until the whole grant fits. The clearing has a one-time authored starter kit; generated resource points add two wood to their existing coin reward. These remain preview content and balance defaults.
+
+Keyboard I/X and standard View/RT provide pack/selected-tool access with held shielding, remaps, focus, menu pause, controller numeric/select/checkbox activation and pointer parity. Descriptions show base modifiers, stored enchantments and the agreed loss categories. Schema 3 persists selection and starter claims; explicit v1/v2 migrations preserve previous possessions, geography and RNG. Equipment remains carried/protected through death, with derived bonuses reconstructed from saved base stats.
+
+Validation: 120 unit tests; strict types/lint/format and asset/catalogue checks; 32 actual-browser integration flows, including four new pack/chest/controller/recovery/death journeys; two production WebGL flows at 1440px/800px. Production play walks to and collects the kit, equips Keen +2 and retains attack four after reload. UI screenshots are reviewed. Failed saves preserve live ownership until exact retry; acknowledgement failure cannot grant/discard/equip twice. Physical controller hardware, procedural loot/abilities and expanded environmental tool actions remain later work. See [inventory architecture](docs/inventory.md).
 
 ## M09 — Tools and environmental puzzles
 

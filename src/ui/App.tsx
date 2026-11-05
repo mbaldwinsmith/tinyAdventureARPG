@@ -1,3 +1,4 @@
+import { InventoryPanel } from './InventoryPanel';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { GameBridge } from '../bridge/game-bridge';
@@ -78,7 +79,8 @@ export function App() {
         if (event.action === 'confirm') {
           if (
             current instanceof HTMLButtonElement ||
-            (current instanceof HTMLElement && current.tagName === 'SUMMARY')
+            (current instanceof HTMLElement && current.tagName === 'SUMMARY') ||
+            (current instanceof HTMLInputElement && ['checkbox', 'radio'].includes(current.type))
           )
             current.click();
           return;
@@ -98,6 +100,15 @@ export function App() {
           if (optionIndex < 0 || optionIndex >= current.options.length) return;
           current.selectedIndex = optionIndex;
           current.dispatchEvent(new Event('change', { bubbles: true }));
+          return;
+        }
+        if (
+          (event.action === 'left' || event.action === 'right') &&
+          current instanceof HTMLInputElement &&
+          ['number', 'range'].includes(current.type)
+        ) {
+          current.stepUp(event.action === 'right' ? 1 : -1);
+          current.dispatchEvent(new Event('input', { bubbles: true }));
           return;
         }
         const index = controls.findIndex((element) => element === current),
@@ -274,6 +285,7 @@ export function App() {
         <StoragePanel key={snapshot.transitionSequence} bridge={bridge} snapshot={snapshot} />
         <DeathReport snapshot={snapshot} />
         <SavePanel bridge={bridge} snapshot={snapshot} />
+        <InventoryPanel bridge={bridge} snapshot={snapshot} assets={assets} />
         <CombatPanel bridge={bridge} snapshot={snapshot} assets={assets} />
         <section className="below-world" aria-label="Preview options and development status">
           <div className="appearance-panel">

@@ -1,3 +1,4 @@
+import { effectiveStats } from './equipment';
 import { validateGeneratedGeometry } from './generation';
 import { assertCombatInvariants } from './combat-invariants';
 import type { ContentRegistry } from '../content/schemas';
@@ -285,6 +286,7 @@ export function assertWorldInvariants(state: SaveState, content: ContentRegistry
     if (tool !== null && !permanent.tools.includes(tool))
       throw new Error('Equipment requires permanent tool ownership');
   }
+  effectiveStats(player, content);
   unique(
     player.actor.cooldowns.map((c) => c.toolId),
     'cooldown',

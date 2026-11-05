@@ -135,7 +135,7 @@ export class ActionInput implements InputPort {
     return { ok: true };
   }
   remapButton(action: ButtonAction, button: number): CommandResult {
-    if (![0, 2, 3, 4, 5, 8, 9].includes(button))
+    if (![0, 2, 3, 4, 5, 6, 7, 8, 9].includes(button))
       return { ok: false, code: 'invalid-command', message: 'Choose a supported standard button.' };
     const property = BUTTON_PROPERTIES[action];
     if (
@@ -158,6 +158,8 @@ export class ActionInput implements InputPort {
       guardButton: 4,
       rollButton: 3,
       bowButton: 5,
+      inventoryButton: 8,
+      useButton: 7,
     });
   }
   poll(paused: boolean) {
@@ -177,14 +179,14 @@ export class ActionInput implements InputPort {
     });
     if (paused) {
       for (const action of sampled.navigation) this.navigate(action);
-      return { x: 0, y: 0, guard: false, pressed: [] as Action[] };
+      return { x: 0, y: 0, guard: false, useHeld: false, pressed: [] as Action[] };
     }
     if (sampled.active && !focused) {
       this.host.focus();
       this.reset();
-      return { x: 0, y: 0, guard: false, pressed: [] as Action[] };
+      return { x: 0, y: 0, guard: false, useHeld: false, pressed: [] as Action[] };
     }
-    if (!focused) return { x: 0, y: 0, guard: false, pressed: [] as Action[] };
+    if (!focused) return { x: 0, y: 0, guard: false, useHeld: false, pressed: [] as Action[] };
     const down = (action: Action) =>
       this.keys.has(this.current.keys[action]) ||
       Object.entries(ARROW_ACTIONS).some(
@@ -200,6 +202,7 @@ export class ActionInput implements InputPort {
     return {
       ...vector,
       guard: this.current.device === 'keyboard' ? down('guard') : sampled.guard,
+      useHeld: this.current.device === 'keyboard' ? down('use') : sampled.useHeld,
       pressed,
     };
   }

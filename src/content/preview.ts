@@ -40,6 +40,9 @@ export const PREVIEW_CONTENT = new ContentRegistry({
     {
       id: 'item:iron-sword',
       name: 'Iron sword',
+      description:
+        'A dependable blade. Its attack bonus applies while equipped; owning the sword tool remains permanent.',
+      statModifiers: { attack: 1, defence: 0, movementSpeedPixelsPerSecond: 0 },
       kind: 'equipment',
       maxStack: 1,
       tags: ['weapon', 'blade'],
@@ -49,6 +52,8 @@ export const PREVIEW_CONTENT = new ContentRegistry({
     {
       id: 'item:wood',
       name: 'Wood',
+      description:
+        'A stackable material gathered on the trails. Store it locally to protect it from expedition loss.',
       kind: 'material',
       maxStack: 99,
       tags: ['material'],
@@ -58,6 +63,9 @@ export const PREVIEW_CONTENT = new ContentRegistry({
     {
       id: 'item:shield',
       name: 'Shield',
+      description:
+        'A sturdy shield. Its defence bonus applies while equipped. Holding a shield action uses energy when a strike is blocked.',
+      statModifiers: { attack: 0, defence: 1, movementSpeedPixelsPerSecond: 0 },
       kind: 'equipment',
       maxStack: 1,
       tags: ['armour'],
@@ -88,7 +96,7 @@ export const PREVIEW_CONTENT = new ContentRegistry({
 });
 export function createPreviewSave(seed = 'tiny-adventure-preview-v1') {
   return saveSchema.parse({
-    schemaVersion: 2,
+    schemaVersion: 3,
     contentVersion: 1,
     world: {
       id: 'world:preview',

@@ -202,7 +202,7 @@ describe('atomic local storage and confirmed per-unit loss', () => {
   it('migrates the supported v1 fixture without rerolling geography, discoveries, money or random continuation and rejects future versions', () => {
     const legacy: unknown = legacyFixture,
       upgraded = readSaveState(legacy, PREVIEW_CONTENT);
-    expect(upgraded.schemaVersion).toBe(2);
+    expect(upgraded.schemaVersion).toBe(3);
     expect(upgraded.player.carried.money).toBe(17);
     expect(upgraded.world.regions.find((r) => r.id === 'region:forest')).toMatchObject({
       changes: { exploredRooms: [0, 1] },
@@ -214,7 +214,7 @@ describe('atomic local storage and confirmed per-unit loss', () => {
       equipment: 'protected',
     });
     const legacyObject = JSON.parse(JSON.stringify(legacy));
-    expect(upgraded.world).toEqual(saveSchema.parse({ ...legacyObject, schemaVersion: 2 }).world);
+    expect(upgraded.world).toEqual(saveSchema.parse({ ...legacyObject, schemaVersion: 3 }).world);
     expect(upgraded.random).toEqual(legacyObject.random);
     expect(() => readSaveState({ ...upgraded, schemaVersion: 99 }, PREVIEW_CONTENT)).toThrow(
       'Unsupported',

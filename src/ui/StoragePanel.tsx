@@ -1,3 +1,4 @@
+import { ItemDescription } from './InventoryPanel';
 import { CheckpointRecovery } from './SavePanel';
 import { useEffect, useRef, useState } from 'react';
 import type { GameBridge, GameSnapshot } from '../bridge/game-bridge';
@@ -69,6 +70,31 @@ function StorageDialog({
     >
       <p className="eyebrow">SAFEKEEPING</p>
       <h2>A place for the journey home.</h2>
+      {snapshot.inventory?.suppliesAvailable && (
+        <section className="starter-supplies">
+          <h3>One adventure. A first kit.</h3>
+          <p>
+            Collect 12 wood, an iron sword, a shield and a Keen +2 iron sword. Sword and shield
+            ownership become permanent. The complete kit needs room in your pack.
+          </p>
+          <button
+            className="button"
+            disabled={busy}
+            onClick={() => {
+              const inventory = snapshot.inventory;
+              if (!inventory) return;
+              const result = bridge.send({
+                type: 'inventory.supplies',
+                chestId: view.id,
+                expectedTransaction: inventory.expectedTransaction,
+              });
+              setError(result.ok ? null : result.message);
+            }}
+          >
+            Collect starter supplies
+          </button>
+        </section>
+      )}
       <div className="storage-money">
         <span data-testid="carried-money">Carried: {view.carried.money} coins</span>
         <span data-testid="deposited-money">In this chest: {view.deposited.money} coins</span>
@@ -119,6 +145,11 @@ function StorageDialog({
           </section>
         ))}
       </div>
+      {snapshot.inventory?.feedback && (
+        <p className="pack-feedback" aria-live="polite">
+          Last action: {snapshot.inventory.feedback}
+        </p>
+      )}
       {(error || snapshot.notice || snapshot.saves?.error) && (
         <p role="alert">{error ?? snapshot.saves?.error ?? snapshot.notice}</p>
       )}
@@ -151,11 +182,7 @@ function ItemTransfer({
         {item.name} × {item.quantity}
         {item.equipped ? ' · equipped' : ''}
       </strong>
-      {item.enchantments.length > 0 && (
-        <small>
-          {item.enchantments.map((e) => `${e.id.slice(12)} +${e.magnitude}`).join(', ')}
-        </small>
-      )}
+      <ItemDescription item={item} />
       <label>
         {direction === 'deposit' ? 'Deposit' : 'Withdraw'} {item.name} quantity
         <input

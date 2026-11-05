@@ -1,3 +1,4 @@
+import { packStateSchema } from './inventory-model';
 import { lossPolicySchema } from './death-loss';
 import { persistentDomainsSchema } from './persistent-domains';
 import { z } from 'zod';
@@ -149,7 +150,8 @@ export const deathReportSchema = z.strictObject({
   retainedMoney: uint,
 });
 export const saveSchema = z.strictObject({
-  schemaVersion: z.literal(2),
+  schemaVersion: z.literal(3),
+  pack: packStateSchema.default({ selectedTool: 'sword', starterClaimed: false }),
   deathRules: lossPolicySchema
     .extend({ version: z.literal(1), unit: z.literal('each'), equipment: z.literal('protected') })
     .default({
