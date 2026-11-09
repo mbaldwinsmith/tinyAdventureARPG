@@ -3,32 +3,12 @@ import { CheckpointRecovery } from './SavePanel';
 import { useEffect, useRef, useState } from 'react';
 import type { GameBridge, GameSnapshot } from '../bridge/game-bridge';
 export function StoragePanel({ bridge, snapshot }: { bridge: GameBridge; snapshot: GameSnapshot }) {
-  const [open, setOpen] = useState(false),
-    view = snapshot.storage;
+  if (!snapshot.storage || !snapshot.pauseReasons.includes('storage')) return null;
   const close = () => {
-    setOpen(false);
     bridge.send({ type: 'pause.set', reason: 'storage', active: false });
     requestAnimationFrame(() => document.querySelector<HTMLElement>('.game-canvas')?.focus());
   };
-  if (!view) return null;
-  return (
-    <section className="storage-panel" aria-label="Local chest">
-      <p className="small-copy">
-        This chest has its own items and money. Deposited possessions are protected on death.
-      </p>
-      <button
-        className="button"
-        disabled={snapshot.paused || !!snapshot.saves?.busy}
-        onClick={() => {
-          const result = bridge.send({ type: 'pause.set', reason: 'storage', active: true });
-          if (result.ok) setOpen(true);
-        }}
-      >
-        Open local storage
-      </button>
-      {open && <StorageDialog bridge={bridge} snapshot={snapshot} close={close} />}
-    </section>
-  );
+  return <StorageDialog bridge={bridge} snapshot={snapshot} close={close} />;
 }
 function StorageDialog({
   bridge,

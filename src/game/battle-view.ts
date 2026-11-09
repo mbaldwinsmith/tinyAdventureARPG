@@ -1,3 +1,4 @@
+import { fieldArt } from '../assets/adventure-art';
 import type Phaser from 'phaser';
 import type { AssetManifest } from '../assets/definitions';
 import { presentationAnimations } from '../assets/presentation-animations';
@@ -27,13 +28,20 @@ export function createBattleView(
   const lookup = createAtlasLookup(manifest),
     sprites = new Map<string, Phaser.GameObjects.Image>(),
     labels = new Map<string, Phaser.GameObjects.Text>();
-  const ground = scene.add.graphics().setDepth(DEPTH.items + 1),
-    signals = scene.add.graphics().setDepth(DEPTH.effects + 2);
+  const coin = lookup(fieldArt.coin),
+    arrow = lookup(fieldArt.arrow),
+    arrows = new Map<string, Phaser.GameObjects.Image>(),
+    drops = new Map<string, Phaser.GameObjects.Image>();
+  const signals = scene.add.graphics().setDepth(DEPTH.effects + 2);
   return {
     render() {
       const battle = session.battlePresentation,
         tick = session.tick;
-      ground.clear();
+      for (const [id, sprite] of drops)
+        if (!battle?.drops.some((drop) => drop.id === id && !drop.claimed)) {
+          sprite.destroy();
+          drops.delete(id);
+        }
       signals.clear();
       for (const [id, sprite] of sprites)
         if (!battle?.enemies.some((e) => e.id === id)) {
@@ -41,6 +49,11 @@ export function createBattleView(
           sprites.delete(id);
           labels.get(id)?.destroy();
           labels.delete(id);
+        }
+      for (const [id, sprite] of arrows)
+        if (!battle?.projectiles.some((projectile) => projectile.id === id)) {
+          sprite.destroy();
+          arrows.delete(id);
         }
       if (!battle) return;
       for (const e of battle.enemies) {
@@ -116,27 +129,28 @@ export function createBattleView(
           }
         }
       }
-      for (const drop of battle.drops)
-        if (!drop.claimed)
-          ground
-            .fillStyle(0xffce70)
-            .fillCircle(drop.position.x, drop.position.y - 3, 3)
-            .lineStyle(1, 0x9e743c)
-            .strokeCircle(drop.position.x, drop.position.y - 3, 3);
-      for (const p of battle.projectiles) {
-        const length = Math.hypot(p.velocity.x, p.velocity.y) || 1,
-          dx = (p.velocity.x / length) * 7,
-          dy = (p.velocity.y / length) * 7;
-        signals
-          .lineStyle(1, p.faction === 'player' ? 0xd6e9ee : 0xffb36d)
-          .lineBetween(
-            p.position.x - dx,
-            p.position.y - dy,
-            p.position.x + dx / 2,
-            p.position.y + dy / 2,
-          )
-          .fillStyle(0xf8efcd)
-          .fillCircle(p.position.x + dx / 2, p.position.y + dy / 2, 1.5);
+      for (const drop of battle.drops) {
+        if (drop.claimed) continue;
+        let sprite = drops.get(drop.id);
+        if (!sprite) {
+          sprite = scene.add
+            .image(drop.position.x, drop.position.y - 3, coin.page, coin.id)
+            .setDepth(DEPTH.items + 1);
+          drops.set(drop.id, sprite);
+        }
+        const bounce = Math.floor(tick / 5) % 6;
+        sprite.setY(drop.position.y - 3 - Math.min(bounce, 6 - bounce));
+      }
+      for (const projectile of battle.projectiles) {
+        let sprite = arrows.get(projectile.id);
+        if (!sprite) {
+          sprite = scene.add.image(0, 0, arrow.page, arrow.id).setDepth(DEPTH.effects + 1);
+          arrows.set(projectile.id, sprite);
+        }
+        sprite
+          .setPosition(projectile.position.x, projectile.position.y)
+          .setRotation(Math.atan2(projectile.velocity.y, projectile.velocity.x) + Math.PI)
+          .setTint(projectile.faction === 'player' ? 0xffffff : 0xffb36d);
       }
       const a = session.actor;
       if (battle.guard) {

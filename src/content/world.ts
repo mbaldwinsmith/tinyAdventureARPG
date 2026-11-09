@@ -118,7 +118,7 @@ export const PREVIEW_WORLD = new WorldRegistry([
         211,
         155,
         'Open travel chest',
-        'An empty travel chest. Storage transactions will arrive with the inventory systems.',
+        'The travel chest keeps supplies and coins safe.',
       ),
       interaction('clearing-door', 'door', 117, 112, 'Enter cottage', '', {
         regionId: 'region:cottage',
@@ -180,7 +180,7 @@ export const PREVIEW_WORLD = new WorldRegistry([
         230,
         96,
         'Open cottage chest',
-        'This local chest keeps its own items and money, separate from the travel chest outside. Close this inspection and choose Open local storage while nearby.',
+        'The cottage chest keeps its own items and money.',
       ),
     ],
   },

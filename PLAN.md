@@ -422,7 +422,7 @@ Preview builds use one equipped relic and one selected active ability. Fire targ
 ## M15 — Complete UI, accessibility and desktop usability
 
 - [ ] **M15-001** Complete title, new/continue, save selection, pause, settings and credits flows.
-- [ ] **M15-002** Finish HUD health/energy, equipment, cooldown, calendar and contextual interaction feedback.
+- [x] **M15-002** Finish HUD health/energy, equipment, cooldown, calendar and contextual interaction feedback.
 - [ ] **M15-003** Finish inventory, chest, shop, dialogue, journal and map flows against real game state.
 - [ ] **M15-004** Add consistent keyboard/controller focus order, visible focus and cancel/back behaviour.
 - [ ] **M15-005** Add remapping, prompt updates and persistent settings for keyboard/controller actions.

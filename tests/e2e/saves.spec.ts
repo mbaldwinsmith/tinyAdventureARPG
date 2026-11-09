@@ -52,7 +52,7 @@ test('banks both owners durably, reloads, sleeps once, exports and imports a sep
   test.setTimeout(180000);
   await open(page);
   await importState(page, chestFixture());
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await page.getByLabel('Deposit Wood quantity', { exact: true }).fill('3');
   await page.getByRole('button', { name: 'Deposit Wood', exact: true }).click();
   await settled(page);
@@ -68,7 +68,7 @@ test('banks both owners durably, reloads, sleeps once, exports and imports a sep
   await page.reload();
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
   await settled(page);
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await expect(page.getByTestId('carried-money')).toHaveText('Carried: 15 coins');
   await expect(page.getByTestId('deposited-money')).toHaveText('In this chest: 10 coins');
   await page.getByRole('button', { name: 'Withdraw Wood', exact: true }).click();
@@ -78,10 +78,10 @@ test('banks both owners durably, reloads, sleeps once, exports and imports a sep
   await page.getByRole('button', { name: 'Close local storage' }).click();
   await page.getByRole('button', { name: 'Rest until tomorrow' }).click();
   await settled(page);
-  await expect(page.getByRole('region', { name: 'Day and season' })).toContainText('Day 2');
+  await expect(page.getByTestId('world-time')).toContainText('Day 2');
   await page.reload();
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
-  await expect(page.getByRole('region', { name: 'Day and season' })).toContainText('Day 2');
+  await expect(page.getByTestId('world-time')).toContainText('Day 2');
   await page.getByRole('button', { name: 'Saved adventures', exact: true }).click();
   await settled(page);
   const downloadPromise = page.waitForEvent('download');
@@ -101,7 +101,7 @@ test('banks both owners durably, reloads, sleeps once, exports and imports a sep
   await expect(page.getByRole('dialog', { name: 'Saved adventures' })).toHaveCount(0);
   await settled(page);
   await expect(page.locator('.save-panel')).toContainText('A new trail');
-  await expect(page.getByRole('region', { name: 'Day and season' })).toContainText('Day 1');
+  await expect(page.getByTestId('world-time')).toContainText('Day 1');
   await page.reload();
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
   await expect(page.locator('.save-panel')).toContainText('A new trail');
@@ -113,7 +113,7 @@ test('banks both owners durably, reloads, sleeps once, exports and imports a sep
   await expect(page.getByRole('dialog', { name: 'Saved adventures' })).toHaveCount(0);
   await settled(page);
   await expect(page.getByTestId('world-time')).toContainText('Day 2');
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await expect(page.getByTestId('deposited-money')).toHaveText('In this chest: 10 coins');
 });
 test('reloads a pending expedition defeat and its single resolved loss report', async ({
@@ -181,7 +181,9 @@ test('keeps a quota-failed bank transfer pending and retries the same complete c
   test.setTimeout(60000);
   await open(page);
   await importState(page, chestFixture());
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Local storage' })).toBeVisible();
+  await settled(page);
   await page.evaluate(() => {
     const original = IDBObjectStore.prototype.put;
     Object.defineProperty(window, 'restoreStorage', {
@@ -210,7 +212,7 @@ test('keeps a quota-failed bank transfer pending and retries the same complete c
   await expect(page.getByTestId('deposited-money')).toHaveText('In this chest: 10 coins');
   await page.reload();
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await expect(page.getByTestId('carried-money')).toHaveText('Carried: 15 coins');
   await expect(page.getByTestId('deposited-money')).toHaveText('In this chest: 10 coins');
 });

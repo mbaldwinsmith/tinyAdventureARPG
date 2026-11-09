@@ -32,6 +32,7 @@ export interface GameSnapshot {
   paused: boolean;
   pauseReasons: readonly PauseReason[];
   hero: HeroId;
+  vitals: GameSession['snapshot']['vitals'];
   error: string | null;
   animationRequest: { action: HeroAction; sequence: number } | null;
   calendar: { day: number; dayOfSeason: number; season: string; year: number; minuteOfDay: number };
@@ -135,6 +136,7 @@ export const INITIAL_SNAPSHOT: GameSnapshot = freezeData({
   paused: false,
   pauseReasons: [],
   hero: 1,
+  vitals: { health: 0, maxHealth: 0, energy: 0, maxEnergy: 0 },
   error: null,
   animationRequest: null,
   calendar: { day: 1, dayOfSeason: 1, season: 'Spring', year: 1, minuteOfDay: 360 },

@@ -1,3 +1,4 @@
+import { fieldArt } from '../assets/adventure-art';
 import type Phaser from 'phaser';
 import type { AssetManifest } from '../assets/definitions';
 import { createAtlasLookup } from '../assets/atlas';
@@ -12,6 +13,7 @@ export function createToolView(scene: Phaser.Scene, manifest: AssetManifest, ses
   const ground = scene.add.graphics().setDepth(24),
     signals = scene.add.graphics().setDepth(4004),
     labels = new Map<string, Phaser.GameObjects.Text>(),
+    props = new Map<string, Phaser.GameObjects.Image>(),
     lookup = createAtlasLookup(manifest);
   if (session.regionDefinition.id === TRAIL_ID) {
     const walls = scene.add.graphics().setDepth(90);
@@ -116,31 +118,33 @@ export function createToolView(scene: Phaser.Scene, manifest: AssetManifest, ses
             .fillStyle(tick % 150 < 50 ? 0xc8a152 : 0x596653)
             .fillRect(r.x, r.y, r.width, r.height);
           glyph = '← TRAP';
-        } else if (f.kind === 'crate' || f.kind === 'heavy' || f.kind === 'pot') {
-          if (!f.removed) {
-            if (f.kind === 'pot')
-              ground
-                .fillStyle(0xb47e54)
-                .fillCircle(p.x, p.y, 7)
-                .fillStyle(0x4a403b)
-                .fillEllipse(p.x, p.y - 4, 8, 4);
-            else
-              ground
-                .fillStyle(f.kind === 'heavy' ? 0x7a8190 : 0xa88251)
-                .fillRect(r.x, r.y, r.width, r.height)
-                .lineStyle(1, 0xe2d5ac)
-                .strokeRect(r.x, r.y, r.width, r.height)
-                .lineBetween(r.x + 2, r.y + 2, r.x + r.width - 2, r.y + r.height - 2);
+        } else if (
+          f.kind === 'crate' ||
+          f.kind === 'heavy' ||
+          f.kind === 'pot' ||
+          f.kind === 'coin'
+        ) {
+          let prop = props.get(f.id);
+          if (!prop) {
+            const frame = lookup(
+              f.kind === 'crate'
+                ? fieldArt.crate
+                : f.kind === 'heavy'
+                  ? fieldArt.weight
+                  : f.kind === 'pot'
+                    ? fieldArt.vessel
+                    : fieldArt.coin,
+            );
+            prop = scene.add
+              .image(p.x, p.y, frame.page, frame.id)
+              .setOrigin(0.5, f.kind === 'coin' ? 0.5 : 1);
+            props.set(f.id, prop);
           }
-          glyph = f.removed
-            ? ''
-            : f.kind === 'heavy'
-              ? 'WEIGHT'
-              : f.kind === 'crate'
-                ? 'CRATE'
-                : 'POT';
-        } else if (f.kind === 'coin') {
-          if (!f.claimed) ground.fillStyle(0xffd373).fillCircle(p.x, p.y, 3);
+          prop
+            .setPosition(p.x, p.y)
+            .setDepth(100 + p.y)
+            .setVisible(!f.removed && !f.claimed);
+          if (f.kind === 'heavy' && !f.removed) glyph = 'WEIGHT';
         } else {
           ground
             .fillStyle(f.opened ? 0x8eb17f : 0xe6cc7c)

@@ -1,3 +1,4 @@
+import { fieldArt } from '../assets/adventure-art';
 import { createVillageActorView } from './village-view';
 import type Phaser from 'phaser';
 import type { AssetManifest } from '../assets/definitions';
@@ -50,6 +51,9 @@ export function createGeneratedWorldView(
         ? Math.abs(x - ax) <= 1 && y >= Math.min(ay, by) - 1 && y <= Math.max(ay, by) + 1
         : Math.abs(y - ay) <= 1 && x >= Math.min(ax, bx) - 1 && x <= Math.max(ax, bx) + 1;
     });
+  const stone = lookup(fieldArt.stone);
+  const torches: Phaser.GameObjects.Image[] = [];
+  const torchFrames = fieldArt.torches.map(lookup);
   const canopies: { sprite: Phaser.GameObjects.Image; x: number; y: number }[] = [];
   const background =
     layout.biome === 'crypt'
@@ -71,15 +75,30 @@ export function createGeneratedWorldView(
       if (floor(x, y)) {
         const base =
           layout.biome === 'crypt'
-            ? sourceFrameRect(manifest, 'world-cottage-floor')
+            ? fieldArt.floor
             : layout.biome === 'forest'
               ? clearingGrass
               : biomeGround(profile.palette);
         const f = lookup(base);
-        scene.add
+        const tile = scene.add
           .image(x * 16, y * 16, f.page, f.id)
           .setOrigin(0)
           .setDepth(0);
+        if (layout.biome === 'crypt') {
+          tile.setTint((x + 2 * y) % 5 === 0 ? 0xaab5c3 : 0x9eacba);
+          if (
+            torchFrames[0] &&
+            !floor(x, y - 1) &&
+            floor(x - 1, y) &&
+            floor(x + 1, y) &&
+            (x + y) % 5 === 0
+          )
+            torches.push(
+              scene.add
+                .image(x * 16 + 8, y * 16 + 3, torchFrames[0].page, torchFrames[0].id)
+                .setDepth(11),
+            );
+        }
         if (layout.biome !== 'crypt' && (layout.biome !== 'forest' || trail(x, y))) {
           const rect =
             layout.biome === 'coast'
@@ -102,13 +121,11 @@ export function createGeneratedWorldView(
           }
         }
       } else if (layout.biome === 'crypt') {
-        scene.add
-          .graphics()
-          .setDepth(10)
-          .fillStyle(0x51586b)
-          .fillRect(x * 16, y * 16, 16, 16)
-          .lineStyle(1, 0x79818f)
-          .lineBetween(x * 16, y * 16, x * 16 + 15, y * 16);
+        if (floor(x, y + 1) || floor(x, y - 1) || floor(x + 1, y) || floor(x - 1, y))
+          scene.add
+            .image(x * 16, y * 16, stone.page, stone.id)
+            .setOrigin(0)
+            .setDepth(10);
       } else if (
         layout.biome === 'forest' &&
         (floor(x - 1, y) || floor(x + 1, y) || floor(x, y - 1) || floor(x, y + 1))
@@ -137,52 +154,77 @@ export function createGeneratedWorldView(
             .fillEllipse(x * 16 + 8, y * 16 + 8, 20, 12);
       }
     }
-  const glyphs: Record<string, string> = {
-    key: 'K',
-    switch: 'S',
-    axe: 'A',
-    'gate-key': 'K',
-    'gate-switch': 'S',
-    'gate-axe': 'A',
-    shortcut: '↗',
-    portal: '↪',
-    reward: '★',
-    secret: '?',
-    landmark: 'III',
-    resource: '+',
-  };
-  const sprites = new Map<
-    string,
-    {
-      image: Phaser.GameObjects.Image | null;
-      label: Phaser.GameObjects.Text;
-      marker: Phaser.GameObjects.Graphics;
-    }
-  >();
-  for (const p of layout.placements.filter(
-    (p) => !['entry', 'anchor', 'encounter', 'exit'].includes(p.kind),
-  )) {
-    const marker = scene.add.graphics().setDepth(20),
-      label = scene.add
-        .text(p.position.x, p.position.y - 19, glyphs[p.kind] ?? '', {
-          fontFamily: 'monospace',
-          fontSize: '10px',
-          color: '#fff3c6',
-          backgroundColor: '#303c38',
-          padding: { x: 2, y: 1 },
-        })
-        .setOrigin(0.5, 1)
-        .setDepth(4000);
-    let image: Phaser.GameObjects.Image | null = null;
-    if (p.kind === 'reward' || p.kind === 'secret' || p.kind === 'landmark') {
-      const f = lookup(sourceFrameRect(manifest, p.kind === 'landmark' ? 'rock' : 'chest'));
-      image = scene.add
-        .image(p.position.x, p.position.y, f.page, f.id)
-        .setOrigin(0.5, 1)
-        .setDepth(100 + p.position.y);
-    }
-    sprites.set(p.id, { image, label, marker });
-  }
+  const isGate = (kind: string) => kind.startsWith('gate-') || kind === 'shortcut';
+  const sprites = new Map(
+    layout.placements.flatMap((p) => {
+      const gate = isGate(p.kind);
+      const stair = p.kind === 'portal';
+      const destination = stair
+        ? session.regionDefinition.interactions.find((target) => target.id === p.id)?.destination
+        : null;
+      const rect =
+        p.kind === 'key'
+          ? fieldArt.key
+          : p.kind === 'switch'
+            ? fieldArt.switchUp
+            : p.kind === 'reward' || p.kind === 'secret'
+              ? fieldArt.treasureClosed
+              : stair
+                ? destination?.regionId === 'region:crypt'
+                  ? layout.biome === 'forest'
+                    ? fieldArt.stairsGrass
+                    : fieldArt.stairsDown
+                  : fieldArt.stairsUp
+                : gate
+                  ? fieldArt.gateClosed
+                  : p.kind === 'resource'
+                    ? sourceFrameRect(manifest, 'bush')
+                    : p.kind === 'landmark' || p.kind === 'axe'
+                      ? sourceFrameRect(manifest, 'rock')
+                      : null;
+      if (!rect) return [];
+      const packed = lookup(rect);
+      const image = scene.add
+        .image(p.position.x, p.position.y, packed.page, packed.id)
+        .setOrigin(0.5, gate || stair || p.kind === 'switch' ? 0.5 : 1)
+        .setDepth(stair || gate ? 24 : 100 + p.position.y);
+      const solid = gate
+        ? session.regionDefinition.solids.find((s) => s.owner === p.id)?.rect
+        : null;
+      if (solid) {
+        image.setScale(
+          Math.max(solid.width, solid.height) / 28,
+          Math.min(solid.width, solid.height) / 24,
+        );
+        if (solid.height > solid.width) image.setRotation(Math.PI / 2);
+      }
+      const label = ['gate-key', 'gate-switch', 'gate-axe', 'shortcut', 'axe'].includes(p.kind)
+        ? scene.add
+            .text(
+              p.position.x,
+              p.position.y - (solid && solid.height > solid.width ? 28 : 14),
+              p.kind === 'gate-key'
+                ? 'KEY'
+                : p.kind === 'gate-switch'
+                  ? 'SUN'
+                  : p.kind === 'shortcut'
+                    ? 'PATH'
+                    : 'AXE',
+              {
+                fontFamily: 'monospace',
+                fontSize: '8px',
+                color: '#fff0c7',
+                backgroundColor: '#28312c',
+                padding: { x: 2, y: 1 },
+              },
+            )
+            .setOrigin(0.5, 1)
+            .setDepth(4000)
+        : null;
+      const view = { image, label, changed: false };
+      return [[p.id, view] as const];
+    }),
+  );
   const nearby = scene.add.graphics().setDepth(4002);
   return {
     advance(_ms: number) {
@@ -194,39 +236,37 @@ export function createGeneratedWorldView(
         actor = session.actor.position;
       for (const canopy of canopies)
         canopy.sprite.setAlpha(Math.hypot(actor.x - canopy.x, actor.y - canopy.y) < 32 ? 0.35 : 1);
+      const flame = torchFrames[Math.floor(session.tick / 5) % torchFrames.length];
+      if (flame) for (const torch of torches) torch.setTexture(flame.page, flame.id);
       for (const p of layout.placements) {
         const view = sprites.get(p.id);
         if (!view) continue;
-        const opened = changes.passages.includes(p.id),
-          collected = changes.opened.includes(p.id) || changes.claimed.includes(p.id);
-        view.marker.clear();
-        view.label.setAlpha(opened || collected ? 0.55 : 1);
-        if (p.kind === 'portal')
-          view.marker
-            .fillStyle(0x85c9b5, 0.8)
-            .fillEllipse(p.position.x, p.position.y - 2, 22, 10)
-            .lineStyle(1, 0xd5edba)
-            .strokeEllipse(p.position.x, p.position.y - 2, 22, 10);
-        else if (p.kind.startsWith('gate-') || p.kind === 'shortcut') {
-          if (!opened) {
-            const solid = session.regionDefinition.solids.find((s) => s.owner === p.id)?.rect;
-            if (solid)
-              view.marker
-                .fillStyle(
-                  p.kind === 'gate-key' ? 0xe7bb64 : p.kind === 'gate-switch' ? 0x91bfcd : 0x8b6747,
-                )
-                .fillRect(solid.x, solid.y, solid.width, solid.height)
-                .lineStyle(1, 0x302f37)
-                .strokeRect(solid.x, solid.y, solid.width, solid.height);
-          }
-        } else
-          view.marker
-            .fillStyle(collected ? 0x4d6556 : 0xe0b86f, 0.9)
-            .fillCircle(p.position.x, p.position.y - 5, 6);
-        if (view.image && (p.kind === 'reward' || p.kind === 'secret')) {
-          const f = lookup(sourceFrameRect(manifest, 'chest', collected ? 3 : 0));
+        const changed =
+          changes.passages.includes(p.id) ||
+          changes.opened.includes(p.id) ||
+          changes.claimed.includes(p.id);
+        if (changed === view.changed) continue;
+        view.changed = changed;
+        const rect = isGate(p.kind)
+          ? changed
+            ? fieldArt.gateOpen
+            : fieldArt.gateClosed
+          : p.kind === 'switch'
+            ? changed
+              ? fieldArt.switchDown
+              : fieldArt.switchUp
+            : p.kind === 'reward' || p.kind === 'secret'
+              ? changed
+                ? fieldArt.treasureOpen
+                : fieldArt.treasureClosed
+              : null;
+        if (rect) {
+          const f = lookup(rect);
           view.image.setTexture(f.page, f.id);
         }
+        if (p.kind === 'key' || p.kind === 'axe') view.image.setVisible(!changed);
+        if (p.kind === 'resource') view.image.setAlpha(changed ? 0.45 : 1);
+        view.label?.setVisible(!changed);
       }
       nearby.clear();
       const target = session.snapshot.nearby,

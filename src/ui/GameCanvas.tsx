@@ -8,6 +8,14 @@ export function GameCanvas({ bridge }: { bridge: GameBridge }) {
     if (!host.current) return;
     return mountGame(host.current, bridge);
   }, [bridge]);
+  useEffect(() => {
+    let ready = false;
+    return bridge.subscribe((snapshot) => {
+      if (ready || snapshot.status !== 'ready') return;
+      ready = true;
+      if (document.activeElement === document.body) host.current?.focus({ preventScroll: true });
+    });
+  }, [bridge]);
   useEffect(
     () =>
       bridge.onEvent((event) => {

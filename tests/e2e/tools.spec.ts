@@ -155,7 +155,7 @@ test('walks from the village chest into the authored trail, earns tools, solves 
   await walk(page, 240, 175);
   await walk(page, 211, 175);
   await face(page, 'ArrowUp');
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await page.getByRole('button', { name: 'Collect starter supplies' }).click();
   await settled(page);
   await page.getByRole('button', { name: 'Close local storage' }).click();

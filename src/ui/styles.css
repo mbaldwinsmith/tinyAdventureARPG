@@ -80,14 +80,6 @@ summary:focus-visible {
   align-items: center;
   gap: 22px;
 }
-.build-badge {
-  font-size: 9px;
-  letter-spacing: 1.7px;
-  color: #778571;
-  border: 1px solid #d5ddcb;
-  border-radius: 20px;
-  padding: 7px 11px;
-}
 .button {
   border: 1px solid #35543f;
   border-radius: 5px;
@@ -121,36 +113,12 @@ kbd {
 .button kbd {
   margin-left: 9px;
 }
-.intro-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 39px 0 31px;
-}
 .eyebrow {
   font-size: 9px;
   letter-spacing: 2px;
   font-weight: bold;
   color: #7c8b72;
   margin: 0 0 13px;
-}
-h1 {
-  font:
-    43px/1.12 Georgia,
-    serif;
-  letter-spacing: -1.1px;
-  margin: 0;
-}
-h1 em {
-  color: #7b8c6d;
-  font-weight: normal;
-}
-.intro-copy {
-  font-size: 12px;
-  line-height: 1.9;
-  color: #7d8677;
-  padding-right: 20px;
-  margin-top: 37px;
 }
 .adventure-frame {
   border: 1px solid #a7b79d;
@@ -249,32 +217,6 @@ h1 em {
   border-radius: 4px;
   font-size: 11px;
   pointer-events: none;
-}
-.controls-bar {
-  padding: 13px 20px;
-  background: #f0f1e6;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #7a8771;
-  gap: 15px;
-}
-.controls-bar p {
-  margin: 0;
-  font-size: 10px;
-}
-.key-group {
-  display: inline-flex;
-  gap: 3px;
-  margin-right: 6px;
-}
-.control-divider {
-  padding: 0 12px;
-  color: #b8c0ae;
-}
-.preview-label {
-  font-size: 9px;
-  letter-spacing: 0.4px;
 }
 .below-world {
   display: grid;
@@ -423,17 +365,6 @@ footer span span {
   .masthead {
     height: 90px;
   }
-  .build-badge {
-    display: none;
-  }
-  h1 {
-    font-size: 34px;
-  }
-  .intro-copy {
-    max-width: 200px;
-    padding: 0;
-    font-size: 11px;
-  }
   .below-world {
     gap: 24px;
   }
@@ -452,9 +383,6 @@ footer span span {
     height: 32px;
     background-size: 128px 128px;
   }
-  .preview-label {
-    display: none;
-  }
 }
 @media (max-width: 600px) {
   .wordmark {
@@ -468,27 +396,9 @@ footer span span {
     width: 29px;
     height: 29px;
   }
-  .intro-row {
-    align-items: flex-start;
-    gap: 15px;
-    padding: 28px 0;
-  }
-  h1 {
-    font-size: 28px;
-  }
-  .intro-copy {
-    display: none;
-  }
   .location-type,
   .engine-status {
     display: none;
-  }
-  .controls-bar {
-    line-height: 2.2;
-    padding: 9px 14px;
-  }
-  .control-divider {
-    padding: 0 4px;
   }
   .below-world {
     grid-template-columns: 1fr;
@@ -804,16 +714,6 @@ footer span span {
   font-size: 12px;
 }
 
-.interaction-prompt {
-  min-height: 62px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  color: #61765e;
-  font-size: 12px;
-}
 .controls-dialog,
 .interaction-dialog {
   max-width: min(620px, calc(100vw - 32px));
@@ -873,10 +773,6 @@ footer span span {
 @media (max-width: 700px) {
   .binding-grid {
     grid-template-columns: 1fr;
-  }
-  .interaction-prompt {
-    align-items: flex-start;
-    flex-direction: column;
   }
   .header-actions {
     gap: 8px;
@@ -1414,4 +1310,400 @@ footer span span {
 }
 .tools-panel details {
   font-size: 0.85rem;
+}
+
+/* Gameplay occupies the first screen. The paper fieldbook sits beside the lacquered frame. */
+.app-shell {
+  max-width: 1380px;
+  padding-inline: clamp(16px, 3vw, 44px);
+}
+.masthead {
+  height: 75px;
+  margin-bottom: 19px;
+  border-bottom-color: #d0d6c8;
+}
+.wordmark {
+  color: #263c32;
+}
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #bda170;
+  background: #213a31;
+  transform: none;
+  box-shadow: inset 0 0 0 2px #182b25;
+}
+.header-actions {
+  gap: 9px;
+}
+.header-actions .button {
+  min-height: 40px;
+  padding: 8px 13px;
+}
+.play-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 960px) minmax(235px, 1fr);
+  align-items: start;
+  gap: clamp(14px, 2vw, 26px);
+}
+.adventure-frame {
+  border: 2px solid #506950;
+  border-radius: 3px;
+  box-shadow:
+    0 6px 0 #d5d9c9,
+    0 17px 34px #203b261a;
+  color: #f4efd9;
+  background: #192e28;
+  min-width: 0;
+}
+.location-bar {
+  background: #253d32;
+  border-bottom: 1px solid #596e57;
+  padding: 11px 14px;
+}
+.location-bar h2 {
+  font-size: 15px;
+  font-weight: bold;
+}
+.location-type {
+  color: #d2dcb9;
+}
+.engine-status {
+  color: #d8e0c5;
+  text-align: right;
+}
+.play-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  min-height: 61px;
+  padding: 6px 12px;
+  border-bottom: 2px solid #b99b5a;
+}
+.pixel-icon {
+  flex: none;
+  display: inline-block;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+}
+.hud-vitals,
+.hud-hearts,
+.hud-energy,
+.hud-time,
+.hud-actions,
+.hud-wallet,
+.hud-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hud-vitals {
+  flex-wrap: wrap;
+  gap: 5px 15px;
+}
+.heart-sprites {
+  display: flex;
+  align-items: center;
+}
+.heart-sprites .pixel-icon {
+  margin-inline: -4px;
+}
+.hud-pool-label,
+.hud-time {
+  color: #dce4c9;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.hud-energy progress {
+  width: 58px;
+  height: 8px;
+  accent-color: #a4ca83;
+}
+.hud-wallet {
+  min-width: 47px;
+  color: #f5d382;
+  font-variant-numeric: tabular-nums;
+}
+.hud-button {
+  border: 1px solid #75906c;
+  border-radius: 3px;
+  background: #304d3c;
+  color: #f9f2dd;
+  font-size: 12px;
+  font-weight: bold;
+  min-height: 39px;
+  padding: 3px 7px;
+}
+.hud-button:hover:not(:disabled),
+.toolbelt .tool-slot:hover:not(:disabled) {
+  background: #3d5c47;
+}
+.world-stage {
+  background: #263a2f;
+}
+.discovery-notice {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  max-width: min(92%, 430px);
+  color: #fff2c6;
+  background: #182c26f2;
+  border: 2px solid #d8b86c;
+  box-shadow: 0 3px #182c267a;
+}
+.discovery-notice strong,
+.discovery-notice span:not(.pixel-icon) {
+  display: block;
+}
+.discovery-notice span:not(.pixel-icon) {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #e1e7cf;
+}
+.action-dock {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 6px 12px;
+  border-top: 2px solid #b99b5a;
+  border-bottom: 1px solid #506950;
+}
+.context-hint,
+.action-legend {
+  font-size: 12px;
+  color: #d4e0c5;
+}
+.action-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 12px;
+}
+.action-legend > span,
+.context-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.context-action {
+  background: #e5c47b;
+  border-color: #f1d795;
+  color: #252d24;
+  font-weight: bold;
+  padding: 4px 11px;
+}
+.context-action:hover:not(:disabled) {
+  background: #f8dea2;
+}
+.adventure-frame .command-error {
+  margin: 7px 12px;
+  color: #f9ddb5;
+  background: #694739;
+}
+.adventure-frame .toolbelt {
+  padding: 9px 12px 11px;
+  border-radius: 0;
+  margin: 0;
+  background: #22392f;
+}
+.toolbelt-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #f3d99b;
+}
+.toolbelt-label span,
+.toolbelt .small-copy {
+  font-weight: normal;
+  color: #d3dfc5;
+}
+.toolbelt .tool-hotbar {
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 4px;
+}
+.toolbelt .tool-slot {
+  min-height: 51px;
+  padding: 3px 4px;
+  border: 1px solid #5f795e;
+  background: #293f34;
+  color: #f4efd9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 11px;
+}
+.toolbelt .tool-slot.selected {
+  border-color: #efd594;
+  box-shadow: inset 0 0 0 1px #efd594;
+  background: #49523a;
+}
+.toolbelt .tool-slot .pixel-icon {
+  margin-block: -2px;
+}
+.toolbelt .tool-slot > span:not(.pixel-icon) {
+  color: #e4e1c2;
+}
+.toolbelt .hotbar-use {
+  margin-top: 7px;
+}
+.toolbelt .button-subtle {
+  color: #f4efd9;
+  border-color: #7b926f;
+  padding: 4px 9px;
+}
+.toolbelt .button-subtle:hover:not(:disabled) {
+  background: #3d5c47;
+}
+.toolbelt .pack-feedback {
+  background: #364b3c;
+  color: #f3e6bf;
+  border-color: #dbbe7e;
+  padding: 7px 10px;
+  margin-block: 6px 0;
+}
+.fieldbook {
+  border: 1px solid #b5bda6;
+  border-top: 4px solid #71885e;
+  background: #f0f0e4;
+  padding: 14px;
+  min-width: 0;
+  box-shadow: 0 4px #e0e3d4;
+}
+.fieldbook-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #cdd3c2;
+}
+.fieldbook-heading .eyebrow {
+  margin: 0 0 2px;
+}
+.fieldbook-heading h2 {
+  font:
+    25px/1 Georgia,
+    serif;
+  margin: 0;
+}
+.fieldbook > .pack-panel,
+.fieldbook > .expedition-panel,
+.fieldbook > .save-panel {
+  margin: 0;
+  padding: 12px 0;
+  border-radius: 0;
+  background: transparent;
+  border-bottom: 1px solid #d1d6c6;
+}
+.fieldbook > .save-panel {
+  border-bottom: 0;
+  display: grid;
+  justify-items: start;
+  gap: 9px;
+  padding-bottom: 0;
+}
+.fieldbook > .pack-panel h2,
+.fieldbook > .expedition-panel h2 {
+  font:
+    bold 15px/1.2 Georgia,
+    serif;
+  margin: 0 0 7px;
+}
+.fieldbook > .pack-panel p {
+  margin: 4px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.fieldbook .expedition-summary {
+  align-items: start;
+  gap: 4px;
+}
+.camp-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 17px;
+  align-items: start;
+}
+@media (max-width: 1050px) {
+  .play-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 680px) {
+  .masthead {
+    height: 65px;
+    margin-bottom: 10px;
+  }
+  .play-hud,
+  .location-bar,
+  .action-dock {
+    padding-inline: 8px;
+  }
+  .engine-status {
+    display: inline;
+  }
+  .hud-time {
+    order: 3;
+  }
+  .action-legend {
+    font-size: 11px;
+  }
+  .camp-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.fieldbook > .calendar-panel {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid #d1d6c6;
+  padding: 12px 0;
+  margin: 0;
+}
+.fieldbook .calendar-panel .eyebrow {
+  display: none;
+}
+.fieldbook .calendar-panel h2 {
+  font:
+    bold 15px/1.2 Georgia,
+    serif;
+  margin: 0 0 4px;
+}
+.fieldbook .calendar-panel p {
+  margin: 0;
+  color: #465d49;
+  line-height: 1.5;
+}
+@media (max-width: 480px) {
+  .wordmark {
+    font-size: 17px;
+    gap: 7px;
+    white-space: nowrap;
+  }
+  .wordmark small {
+    letter-spacing: 1px;
+  }
+  .header-actions .button {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  .header-actions .sprite-key {
+    display: none;
+  }
 }

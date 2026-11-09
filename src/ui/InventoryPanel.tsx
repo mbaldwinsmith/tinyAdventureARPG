@@ -1,3 +1,8 @@
+import { farmProduceFrame, farmSprout } from '../assets/farm';
+import type { SourceRect } from '../assets/terrain';
+import { CROPS } from '../content/farm';
+import { adventureIcons } from '../assets/adventure-art';
+import { PixelIcon } from './PlayHud';
 import { abilityIdSchema } from '../content/builds';
 import { useEffect, useRef, useState } from 'react';
 import type { GameBridge, GameSnapshot } from '../bridge/game-bridge';
@@ -7,6 +12,20 @@ import { slotIdSchema } from '../core/ids';
 import { ActionPrompt } from './ActionPrompt';
 import { CheckpointRecovery } from './SavePanel';
 export type InventoryItem = NonNullable<GameSnapshot['inventory']>['items'][number];
+const itemArt: Partial<Record<string, SourceRect>> = {
+  'item:iron-sword': adventureIcons.blade,
+  'item:shield': adventureIcons.shield,
+  ...Object.fromEntries(
+    Object.values(CROPS).flatMap((crop) => [
+      [crop.produce, farmProduceFrame(crop.artRow)],
+      [crop.seed, farmSprout],
+    ]),
+  ),
+};
+function ItemSprite({ item, assets }: { item: InventoryItem; assets: AssetManifest | null }) {
+  const rect = itemArt[item.templateId];
+  return rect ? <PixelIcon assets={assets} rect={rect} /> : null;
+}
 const focusWorld = () =>
   requestAnimationFrame(() => document.querySelector<HTMLElement>('.game-canvas')?.focus());
 export function ItemDescription({ item }: { item: InventoryItem }) {
@@ -69,26 +88,13 @@ export function InventoryPanel({
     });
     if (result.ok) focusWorld();
   };
+  const selectedTool = pack.hotbar.find((tool) => tool.id === pack.selectedTool);
   const ability = pack.build.unlocked.find((option) => option.id === pack.build.selected);
   return (
-    <section className="pack-panel" aria-label="Pack and tools">
-      <div className="pack-heading">
-        <div>
-          <p className="eyebrow">READY FOR THE NEXT PATH</p>
-          <h2>Your pack. Your choices.</h2>
-          <p className="small-copy">
-            {pack.items.length} / {pack.capacity} stacks · {pack.money} carried coins · equipment
-            stays carried.
-          </p>
-        </div>
-        <button
-          className="button"
-          disabled={snapshot.status !== 'ready' || snapshot.paused || busy}
-          onClick={() => bridge.send({ type: 'pause.set', reason: 'inventory', active: true })}
-        >
-          Open pack <ActionPrompt manifest={assets} input={snapshot.input} action="inventory" />
-        </button>
-      </div>
+    <section className="pack-panel toolbelt" aria-label="Pack and tools">
+      <p className="toolbelt-label">
+        Toolbelt <span>· Select an item to ready it</span>
+      </p>
       <div className="tool-hotbar" aria-label="Tool hotbar">
         {pack.hotbar.map((tool) => (
           <button
@@ -99,15 +105,18 @@ export function InventoryPanel({
             disabled={snapshot.status !== 'ready' || snapshot.paused || busy}
             onClick={() => select(tool.id)}
           >
+            <PixelIcon
+              assets={assets}
+              rect={adventureIcons[tool.id === 'sword' ? 'blade' : tool.id]}
+            />
             <strong>{tool.name}</strong>
             <span>
-              {tool.cooldownSeconds > 0 ? `${tool.cooldownSeconds.toFixed(1)}s` : 'Ready'}
+              {!tool.available
+                ? 'Locked'
+                : tool.cooldownSeconds > 0
+                  ? `${tool.cooldownSeconds.toFixed(1)}s`
+                  : 'Ready'}
             </span>
-            <small>
-              {tool.energyCost === 0
-                ? 'No energy cost'
-                : `${tool.energyCost} energy${tool.id === 'shield' ? ' per block' : ''}`}
-            </small>
           </button>
         ))}
       </div>
@@ -115,11 +124,12 @@ export function InventoryPanel({
         <p className="small-copy">
           {snapshot.combat?.active
             ? `Borrowed encounter kit · ${snapshot.combat.energy} / ${snapshot.combat.maximumEnergy} energy. No ammunition.`
-            : 'Choose a tool here, then use X / RT. New trail tools require permanent ownership; Push and Pull work on marked weights.'}
+            : 'Trail tools are unlocked on the woodland path.'}
         </p>
         <button
           className="button button-subtle"
           disabled={
+            (!selectedTool?.available && !snapshot.carrying) ||
             (!snapshot.combat?.active && ['sword', 'roll'].includes(pack.selectedTool)) ||
             snapshot.paused ||
             busy ||
@@ -169,9 +179,9 @@ export function InventoryPanel({
           it.
         </p>
       )}
-      {(pack.feedback || snapshot.notice) && (
+      {pack.feedback && (
         <p className="pack-feedback" aria-live="polite">
-          {snapshot.notice ?? `Last action: ${pack.feedback}`}
+          {pack.feedback}
         </p>
       )}
       {pack.build.rewards.some((reward) => reward.available) && (
@@ -183,12 +193,25 @@ export function InventoryPanel({
         </p>
       )}
       {open && (
-        <InventoryDialog key={snapshot.transitionSequence} bridge={bridge} snapshot={snapshot} />
+        <InventoryDialog
+          key={snapshot.transitionSequence}
+          bridge={bridge}
+          snapshot={snapshot}
+          assets={assets}
+        />
       )}
     </section>
   );
 }
-function InventoryDialog({ bridge, snapshot }: { bridge: GameBridge; snapshot: GameSnapshot }) {
+function InventoryDialog({
+  bridge,
+  snapshot,
+  assets,
+}: {
+  bridge: GameBridge;
+  snapshot: GameSnapshot;
+  assets: AssetManifest | null;
+}) {
   const ref = useRef<HTMLDialogElement>(null),
     closeButton = useRef<HTMLButtonElement>(null),
     lastFocused = useRef<HTMLElement | null>(null),
@@ -311,6 +334,7 @@ function InventoryDialog({ bridge, snapshot }: { bridge: GameBridge; snapshot: G
                   <small>
                     {String(index + 1).padStart(2, '0')} {entry.equipped ? '· equipped' : ''}
                   </small>
+                  <ItemSprite item={entry} assets={assets} />
                   <strong>{entry.name}</strong>
                   <span>× {entry.quantity}</span>
                   {entry.enchantments.length > 0 && (

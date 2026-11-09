@@ -12,6 +12,7 @@ export const ACTIONS = [
   'bow',
   'pause',
   'inventory',
+  'map',
   'use',
   'ability',
 ] as const;
@@ -28,6 +29,7 @@ export const KEY_CODES = [
   'KeyJ',
   'KeyK',
   'KeyL',
+  'KeyM',
   'KeyP',
   'KeyQ',
   'KeyR',
@@ -52,6 +54,7 @@ export const DEFAULT_KEYS: KeyBindings = {
   bow: 'KeyF',
   pause: 'Escape',
   inventory: 'KeyI',
+  map: 'KeyM',
   use: 'KeyX',
   ability: 'KeyZ',
 };
@@ -73,6 +76,7 @@ export interface InputView {
   rollButton: number;
   bowButton: number;
   inventoryButton: number;
+  mapButton: number;
   useButton: number;
   abilityButton: number;
 }
@@ -87,6 +91,7 @@ export const DEFAULT_INPUT: InputView = {
   rollButton: 3,
   bowButton: 5,
   inventoryButton: 8,
+  mapButton: 11,
   useButton: 7,
   abilityButton: 6,
 };
@@ -139,6 +144,7 @@ export class PadReader {
       | 'rollButton'
       | 'bowButton'
       | 'inventoryButton'
+      | 'mapButton'
       | 'useButton'
       | 'abilityButton'
     >,
@@ -192,6 +198,7 @@ export class PadReader {
     if (rising(bindings.rollButton)) pressed.push('roll');
     if (rising(bindings.bowButton)) pressed.push('bow');
     if (rising(bindings.inventoryButton)) pressed.push('inventory');
+    if (rising(bindings.mapButton)) pressed.push('map');
     if (rising(bindings.useButton)) pressed.push('use');
     if (rising(bindings.abilityButton)) pressed.push('ability');
     for (const [button, direction] of [
@@ -246,6 +253,7 @@ export const BUTTON_ACTIONS = [
   'bow',
   'pause',
   'inventory',
+  'map',
   'use',
   'ability',
 ] as const;
@@ -258,6 +266,7 @@ export const BUTTON_PROPERTIES = {
   bow: 'bowButton',
   pause: 'pauseButton',
   inventory: 'inventoryButton',
+  map: 'mapButton',
   use: 'useButton',
   ability: 'abilityButton',
 } as const;

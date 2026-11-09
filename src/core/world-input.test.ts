@@ -138,14 +138,18 @@ describe('authoritative nearby interactions and region changes', () => {
     expect(distant.serialize()).toBe(before);
     const game = positioned(211, 168);
     expect(game.snapshot.nearby?.kind).toBe('chest');
-    expect(game.dispatch({ type: 'world.interact', target: null })).toEqual({ ok: true });
-    expect(game.snapshot.message?.title).toBe('Open travel chest');
+    const staged = game.stage({ type: 'world.interact', target: null });
+    expect(staged.result).toEqual({ ok: true });
+    expect(game.snapshot.pauseReasons).not.toContain('storage');
+    game.adopt(staged.draft);
+    expect(game.snapshot.pauseReasons).toContain('storage');
+    expect(game.snapshot.storage?.name).toBe('Open travel chest');
     game.dispatch({ type: 'pause.set', reason: 'background', active: true });
-    game.dispatch({ type: 'interaction.dismiss' });
+    game.dispatch({ type: 'pause.set', reason: 'storage', active: false });
     expect(game.snapshot.paused).toBe(true);
     game.dispatch({ type: 'pause.set', reason: 'background', active: false });
     game.dispatch({ type: 'world.interact', target: null });
-    game.dispatch({ type: 'interaction.dismiss' });
+    game.dispatch({ type: 'pause.set', reason: 'storage', active: false });
     expect(game.worldPresentation.opened).toEqual([entityIdSchema.parse('entity:clearing-chest')]);
     expect(
       new GameSession(JSON.parse(game.serialize()), PREVIEW_CONTENT, PREVIEW_WORLD)

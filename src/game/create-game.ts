@@ -253,6 +253,8 @@ export function mountGame(host: HTMLElement, bridge: GameBridge): () => void {
           bridge.send({ type: 'combat.guard', active: guard });
         if (intent.pressed.includes('inventory'))
           bridge.send({ type: 'pause.set', reason: 'inventory', active: true });
+        else if (intent.pressed.includes('map') && controller.session.snapshot.expedition)
+          bridge.send({ type: 'pause.set', reason: 'map', active: true });
         else if (intent.pressed.includes('pause'))
           bridge.send({ type: 'pause.set', reason: 'menu', active: true });
         else if (intent.pressed.includes('interact')) {

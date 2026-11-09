@@ -1,5 +1,100 @@
 [
   {
+    "id": "dungeon-arrow",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Arrow.png"
+  },
+  {
+    "id": "dungeon-crate",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Box.png"
+  },
+  {
+    "id": "dungeon-vessel",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Vessel.png"
+  },
+  {
+    "id": "hud-sword",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Items/Weapon/Sword_outline.png"
+  },
+  {
+    "id": "hud-shield",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Items/Weapon/Shield_outline.png"
+  },
+  {
+    "id": "hud-bow",
+    "archive": "Tiny Adventure Pack Plus.zip",
+    "path": "Tiny Adventure Pack Plus/Other/Items/Weapon/Bow_outline.png"
+  },
+  {
+    "id": "dungeon-room-gray",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Tilesets/Room/Room_gray.png"
+  },
+  {
+    "id": "dungeon-golden-key",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Golden_key.png"
+  },
+  {
+    "id": "dungeon-coin",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Coin.png"
+  },
+  {
+    "id": "dungeon-switch",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Switches/Switch_press.png"
+  },
+  {
+    "id": "dungeon-stairs-down",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Stairs_down.png"
+  },
+  {
+    "id": "dungeon-stairs-grass",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Stairs_down_grass.png"
+  },
+  {
+    "id": "dungeon-stairs-up",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Stairs_up.png"
+  },
+  {
+    "id": "dungeon-torch",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Torch.png"
+  },
+  {
+    "id": "dungeon-treasure",
+    "archive": "Tiny Dungeon Pack.zip",
+    "path": "Tiny Dungeon Pack/Misc/Big_treasure_chest.png"
+  },
+  {
+    "id": "gui-menu-icons",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Icons/Menu_icons_16x16.png"
+  },
+  {
+    "id": "gui-item-icons",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Icons/Item_Icons_16x16.png"
+  },
+  {
+    "id": "gui-coin-icons",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Icons/Coins_16x16.png"
+  },
+  {
+    "id": "gui-clock-icons",
+    "archive": "Tiny_GUI_Pack_v2.zip",
+    "path": "GUI_Pack/Misc/Clock_16x16.png"
+  },
+  {
     "id": "farm-crops",
     "archive": "Tiny Farm Pack.zip",
     "path": "Tiny Farm Pack/Other/Sprouts_Fruit_Crops.png"
@@ -1102,7 +1197,7 @@
     "id": "tool-hook-pole",
     "archive": "TinyCastlePack.zip",
     "path": "PNG/PNGs/Hook_n_pole16x16.png",
-    "inspectionOnly": true
+    "inspectionOnly": false
   },
   {
     "id": "tool-magic-effect",
@@ -1975,13 +2070,13 @@
     "id": "gui-vitals",
     "archive": "Tiny_GUI_Pack_v2.zip",
     "path": "GUI_Pack/Icons/Heart_Drop_Star_16x16.png",
-    "inspectionOnly": true
+    "inspectionOnly": false
   },
   {
     "id": "gui-status",
     "archive": "Tiny_GUI_Pack_v2.zip",
     "path": "GUI_Pack/Icons/Status_icons_16x16.png",
-    "inspectionOnly": true
+    "inspectionOnly": false
   },
   {
     "id": "gui-prompts-keyboard-light",

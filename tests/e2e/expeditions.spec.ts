@@ -182,7 +182,7 @@ async function openForest(page: Page, starterSupplies = false) {
     await walk(page, state, { x: 240, y: 175 });
     await walk(page, state, { x: 211, y: 175 });
     await move(page, 'ArrowUp', 60);
-    await page.getByRole('button', { name: 'Open local storage' }).click();
+    await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
     await page.getByRole('button', { name: 'Collect starter supplies' }).click();
     await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
     await page.getByRole('button', { name: 'Close local storage' }).click();
@@ -204,8 +204,12 @@ test('walks into the generated forest, solves a key gate, pauses its explored ma
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const state = await openForest(page);
-  await page.getByRole('button', { name: 'Open explored map' }).click();
+  await page.keyboard.press('m');
+  await page.clock.runFor(100);
   await expect(page.getByRole('dialog', { name: 'Explored map' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Explored rooms and known trails' })).toContainText(
+    'YOU ARE HERE',
+  );
   const before = await pose(page);
   await page.clock.runFor(500);
   expect(await pose(page)).toEqual(before);
@@ -215,15 +219,15 @@ test('walks into the generated forest, solves a key gate, pauses its explored ma
   await page.getByRole('button', { name: 'Close map' }).click();
   await page.clock.runFor(100);
   await approach(page, state, 'key');
-  await expect(page.getByRole('dialog', { name: 'Take brass key' })).toBeVisible();
-  await page.getByRole('button', { name: 'Continue exploring' }).click();
+  await expect(page.locator('.discovery-notice strong')).toHaveText('Brass key found');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.clock.runFor(100);
   const key = retainedArea(state).geometry.generated?.placements.find((p) => p.kind === 'key');
   if (!key) throw new Error('Missing key');
   retainedArea(state).changes.openedObjects.push(key.id);
   await approach(page, state, 'gate-key');
-  await expect(page.getByRole('dialog', { name: 'Unlock brass gate' })).toBeVisible();
-  await page.getByRole('button', { name: 'Continue exploring' }).click();
+  await expect(page.locator('.discovery-notice strong')).toHaveText('Passage opened');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.clock.runFor(100);
   const gate = retainedArea(state).geometry.generated?.placements.find(
     (p) => p.kind === 'gate-key',
@@ -319,8 +323,8 @@ async function fightNearby(page: Page, state: SaveState) {
 }
 async function solve(page: Page, state: SaveState, kind: string) {
   await approach(page, state, kind);
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await page.getByRole('button', { name: 'Continue exploring' }).click();
+  await expect(page.locator('.discovery-notice')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.clock.runFor(120);
   const area = retainedArea(state),
     p = area.geometry.generated?.placements.find((p) => p.kind === kind);

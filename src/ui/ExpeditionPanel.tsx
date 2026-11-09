@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { GameBridge, GameSnapshot } from '../bridge/game-bridge';
 export function ExpeditionPanel({
   bridge,
@@ -7,61 +7,33 @@ export function ExpeditionPanel({
   bridge: GameBridge;
   snapshot: GameSnapshot;
 }) {
-  const [open, setOpen] = useState(false),
-    expedition = snapshot.expedition;
+  const expedition = snapshot.expedition;
+  if (!expedition) return null;
   const close = () => {
-    setOpen(false);
     bridge.send({ type: 'pause.set', reason: 'map', active: false });
     requestAnimationFrame(() => document.querySelector<HTMLElement>('.game-canvas')?.focus());
   };
   return (
     <section className="expedition-panel" aria-label="Persistent expeditions">
-      <div>
-        <p className="eyebrow">A WORLD THAT REMEMBERS</p>
-        <h2>{expedition ? 'Your expedition' : 'Beyond the familiar paths'}</h2>
-        <p className="small-copy">
-          {expedition
-            ? 'Find the brass key, activate the sun switch and claim the trail axe. Familiar routes stay open. Your borrowed combat kit works here, too.'
-            : 'The forest trail is in the southwest corner of the village clearing. Follow it to persistent forest, desert, winter and coastal regions, and an anchored crypt.'}
-        </p>
+      <h2>Explored routes</h2>
+      <div className="expedition-summary">
+        <strong>
+          {expedition.rooms.filter((r) => r.explored).length} / {expedition.rooms.length} clearings
+          explored
+        </strong>
+        <span>
+          Generation {expedition.generation}
+          {expedition.anchor ? ` · anchor ${expedition.anchor}` : ''}
+        </span>
+        <span>
+          {expedition.tools.some((tool) => tool === 'tool:axe')
+            ? 'Trail axe · permanent access'
+            : 'Trail axe · undiscovered'}
+        </span>
       </div>
-      {expedition && (
-        <>
-          <div className="expedition-summary">
-            <strong>
-              {expedition.rooms.filter((r) => r.explored).length} / 9 clearings explored
-            </strong>
-            <span>
-              Generation {expedition.generation}
-              {expedition.anchor ? ` · anchor ${expedition.anchor}` : ''}
-            </span>
-            <span>
-              {expedition.tools.some((t) => t === 'tool:axe')
-                ? 'Trail axe: permanent access'
-                : 'Trail axe: not yet found'}
-            </span>
-            <button
-              className="button"
-              disabled={snapshot.paused}
-              onClick={() => {
-                const result = bridge.send({ type: 'pause.set', reason: 'map', active: true });
-                if (result.ok) setOpen(true);
-              }}
-            >
-              Open explored map
-            </button>
-          </div>
-          <p className="small-copy">
-            Surfaces keep their geography. Wild supplies and claimed ordinary enemies refresh
-            offscreen on a later day. A living crypt never resets. After its warden falls, collect
-            the reward and exit; the next entry creates its successor. Defeat returns you to the
-            village. Carried materials face individual loss rolls and 10% of carried money is lost;
-            equipment, deposits and permanent progress stay protected. Browser checkpoints retain
-            this adventure. Export backups for safekeeping.
-          </p>
-        </>
+      {snapshot.pauseReasons.includes('map') && (
+        <ExploredMap expedition={expedition} close={close} />
       )}
-      {open && expedition && <ExploredMap expedition={expedition} close={close} />}
     </section>
   );
 }
@@ -82,6 +54,15 @@ function ExploredMap({
     const r = e.rooms.find((r) => r.id === id);
     return { x: 50 + (r?.column ?? 0) * 100, y: 50 + (r?.row ?? 0) * 100 };
   };
+  const markerName = (marker: (typeof e.markers)[number]) => {
+    const name =
+      marker.kind === 'portal'
+        ? 'exit'
+        : marker.kind.startsWith('gate-')
+          ? marker.kind.slice(5) + ' gate'
+          : marker.kind;
+    return marker.opened ? `${name} ✓` : name;
+  };
   return (
     <dialog
       ref={ref}
@@ -93,7 +74,7 @@ function ExploredMap({
       }}
     >
       <p className="eyebrow">{e.rooms.filter((r) => r.explored).length} PLACES REMEMBERED</p>
-      <h2>Chart your return.</h2>
+      <h2>Explored map</h2>
       <svg viewBox="0 0 300 300" role="img" aria-label="Explored rooms and known trails">
         {e.edges.map((edge) => {
           const a = point(edge.from),
@@ -113,7 +94,8 @@ function ExploredMap({
         })}
         {e.rooms.map((r) => {
           const p = point(r.id),
-            markers = e.markers.filter((m) => m.room === r.id);
+            markers = e.markers.filter((m) => m.room === r.id),
+            here = r.id === e.currentRoom;
           return (
             <g key={r.id}>
               <rect
@@ -121,33 +103,48 @@ function ExploredMap({
                 y={p.y - 31}
                 width="72"
                 height="62"
-                rx="8"
-                fill={r.explored ? '#d8e4ce' : '#e6e4d8'}
-                stroke="#849482"
+                rx="3"
+                fill={here ? '#fae9ad' : r.explored ? '#d8e4ce' : '#e6e4d8'}
+                stroke={here ? '#805d33' : '#849482'}
+                strokeWidth={here ? 3 : 1}
               />
               <text x={p.x} y={p.y - 4} textAnchor="middle" fontSize="11">
                 {r.explored ? r.tag : '?'}
               </text>
-              <text x={p.x} y={p.y + 15} textAnchor="middle" fontSize="8">
-                {markers
-                  .map((m) =>
-                    m.kind === 'portal'
-                      ? 'entrance'
-                      : m.kind === 'shortcut'
-                        ? m.opened
-                          ? 'shortcut ✓'
-                          : 'shortcut'
-                        : m.kind,
-                  )
-                  .join(' · ')}
-              </text>
+              {here && (
+                <text x={p.x} y={p.y - 17} textAnchor="middle" fontSize="8">
+                  YOU ARE HERE
+                </text>
+              )}
+              {markers.slice(0, 2).map((marker, index) => (
+                <text
+                  key={marker.id}
+                  x={p.x}
+                  y={p.y + 9 + index * 11}
+                  textAnchor="middle"
+                  fontSize="8"
+                >
+                  {markerName(marker)}
+                  {index === 1 && markers.length > 2 ? ` +${markers.length - 2}` : ''}
+                </text>
+              ))}
             </g>
           );
         })}
       </svg>
-      <p className="small-copy">
-        ? Unexplored · dotted trail: shortcut · entrances and discoveries persist.
-      </p>
+      <p className="small-copy">? Unexplored · ✓ Claimed or open · dotted lines show shortcuts.</p>
+      {e.markers.length > 0 && (
+        <details>
+          <summary>Known landmarks</summary>
+          <ul className="small-copy">
+            {e.markers.map((marker) => (
+              <li key={marker.id}>
+                {e.rooms.find((room) => room.id === marker.room)?.tag} · {markerName(marker)}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
       <details>
         <summary>Generation diagnostics</summary>
         <p className="small-copy diagnostics">

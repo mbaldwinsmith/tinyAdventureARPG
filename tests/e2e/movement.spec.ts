@@ -130,8 +130,8 @@ test('uses real doors, opens a retained chest, carries a box and selects swimmin
   await move(page, 'ArrowDown', 600);
   await expect(page.getByRole('button', { name: 'Open travel chest', exact: true })).toBeVisible();
   await interact(page);
-  await expect(page.getByRole('dialog', { name: 'Open travel chest' })).toBeVisible();
-  await page.getByRole('button', { name: 'Continue exploring' }).click();
+  await expect(page.getByRole('dialog', { name: 'Local storage' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close local storage' }).click();
   await page.clock.runFor(100);
   await move(page, 'ArrowRight', 800);
   await move(page, 'ArrowDown', 1100);
@@ -148,7 +148,7 @@ test('uses real doors, opens a retained chest, carries a box and selects swimmin
   await move(page, 'ArrowRight', 1550);
   await move(page, 'ArrowDown', 800);
   expect((await pose(page)).animation).toContain('swim-idle');
-  await expect(page.locator('.interaction-prompt')).toContainText('Swimming in the pond');
+  await expect(page.locator('.action-dock')).toContainText('Swimming');
 });
 
 test('follows the player in a larger bounded region and returns through a clear incoming spawn', async ({
@@ -221,7 +221,7 @@ test('routes an emulated standard Gamepad API through neutral arming, menus, nav
   await setPad(page);
   await page.clock.runFor(150);
   expect((await pose(page)).x).toBeGreaterThan(initial.x + 10);
-  await expect(page.locator('.preview-label')).toContainText('xbox');
+  await expect(page.getByRole('group', { name: 'xbox controls' })).toContainText('Stick / D-pad');
   await padPress(page, 0);
   await expect(page.getByRole('dialog', { name: 'Read sign' })).toBeVisible();
   await padPress(page, 1);
@@ -263,5 +263,5 @@ test('routes an emulated standard Gamepad API through neutral arming, menus, nav
   const disconnected = await pose(page);
   await page.clock.runFor(500);
   expect((await pose(page)).x).toBeCloseTo(disconnected.x);
-  await expect(page.locator('.preview-label')).toContainText('Keyboard');
+  await expect(page.getByRole('group', { name: 'keyboard controls' })).toContainText('arrows');
 });

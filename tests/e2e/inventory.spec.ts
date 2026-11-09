@@ -41,7 +41,7 @@ async function importState(page: Page, state: SaveState) {
   });
 }
 async function claim(page: Page) {
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await page.getByRole('button', { name: 'Collect starter supplies' }).click();
   await settled(page);
   await expect(page.getByRole('button', { name: 'Collect starter supplies' })).toHaveCount(0);
@@ -106,7 +106,7 @@ test('manages a real starter kit, stacks, equipment, paired chest owners and del
   const before = await backup(page),
     keen = before.player.carried.items.find((i) => i.enchantments.length);
   if (!keen) throw new Error('No enchanted blade');
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   const carried = page.locator('.storage-columns > section').first(),
     banked = page.locator('.storage-columns > section').last();
   await carried
@@ -127,7 +127,7 @@ test('manages a real starter kit, stacks, equipment, paired chest owners and del
   await page.reload();
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
   await settled(page);
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await expect(page.getByTestId('carried-money')).toHaveText('Carried: 15 coins');
   await expect(page.getByTestId('deposited-money')).toHaveText('In this chest: 10 coins');
   await page.getByRole('button', { name: 'Withdraw Iron sword', exact: true }).click();
@@ -177,7 +177,7 @@ test('leaves a full-pack starter reward unclaimed, then succeeds after room is m
     }),
   ];
   await importState(page, crowded);
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await page.getByRole('button', { name: 'Collect starter supplies' }).click();
   await expect(page.getByRole('dialog', { name: 'Local storage' })).toContainText(
     'remains unclaimed',
@@ -187,7 +187,7 @@ test('leaves a full-pack starter reward unclaimed, then succeeds after room is m
   await expect(pack(page)).toContainText('1 / 4 stacks');
   await expect(pack(page)).toContainText('Permanent tools: none yet');
   await page.getByRole('button', { name: 'Close pack' }).click();
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await page.getByLabel('Deposit Wood quantity', { exact: true }).fill('99');
   await page.getByRole('button', { name: 'Deposit Wood', exact: true }).click();
   await settled(page);
