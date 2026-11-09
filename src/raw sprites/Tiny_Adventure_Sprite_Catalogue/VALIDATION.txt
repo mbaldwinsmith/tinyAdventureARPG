@@ -1,0 +1,11 @@
+Validated 2 November 2026
+
+PASS: all 23 archives enumerated; 1,466 entries accounted for.
+PASS: all 1,436 PNG occurrences map to 716 unique image records.
+PASS: SHA-256 of every preview matches original archive bytes.
+PASS: every companion ID and named group resolves.
+PASS: every image has an identity, group, source and suggested use.
+PASS: CSV counts match JSON.
+PASS: UI JavaScript syntax and DOM simulation for search, filters, pagination, details, zoom and companion navigation.
+LIMITATION: no installed Chromium executable; actual browser rendering/layout was not verified.
+LIMITATION: sheet-level visual review is complete; this is not a frame-timed runtime atlas.
