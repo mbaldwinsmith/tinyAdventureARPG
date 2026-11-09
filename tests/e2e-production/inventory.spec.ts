@@ -24,7 +24,7 @@ test('walks to starter supplies, equips and reloads a responsive production pack
     await page.keyboard.up(key);
     await page.clock.runFor(100);
   }
-  await page.getByRole('button', { name: 'Open local storage' }).click();
+  await page.getByRole('button', { name: /Open (travel|cottage) chest/ }).click();
   await page.getByRole('button', { name: 'Collect starter supplies' }).click();
   await expect(page.getByTestId('save-status')).not.toHaveText('Saving…');
   await expect(page.getByRole('button', { name: 'Collect starter supplies' })).toHaveCount(0);

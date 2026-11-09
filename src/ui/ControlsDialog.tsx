@@ -13,6 +13,7 @@ const labels = {
   bow: 'Bow',
   pause: 'Pause',
   inventory: 'Open pack',
+  map: 'Open explored map',
   use: 'Use selected tool',
   ability: 'Activate ability',
 };

@@ -30,9 +30,9 @@ The existing preview policy is smooth 60px/second movement, normalised diagonals
 A nearby target must be within 26px, in the facing half-plane (4px tolerance), and have clear line of sight excluding its own solid. The nearest valid stable ID wins. E, the bound controller action, the nearby button or clicking the highlighted target sends the same validated command. Pointer input focuses the canvas and targets nearby interactions; it does not aim attacks.
 
 - Doors validate region/spawn identities and current destination foot clearance, preserve both regions' geometry/deltas, update activity/discovery, clear held input and place the actor explicitly before rendering.
-- Signs and NPCs open information dialogs. NPCs are not recruited.
-- Chests retain an opened ID and visible open frame. M07 adds nearby local deposits/withdrawals; M08 adds paired descriptions, partial-stack controls and a one-time clearing starter kit. See [inventory](inventory.md).
-- Farm plots open an inspection dialog; no planting or growth runs.
+- Signs and villagers open contextual dialogue. Tessa can be recruited in Whispering Forest.
+- Chests retain an opened ID and visible open frame. Interact to open local storage and access deposits, withdrawals and the clearing’s one-time starter kit. See [inventory](inventory.md).
+- Farm plots open the farm dialog for the nearby bed. See [farming](farming.md).
 - The small box is a single retained world object. Pickup hides its ground solid; drop checks full-box clearance, bounds and water, then restores it at the new position. Carrying takes interaction priority, so set it down before travel. Heavy-box pickup while swimming is rejected. This is not inventory/tool ownership.
 - Pond contact selects swimming animation, without a permanent campaign swim unlock.
 
@@ -43,6 +43,7 @@ A nearby target must be within 26px, in the facing half-plane (4px tolerance), a
 | Move                    | WASD or reserved arrows  | Left stick or D-pad                                |
 | Interact / menu confirm | E / native UI activation | South face button (0)                              |
 | Cosmetic sword preview  | Space                    | West face button (2)                               |
+| Explored map            | M                        | Right-stick click (11)                             |
 | Pause                   | Escape                   | Start (9)                                          |
 | Menu cancel             | Escape                   | East face button (1), or bound pause               |
 | Menu navigation         | Native Tab/arrows        | D-pad/stick; left/right changes a focused selector |
@@ -62,3 +63,11 @@ Pure tests compare actual wall collision at 30/60/144Hz, swept clipping/sliding,
 M08 adds **I / View (8)** for the pack and **X / RT (7)** for the selected action, including held shield guarding. Both are remappable through Controls. Pack selection, numeric quantities, selects and discard acknowledgement support native keyboard, pointer and standard controller navigation. All paths send the same typed core commands; menus retain composed pause and neutral-input rearming.
 
 M09 adds a woodland door to the authored tool trail. Its core-owned mechanisms alter collision from retained flags/weights, and its final bombable shortcut reaches the generated forest. Selected X/RT and context buttons share tool commands. The fixed-step resolver substitutes hook movement while latched; Phaser draws poses/tethers without another physics loop. Flippers gate the trail channels; the earlier village pond remains cosmetic. See [tools](tools.md).
+
+## Adventure HUD and route cues
+
+The HUD reads health, energy, carried coins and date from the same snapshot as the rest of the interface. The toolbelt shows the selected slot, unlock state and cooldown. It uses the owned sword, shield and bow icons with the existing input prompt sprites. The fieldbook holds the village journal, exploration summary, rest and saves.
+
+The contextual action beside the scene shows a nearby coin or the object the player is facing. It shares the keyboard and controller’s core commands. The map shows the current clearing, explored links and discovered keys, switches and gates. Route pickups, switches and gates publish a short notification after their checkpoint commits. Readable dialogues still pause for signs, villagers, caches and anchor rewards. This presentation adds no save fields.
+
+The generated crypt uses tile crops from the owned Tiny Dungeon Pack's gray room sheet. Door frames open with their existing saved passages. The pack also supplies stair tiles, torch frames, coins, arrows, switches, treasure chests and trail props. Their visual bounds leave the existing collision and interaction geometry in charge.

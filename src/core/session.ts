@@ -148,6 +148,7 @@ type EventBody =
 type WorldEvent =
   | { type: 'world.region-entered'; regionId: string }
   | { type: 'interaction.changed' }
+  | { type: 'world.discovery'; title: string; message: string; icon: 'key' | 'coin' | 'map' }
   | { type: 'storage.changed'; chestId: string }
   | { type: 'inventory.changed'; message: string }
   | { type: 'tools.changed'; message: string };
@@ -171,6 +172,7 @@ export type MovementResolver = (context: StepContext) => ResolvedMovement;
 const movementSchema = z.strictObject({ position: positionSchema, facing: directionSchema });
 interface CoreSnapshot {
   readonly hero: HeroId;
+  readonly vitals: { health: number; maxHealth: number; energy: number; maxEnergy: number };
   readonly paused: boolean;
   readonly pauseReasons: readonly PauseReason[];
   readonly calendar: Readonly<ReturnType<typeof calendarView>>;
@@ -255,7 +257,14 @@ export class GameSession {
       inventory = this.inventoryView,
       tools = this.toolsView,
       village = this.villageSnapshot,
-      farm = this.farmSnapshot;
+      farm = this.farmSnapshot,
+      resources = this.state.player.actor.resources,
+      vitals = {
+        health: Math.round(resources.health.current * 10) / 10,
+        maxHealth: resources.health.maximum,
+        energy: Math.round(resources.energy.current * 10) / 10,
+        maxEnergy: resources.energy.maximum,
+      };
     const combat = this.state.combat
       ? combatView(
           this.state.combat,
@@ -267,6 +276,10 @@ export class GameSession {
       : null;
     if (
       !this.cached ||
+      this.cached.vitals.health !== vitals.health ||
+      this.cached.vitals.maxHealth !== vitals.maxHealth ||
+      this.cached.vitals.energy !== vitals.energy ||
+      this.cached.vitals.maxEnergy !== vitals.maxEnergy ||
       JSON.stringify(this.cached.storage) !== JSON.stringify(storage) ||
       JSON.stringify(this.cached.inventory) !== JSON.stringify(inventory) ||
       JSON.stringify(this.cached.tools) !== JSON.stringify(tools) ||
@@ -290,6 +303,7 @@ export class GameSession {
     )
       this.cached = freezeData({
         hero: this.state.player.hero,
+        vitals,
         paused: this.pauses.paused,
         pauseReasons: reasons,
         calendar,
@@ -914,6 +928,12 @@ export class GameSession {
     ].filter(
       (t) =>
         !region.changes.removedObjects.includes(t.id) &&
+        !(
+          t.kind === 'generated' &&
+          (region.changes.openedPassages.includes(t.id) ||
+            region.changes.openedObjects.includes(t.id) ||
+            region.changes.claimedRewards.includes(t.id))
+        ) &&
         targetInReach(actor.position, actor.facing, this.targetPosition(t)) &&
         !this.solidEntries().some(
           (s) => s.owner !== t.id && segmentBlocked(actor.position, this.targetPosition(t), s.rect),
@@ -1059,9 +1079,12 @@ export class GameSession {
       this.openVillageNode(target.id === RESCUE_ID ? 'rescue' : 'welcome');
     } else if (target.kind === 'generated') {
       return this.interactGenerated(target);
-    } else {
-      if (target.kind === 'chest' && !region.changes.openedObjects.includes(target.id))
+    } else if (target.kind === 'chest') {
+      if (!region.changes.openedObjects.includes(target.id))
         region.changes.openedObjects.push(target.id);
+      this.pauses.set('storage', true);
+      this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
+    } else {
       this.message = freezeData({ title: target.label, body: target.text });
       this.pauses.set('interaction', true);
       this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
@@ -1185,6 +1208,7 @@ export class GameSession {
       fallback: layout.fallback,
       anchor: instance?.anchor.phase ?? null,
       tools: [...this.state.player.permanent.tools],
+      currentRoom: roomAt(layout, this.state.player.actor.position),
       rooms: layout.rooms.map((r) => ({
         id: r.id,
         column: r.column,
@@ -1197,12 +1221,18 @@ export class GameSession {
           area.changes.exploredRooms.includes(e.from) && area.changes.exploredRooms.includes(e.to),
       ),
       markers: layout.placements
-        .filter((p) => area.changes.discoveredMarkers.includes(p.id))
+        .filter(
+          (p) =>
+            area.changes.discoveredMarkers.includes(p.id) ||
+            (area.changes.exploredRooms.includes(p.room) &&
+              ['key', 'switch', 'axe', 'gate-key', 'gate-switch', 'gate-axe'].includes(p.kind)),
+        )
         .map((p) => ({
           id: p.id,
           kind: p.kind,
           room: p.room,
-          opened: area.changes.openedPassages.includes(p.id),
+          opened:
+            area.changes.openedPassages.includes(p.id) || area.changes.openedObjects.includes(p.id),
         })),
     };
   }
@@ -1297,6 +1327,29 @@ export class GameSession {
             : 'Warden reward collected: five coins. This surface reward stays claimed; its geography and warden remain unchanged.'
           : 'Hidden cache: five coins. This one-time discovery remains claimed.';
     } else text = target.text;
+    if (
+      p.kind.startsWith('gate-') ||
+      ['shortcut', 'key', 'switch', 'axe', 'resource'].includes(p.kind)
+    ) {
+      this.emit({
+        type: 'world.discovery',
+        title:
+          p.kind === 'key'
+            ? 'Brass key found'
+            : p.kind === 'switch'
+              ? 'Sun switch activated'
+              : p.kind === 'axe'
+                ? 'Trail axe acquired'
+                : p.kind === 'resource'
+                  ? 'Supplies gathered'
+                  : p.kind === 'shortcut'
+                    ? 'Shortcut opened'
+                    : 'Passage opened',
+        message: text,
+        icon: p.kind === 'key' ? 'key' : p.kind === 'resource' ? 'coin' : 'map',
+      });
+      return { ok: true };
+    }
     this.message = freezeData({ title: target.label, body: text });
     this.pauses.set('interaction', true);
     this.emit({ type: 'pause.changed', paused: true, reasons: this.pauses.snapshot() });
@@ -1448,24 +1501,28 @@ export class GameSession {
       hotbar: [
         {
           id: 'sword' as const,
+          available: true,
           name: 'Sword',
           energyCost: 0,
           cooldownSeconds: cooldown(battle?.attackReadyTick ?? 0),
         },
         {
           id: 'shield' as const,
+          available: true,
           name: 'Shield',
           energyCost: COMBAT_RULES.guardEnergy,
           cooldownSeconds: 0,
         },
         {
           id: 'roll' as const,
+          available: true,
           name: 'Roll',
           energyCost: COMBAT_RULES.rollEnergy,
           cooldownSeconds: cooldown(battle?.rollReadyTick ?? 0),
         },
         {
           id: 'bow' as const,
+          available: true,
           name: 'Bow',
           energyCost: COMBAT_RULES.bowEnergy,
           cooldownSeconds: Math.max(
@@ -1478,6 +1535,10 @@ export class GameSession {
         },
         ...(['bomb', 'boomerang', 'hook', 'magic', 'push', 'pull'] as const).map((id) => ({
           id,
+          available:
+            id === 'push' ||
+            id === 'pull' ||
+            this.state.player.permanent.tools.some((tool) => tool === `tool:${id}`),
           name: {
             bomb: 'Bomb',
             boomerang: 'Boomerang',
@@ -1681,7 +1742,7 @@ export class GameSession {
     this.random = new RandomStreams(data.world.seed, data.random);
     this.message = draft.message;
     this.inventoryFeedback = draft.inventoryFeedback;
-    for (const reason of ['death', 'interaction'] as const)
+    for (const reason of ['death', 'interaction', 'storage'] as const)
       this.pauses.set(reason, draft.pauses.snapshot().includes(reason));
     this.transitionSequence = forceScene
       ? Math.max(transition, draft.transitionSequence) + 1

@@ -1,3 +1,4 @@
+import { adventureFrames } from '../../src/assets/adventure-art';
 import { farmFrames } from '../../src/assets/farm';
 import type { AssetManifest } from '../../src/assets/definitions';
 import type { SourceRect } from '../../src/assets/terrain';
@@ -46,6 +47,7 @@ export function collectRuntimeFrames(assets: AssetManifest['assets']): SourceRec
       if (frame) add(frame);
     }
   for (const palette of BIOME_PALETTES) add(biomeGround(palette));
+  for (const frame of adventureFrames) add(frame);
   for (const frame of farmFrames) add(frame);
   add(clearingGrass);
   for (const frame of clearingGrassDetails) add(frame);

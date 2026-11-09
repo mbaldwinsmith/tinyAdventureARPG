@@ -17,6 +17,13 @@ The first full game release is planned as **1.0.0**. No game version has been re
 
 ## [Unreleased]
 
+### Changed — gameplay frame, route cues and bundled pixel art
+
+- **M15-002**. Move live hearts, energy, coins, date, tool selection and cooldowns into the play frame. Put Pack and Map on the HUD. Bring context actions, including coin collection, directly below the scene. Place the journal, expedition summary, rest and save controls in the fieldbook.
+- Open the explored map with M or right-stick click. It marks the current room and discovered gate requirements. Route pickups, switches and passages show a short confirmation after their saved action so the player can keep moving. Interacting with a local chest opens its storage directly.
+- Use the owned GUI, Adventure Plus and Dungeon sprite packs for vital and weapon icons, stone walls, gates, stairs, torches, arrows, keys, switches, chests, coins, crates and pots. The atlas packs 4,506 frames. Route geometry, item prices and the save schema stay the same.
+- The production build and all 160 unit tests passed. The full Chromium run passed 33 journeys, and the five targeted reruns passed after updating checks for the new HUD and chest transaction. All three production Chromium journeys passed. Reviewed the rendered clearing at 1440, 800 and 390 pixels, and inspected the generated crypt and explored map.
+
 ### Added — seasonal farming and late-night rollover
 
 - **M12-001, M12-002, M12-003, M12-004, M12-005**. Add three stable beds, a saved starter claim, a hoe, a four-charge watering can and a refill barrel. Turnips, carrots and blueberries use nine selected soil and growth frames from the owned Tiny Farm Pack. Plot, energy, seed and water changes commit together.

@@ -10,6 +10,15 @@ test('opens the clearing, changes appearance and pauses/resumes through the brid
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
   await expect(page.locator('canvas')).toHaveCount(1);
+  const hud = page.getByLabel('Adventure HUD', { exact: true });
+  await expect(hud).toContainText('Life 10 / 10');
+  await expect(hud.locator('.heart-sprites .pixel-icon')).toHaveCount(5);
+  await expect(hud.locator('.heart-sprites .pixel-icon').first()).toHaveCSS(
+    'background-image',
+    /generated\/atlas-/,
+  );
+  await expect(hud.getByRole('progressbar', { name: 'Energy' })).toBeVisible();
+  await expect(hud.getByRole('button', { name: 'Open pack' })).toBeInViewport();
   await page.getByRole('button', { name: 'Wanderer 4', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Wanderer 4', exact: true })).toHaveAttribute(
     'aria-pressed',
@@ -324,7 +333,12 @@ test('renders GUI panel corners from supplied pixels at different sizes and hand
 }) => {
   await page.goto('/');
   await expect(page.getByRole('status')).toHaveText('The path is open', { timeout: 30000 });
-  await expect(page.locator('.packed-key')).toHaveCount(9);
+  await expect(page.getByRole('button', { name: 'Pause Esc' }).locator('.packed-key')).toHaveCount(
+    1,
+  );
+  await expect(page.getByRole('button', { name: 'Open pack' }).locator('.packed-key')).toHaveCount(
+    1,
+  );
   await page.getByRole('button', { name: 'Pause Esc' }).click();
   await expect
     .poll(() =>

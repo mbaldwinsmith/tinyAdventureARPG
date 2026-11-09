@@ -138,23 +138,9 @@ export function CombatPanel({
                   : 'Encounter cleared. Collect the coins or try another trial.'
                 : 'Golden ring: windup. Red: active attack. Keep room to recover.')}
           </p>
-          {combat.drop && (
-            <button
-              className="button"
-              disabled={snapshot.paused}
-              onClick={() => {
-                if (!combat.drop) return;
-                const result = bridge.send({ type: 'combat.collect', dropId: combat.drop });
-                setError(result.ok ? null : result.message);
-                focus();
-              }}
-            >
-              Collect nearby coin
-            </button>
-          )}
           <p className="small-copy">
             {snapshot.expedition || snapshot.region.id === 'region:tool-trail'
-              ? 'Glowing trail markers lead between regions.'
+              ? 'Stone steps and trail markers lead between regions.'
               : 'The marked exit is at the south edge.'}{' '}
             Arrows use cooldowns, never ammunition or energy.{' '}
             {snapshot.expedition || snapshot.region.id === 'region:tool-trail'

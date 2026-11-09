@@ -9,6 +9,7 @@ export const farmSprout = cell(0, 2);
 export function farmCropFrame(row: number, mature: boolean) {
   return cell(mature ? 2 : 1, row);
 }
+export const farmProduceFrame = (row: number) => cell(0, row);
 export const farmFrames = [
   farmSoil.dry,
   farmSoil.wet,
@@ -16,5 +17,6 @@ export const farmFrames = [
   ...Object.values(CROPS).flatMap((crop) => [
     farmCropFrame(crop.artRow, false),
     farmCropFrame(crop.artRow, true),
+    farmProduceFrame(crop.artRow),
   ]),
 ];

@@ -1,3 +1,5 @@
+import { adventureIcons } from '../assets/adventure-art';
+import { DiscoveryNotice, PixelIcon, PlayHud } from './PlayHud';
 import { FarmDialog } from './FarmPanel';
 import { VillageDialog, VillageJournal } from './VillagePanel';
 import { SHOP_REGION } from '../content/village';
@@ -127,15 +129,19 @@ export function App() {
     if (!active) focusWorld();
   };
 
+  const drop = snapshot.combat?.drop;
+  const nearby = snapshot.nearby;
+  const interactionLabel = drop ? 'Collect nearby coin' : nearby?.label;
+  const playReady = snapshot.status === 'ready' && mounted && !snapshot.paused;
   return (
     <div className="app-shell">
       <header className="masthead">
         <a className="wordmark" href="#" aria-label="Tiny Adventure home">
           <span className="brand-mark" aria-hidden="true">
-            ✦
+            <PixelIcon assets={assets} rect={adventureIcons.blade} />
           </span>
           <span>
-            Tiny Adventure<small>A KINGDOM WORTH RESTORING</small>
+            Tiny Adventure<small>THE WAYFARER'S JOURNEY</small>
           </span>
         </a>
         <div className="header-actions">
@@ -146,7 +152,6 @@ export function App() {
           >
             Controls
           </button>
-          <span className="build-badge">FIRST STEPS · 0.0.0</span>
           <button
             className="button button-subtle"
             disabled={snapshot.status !== 'ready' || !mounted}
@@ -157,148 +162,172 @@ export function App() {
         </div>
       </header>
       <main>
-        <div className="intro-row">
-          <div>
-            <p className="eyebrow">THE JOURNEY BEGINS HERE</p>
-            <h1>
-              A small clearing.
-              <br />
-              <em>A world to come.</em>
-            </h1>
-          </div>
-          <p className="intro-copy">
-            Beyond the trees, an adventure is taking shape.
-            <br />
-            For now, take a breath. Find your feet.
-          </p>
-        </div>
-        <section className="adventure-frame" aria-labelledby="clearing-title">
-          <div className="location-bar">
-            <div>
-              <span className="location-dot" aria-hidden="true" />
-              <h2 id="clearing-title">{snapshot.region.name}</h2>
-              <span className="location-type">
-                {snapshot.tools?.active
-                  ? 'TOOL TRAIL'
-                  : snapshot.expedition
-                    ? 'PERSISTENT EXPEDITION'
-                    : snapshot.combat?.active
-                      ? 'COMBAT PRACTICE'
-                      : snapshot.region.id === SHOP_REGION
-                        ? 'VILLAGE SERVICE'
-                        : 'FOREST PREVIEW'}
+        <h1 className="visually-hidden">Tiny Adventure</h1>
+        <div className="play-layout">
+          <section className="adventure-frame" aria-labelledby="clearing-title">
+            <div className="location-bar">
+              <div>
+                <span className="location-dot" aria-hidden="true" />
+                <h2 id="clearing-title">{snapshot.region.name}</h2>
+                <span className="location-type">
+                  {snapshot.tools?.active
+                    ? 'TOOL TRAIL'
+                    : snapshot.expedition
+                      ? 'PERSISTENT EXPEDITION'
+                      : snapshot.combat?.active
+                        ? 'COMBAT PRACTICE'
+                        : snapshot.region.id === SHOP_REGION
+                          ? 'VILLAGE SERVICE'
+                          : 'VILLAGE'}
+                </span>
+              </div>
+              <span className="engine-status" role="status">
+                {snapshot.status === 'loading'
+                  ? 'Opening the path…'
+                  : snapshot.status === 'failed'
+                    ? 'Unable to open the path'
+                    : snapshot.pauseReasons.includes('death')
+                      ? snapshot.region.id === 'region:practice'
+                        ? 'Defeated — practice paused'
+                        : 'Defeated — expedition paused'
+                      : !mounted
+                        ? 'Scene unloaded'
+                        : snapshot.pauseReasons.includes('workbench')
+                          ? 'Inspecting artwork'
+                          : menuOpen
+                            ? 'Taking a breather'
+                            : 'The path is open'}
               </span>
             </div>
-            <span className="engine-status" role="status">
-              {snapshot.status === 'loading'
-                ? 'Opening the path…'
-                : snapshot.status === 'failed'
-                  ? 'Unable to open the path'
-                  : snapshot.pauseReasons.includes('death')
-                    ? snapshot.region.id === 'region:practice'
-                      ? 'Defeated — practice paused'
-                      : 'Defeated — expedition paused'
-                    : !mounted
-                      ? 'Scene unloaded'
-                      : snapshot.pauseReasons.includes('workbench')
-                        ? 'Inspecting artwork'
-                        : menuOpen
-                          ? 'Taking a breather'
-                          : 'The path is open'}
-            </span>
-          </div>
-          <div className="world-stage">
-            {mounted && <GameCanvas bridge={bridge} />}
-            {snapshot.status === 'loading' && (
-              <div className="scene-overlay">
-                <span className="loading-star">✦</span>
-                <p>Preparing the clearing…</p>
-              </div>
-            )}
-            {snapshot.status === 'failed' && (
-              <div className="scene-overlay error-panel" role="alert">
-                <h3>The path needs a little attention</h3>
-                <p>{snapshot.error}</p>
-                <button className="button" onClick={() => window.location.reload()}>
-                  Try again
-                </button>
-              </div>
-            )}
-            {!mounted && (
-              <div className="scene-overlay">
-                <p>The clearing has been unloaded.</p>
-              </div>
-            )}
-            {snapshot.pauseReasons.includes('background') &&
-              !menuOpen &&
-              snapshot.status === 'ready' &&
-              mounted && (
-                <div className="background-notice">Paused while this window is inactive</div>
+            <PlayHud assets={assets} snapshot={snapshot} bridge={bridge} />
+            <div className="world-stage">
+              {mounted && <GameCanvas bridge={bridge} />}
+              <DiscoveryNotice assets={assets} bridge={bridge} />
+              {snapshot.status === 'loading' && (
+                <div className="scene-overlay">
+                  <span className="loading-star">✦</span>
+                  <p>Preparing the clearing…</p>
+                </div>
               )}
-          </div>
-          <div className="controls-bar">
-            <p>
-              <span className="key-group">
-                {snapshot.input.device === 'keyboard' ? (
-                  <>
-                    <ActionPrompt manifest={assets} input={snapshot.input} action="up" />
-                    <ActionPrompt manifest={assets} input={snapshot.input} action="left" />
-                    <ActionPrompt manifest={assets} input={snapshot.input} action="down" />
-                    <ActionPrompt manifest={assets} input={snapshot.input} action="right" />
-                  </>
-                ) : (
-                  <kbd>Left stick / D-pad</kbd>
+              {snapshot.status === 'failed' && (
+                <div className="scene-overlay error-panel" role="alert">
+                  <h3>The path needs a little attention</h3>
+                  <p>{snapshot.error}</p>
+                  <button className="button" onClick={() => window.location.reload()}>
+                    Try again
+                  </button>
+                </div>
+              )}
+              {!mounted && (
+                <div className="scene-overlay">
+                  <p>The clearing has been unloaded.</p>
+                </div>
+              )}
+              {snapshot.pauseReasons.includes('background') &&
+                !menuOpen &&
+                snapshot.status === 'ready' &&
+                mounted && (
+                  <div className="background-notice">Paused while this window is inactive</div>
                 )}
-              </span>{' '}
-              {snapshot.input.device === 'keyboard' ? 'or arrows to wander' : 'to wander'}{' '}
-              <span className="control-divider">/</span>{' '}
-              <ActionPrompt manifest={assets} input={snapshot.input} action="interact" /> interact{' '}
-              <span className="control-divider">/</span>{' '}
-              <ActionPrompt manifest={assets} input={snapshot.input} action="attack" /> swing
-              {snapshot.combat?.active ? '' : 'preview'}
-            </p>
-            <span className="preview-label">
-              {snapshot.input.connected
-                ? `${snapshot.input.device === 'keyboard' ? 'Keyboard' : snapshot.input.device} · controller connected`
-                : 'Keyboard · click to focus'}
-            </span>
-          </div>
-        </section>
-        <div className="interaction-prompt" aria-label="Nearby interaction">
-          <span>
-            {snapshot.carrying
-              ? 'Carrying a small box'
-              : snapshot.swimming
-                ? 'Swimming in the pond'
-                : snapshot.expedition
-                  ? 'Follow the trail markers and face an object to interact'
-                  : 'Explore the clearing, cottage and woodland path'}
-          </span>
-          {snapshot.nearby && (
-            <button
-              className="button button-subtle"
-              disabled={snapshot.paused || snapshot.status !== 'ready' || !mounted}
-              onClick={() => {
-                const result = bridge.send({
-                  type: 'world.interact',
-                  target: snapshot.nearby?.id ?? null,
-                });
-                setCommandError(result.ok ? null : result.message);
-                focusWorld();
-              }}
-            >
-              {snapshot.nearby.label}
-            </button>
-          )}
+            </div>
+            <div className="action-dock" aria-label="Nearby interaction">
+              {interactionLabel ? (
+                <button
+                  className="button context-action"
+                  aria-label={interactionLabel}
+                  disabled={!playReady}
+                  onClick={() => {
+                    const result = drop
+                      ? bridge.send({ type: 'combat.collect', dropId: drop })
+                      : bridge.send({ type: 'world.interact', target: nearby?.id ?? null });
+                    setCommandError(result.ok ? null : result.message);
+                    focusWorld();
+                  }}
+                >
+                  <ActionPrompt manifest={assets} input={snapshot.input} action="interact" />
+                  {interactionLabel}
+                </button>
+              ) : (
+                <span className="context-hint">
+                  {snapshot.swimming
+                    ? 'Swimming'
+                    : snapshot.carrying
+                      ? 'Carrying an object'
+                      : snapshot.expedition
+                        ? 'Face an object to interact'
+                        : 'Explore the clearing'}
+                </span>
+              )}
+              <div
+                className="action-legend"
+                role="group"
+                aria-label={`${snapshot.input.device} controls`}
+              >
+                <span>
+                  {snapshot.input.device === 'keyboard'
+                    ? `${(['up', 'left', 'down', 'right'] as const).map((action) => snapshot.input.keys[action].replace('Key', '')).join(' ')} / arrows`
+                    : 'Stick / D-pad'}{' '}
+                  · Move
+                </span>
+                <span>
+                  <ActionPrompt manifest={assets} input={snapshot.input} action="attack" /> Sword
+                </span>
+                <span>
+                  <ActionPrompt manifest={assets} input={snapshot.input} action="roll" /> Roll
+                </span>
+              </div>
+            </div>
+            {(commandError || snapshot.notice) && (
+              <p role="alert" className="command-error">
+                {commandError ?? snapshot.notice}
+              </p>
+            )}
+            <InventoryPanel bridge={bridge} snapshot={snapshot} assets={assets} />
+          </section>
+          <aside className="fieldbook" aria-label="Fieldbook">
+            <header className="fieldbook-heading">
+              <PixelIcon assets={assets} rect={adventureIcons.map} />
+              <div>
+                <p className="eyebrow">THE WAYFARER'S</p>
+                <h2>Fieldbook</h2>
+              </div>
+            </header>
+            <VillageJournal snapshot={snapshot} />
+            <ExpeditionPanel bridge={bridge} snapshot={snapshot} />
+            <section className="calendar-panel" aria-label="Day and season">
+              <div>
+                <p className="eyebrow">THE RHYTHM OF THE CLEARING</p>
+                <h2>Make camp</h2>
+                <p>At 02:00 a new day starts. Rest to start tomorrow with full energy.</p>
+              </div>
+              <button
+                className="button button-subtle"
+                disabled={
+                  snapshot.status !== 'ready' ||
+                  !mounted ||
+                  snapshot.paused ||
+                  !!snapshot.combat?.active
+                }
+                onClick={() => {
+                  const result = bridge.send({
+                    type: 'calendar.sleep',
+                    expectedDay: snapshot.calendar.day,
+                  });
+                  setCommandError(result.ok ? null : result.message);
+                }}
+              >
+                Rest until tomorrow
+              </button>
+            </section>
+            <SavePanel bridge={bridge} snapshot={snapshot} />
+          </aside>
         </div>
-        <ExpeditionPanel bridge={bridge} snapshot={snapshot} />
-        <VillageJournal snapshot={snapshot} />
         <StoragePanel key={snapshot.transitionSequence} bridge={bridge} snapshot={snapshot} />
         <DeathReport snapshot={snapshot} />
-        <SavePanel bridge={bridge} snapshot={snapshot} />
-        <InventoryPanel bridge={bridge} snapshot={snapshot} assets={assets} />
-        <ToolsPanel bridge={bridge} snapshot={snapshot} />
-        <CombatPanel bridge={bridge} snapshot={snapshot} assets={assets} />
+        <div className="camp-layout">
+          <CombatPanel bridge={bridge} snapshot={snapshot} assets={assets} />
+          <ToolsPanel bridge={bridge} snapshot={snapshot} />
+        </div>
         <section className="below-world" aria-label="Preview options and development status">
           <div className="appearance-panel">
             <p className="eyebrow">A FACE FOR THE JOURNEY</p>
@@ -340,7 +369,7 @@ export function App() {
               <p>
                 The forest and anchored crypt are ready. Find a route, bring discoveries home, and
                 return to the clearing. Bank your finds in local chests and export a backup for
-                safekeeping. Farming and the wider Kingdom are still ahead.
+                safekeeping. Tend the clearing’s farm, or follow the paths beyond the village.
               </p>
               <a
                 href="https://github.com/mbaldwinsmith/tinyAdventureARPG/blob/main/PLAN.md"
@@ -394,41 +423,6 @@ export function App() {
             Preview animation
           </button>
         </section>
-        <section className="calendar-panel" aria-label="Day and season">
-          <div>
-            <p className="eyebrow">THE RHYTHM OF THE CLEARING</p>
-            <h2 data-testid="world-time">
-              Day {snapshot.calendar.day} · {snapshot.calendar.season}{' '}
-              {snapshot.calendar.dayOfSeason} ·{' '}
-              {String(Math.floor(snapshot.calendar.minuteOfDay / 60)).padStart(2, '0')}:
-              {String(snapshot.calendar.minuteOfDay % 60).padStart(2, '0')}
-            </h2>
-            <p>At 02:00 a new day starts. Rest to start tomorrow with full energy.</p>
-          </div>
-          <button
-            className="button button-subtle"
-            disabled={
-              snapshot.status !== 'ready' ||
-              !mounted ||
-              snapshot.paused ||
-              !!snapshot.combat?.active
-            }
-            onClick={() => {
-              const result = bridge.send({
-                type: 'calendar.sleep',
-                expectedDay: snapshot.calendar.day,
-              });
-              setCommandError(result.ok ? null : result.message);
-            }}
-          >
-            Rest until tomorrow
-          </button>
-        </section>
-        {(commandError || snapshot.notice) && (
-          <p role="alert" className="command-error">
-            {commandError ?? snapshot.notice}
-          </p>
-        )}
         {import.meta.env.DEV && (
           <details className="developer-tools">
             <summary>Development tools</summary>
